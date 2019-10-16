@@ -55,7 +55,7 @@ int main(int /*argc*/, const char **/***argv*/) {
     size_t shape[3] = {11, 11, 11};
 
     auto grid = Grid{shape, x, y, z};
-    auto absorption_model = llrte::ConstantAbsorption<float>(1.0);
+    auto absorption_model = llrte::ConstantAbsorption<float>(1e-6);
     auto atmosphere = Atmosphere{grid, absorption_model};
 
     auto solver = Solver(atmosphere, source);

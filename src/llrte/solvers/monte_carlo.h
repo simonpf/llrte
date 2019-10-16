@@ -172,6 +172,12 @@ class Atmosphere {
         return grid_.get_grid_position(position);
     }
 
+    template <typename GridPosition>
+    auto is_inside(GridPosition position)
+        {
+            return grid_.is_inside(position);
+        }
+
     template <typename Vector, typename GridPosition>
     std::pair<Float, GridPosition> get_intersection(GridPosition gp,
                                                     Vector direction)
@@ -214,7 +220,7 @@ public:
         auto position = atmosphere_.get_grid_position(photon_position);
         std::cout << position << std::endl;
 
-        while (true) {
+        for (size_t i = 0; i < 3; ++i) {
             auto absorption = atmosphere_.get_absorption(position);
             auto intersection = atmosphere_.get_intersection(position,
                                                              photon_direction);
@@ -222,12 +228,13 @@ public:
             std::cout << std::get<1>(intersection) << std::endl;
             std::cout << photon_direction << std::endl;
 
-            if (!std::get<1>(intersection).is_inside()) {
+            if (!atmosphere_.is_inside(std::get<1>(intersection))) {
                 break;
             }
 
             auto d = std::get<0>(intersection);
-            if (d > sample_path_length(absorption)) {
+            std::cout << sample_path_length(1.0 / absorption) <<std::endl;
+            if (d > sample_path_length(1.0 / absorption)) {
                 break;
             }
 
