@@ -50,13 +50,13 @@ int main(int /*argc*/, const char **/***argv*/) {
 
     float start = -10.0e3;
     float stop = 10.0e3;
-    auto x = make_linear_vector(start, stop, 11);
-    auto y = make_linear_vector(start, stop, 11);
-    auto z = make_linear_vector(start, stop, 11);
-    size_t shape[3] = {11, 11, 11};
+    auto x = make_linear_vector(start, stop, 101);
+    auto y = make_linear_vector(start, stop, 101);
+    auto z = make_linear_vector(start, stop, 101);
+    size_t shape[3] = {101, 101, 101};
 
     auto grid = Grid{shape, x, y, z};
-    auto absorption_model = llrte::ConstantAbsorption<float>(1e-6);
+    auto absorption_model = llrte::ConstantAbsorption<float>(1.0);
     auto atmosphere = Atmosphere{grid, absorption_model};
     auto results = Results{grid};
 

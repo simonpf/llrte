@@ -206,7 +206,6 @@ public:
 
     Histogram(const Grid &grid) {
         std::tie(shape_[0], shape_[1], shape_[2]) = grid.get_extent();
-        std::cout << "extent: " << shape_[0] << " / " << shape_[1] << " / " << shape_[2] << std::endl;
         size_t n = shape_[0] * shape_[1] * shape_[2];
         data_ = std::shared_ptr<Index[]>(new Index[n]);
         for (size_t i = 0; i < n; ++i) {
@@ -260,7 +259,6 @@ public:
 
         auto position = atmosphere_.get_grid_position(photon_position);
 
-        std::cout << position << std::endl;
         while (true) {
             auto absorption = atmosphere_.get_absorption(position);
             auto intersection = atmosphere_.get_intersection(position,
@@ -271,7 +269,6 @@ public:
             }
 
             auto d = std::get<0>(intersection);
-            std::cout << sample_path_length(1.0 / absorption) <<std::endl;
             if (d > sample_path_length(1.0 / absorption)) {
                 break;
             }
