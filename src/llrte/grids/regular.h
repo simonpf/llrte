@@ -28,6 +28,8 @@ class RegularGrid {
 
 public:
 
+    using Index = size_t;
+
     using Float = F;
 
 
@@ -40,6 +42,10 @@ public:
         for (size_t i = 0; i < 3; ++i){
             shape_[i] = shape[i];
         }
+    }
+
+    std::tuple<Index, Index, Index> get_extent() const {
+        return std::make_tuple(shape_[0], shape_[1], shape_[2]);
     }
 
     template <typename Backend>

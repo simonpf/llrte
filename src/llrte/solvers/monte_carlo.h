@@ -6,6 +6,8 @@
 #include <tuple>
 #include <llrte/constants.h>
 #include <iostream>
+#include <fstream>
+#include <memory>
 
 namespace llrte {
 
@@ -196,16 +198,55 @@ public:
     AbsorptionModel absorption_model_;
 };
 
+template <typename Grid>
+class Histogram {
+public:
+
+    using Index = typename Grid::Index;
+
+    Histogram(const Grid &grid) {
+        std::tie(shape_[0], shape_[1], shape_[2]) = grid.get_extent();
+        std::cout << "extent: " << shape_[0] << " / " << shape_[1] << " / " << shape_[2] << std::endl;
+        size_t n = shape_[0] * shape_[1] * shape_[2];
+        data_ = std::shared_ptr<Index[]>(new Index[n]);
+        for (size_t i = 0; i < n; ++i) {
+            data_[i] = 0;
+        }
+    }
+
+    template<typename GridPos>
+    void trace(GridPos gp) {
+        size_t index = gp.i * gp.j * gp.k;
+        data_[index] += 1;
+    }
+
+    void dump(std::string filename) {
+        std::ofstream file;
+        file.open (filename, std::ios::out | std::ios::binary); 
+        size_t n = shape_[0] * shape_[1] * shape_[2];
+        for (size_t i = 0; i < n; ++i) {
+            file << data_[i];
+        }
+    }
+
+private:
+
+    Index shape_[3] = {0, 0, 0};
+    std::shared_ptr<Index[]> data_ = nullptr;
+};
+
 template<typename Atmosphere,
-         typename Source>
+         typename Source,
+         typename Results>
 class MonteCarloSolver {
 public:
 
     using Float = typename Atmosphere::Float;
 
     MonteCarloSolver(Atmosphere atmosphere,
-                     Source source)
-        : atmosphere_(atmosphere), source_(source)
+                     Source source,
+                     Results results)
+        : atmosphere_(atmosphere), source_(source), results_(results)
     {
         // Nothing to do here.
     }
@@ -218,15 +259,12 @@ public:
         auto photon_direction = photon.get_direction();
 
         auto position = atmosphere_.get_grid_position(photon_position);
-        std::cout << position << std::endl;
 
-        for (size_t i = 0; i < 3; ++i) {
+        std::cout << position << std::endl;
+        while (true) {
             auto absorption = atmosphere_.get_absorption(position);
             auto intersection = atmosphere_.get_intersection(position,
                                                              photon_direction);
-
-            std::cout << std::get<1>(intersection) << std::endl;
-            std::cout << photon_direction << std::endl;
 
             if (!atmosphere_.is_inside(std::get<1>(intersection))) {
                 break;
@@ -238,7 +276,7 @@ public:
                 break;
             }
 
-            atmosphere_.trace(position);
+            results_.trace(position);
             position = std::get<1>(intersection);
 
         }
@@ -247,7 +285,7 @@ public:
 
     Float sample_path_length(Float m) {
         auto y = distribution(generator);
-        return -m * log(1 - y);
+        return -m * log(y);
     }
 
 private:
@@ -257,6 +295,7 @@ private:
 
     Atmosphere atmosphere_;
     Source source_;
+    Results results_;
 
 };
 

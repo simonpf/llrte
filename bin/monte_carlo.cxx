@@ -37,7 +37,8 @@ int main(int /*argc*/, const char **/***argv*/) {
     using AbsorptionModel = llrte::ConstantAbsorption<Float>;
     using Atmosphere = llrte::Atmosphere<Grid, AbsorptionModel>;
     using Source = llrte::PointSource<V3>;
-    using Solver = llrte::MonteCarloSolver<Atmosphere, Source>;
+    using Results = llrte::Histogram<Grid>;
+    using Solver = llrte::MonteCarloSolver<Atmosphere, Source, Results>;
 
     auto source_position = V3{};
     source_position[0] = 0.0;
@@ -57,7 +58,12 @@ int main(int /*argc*/, const char **/***argv*/) {
     auto grid = Grid{shape, x, y, z};
     auto absorption_model = llrte::ConstantAbsorption<float>(1e-6);
     auto atmosphere = Atmosphere{grid, absorption_model};
+    auto results = Results{grid};
 
-    auto solver = Solver(atmosphere, source);
-    solver.sample_photon();
+    auto solver = Solver(atmosphere, source, grid);
+
+    for (size_t i = 0; i < 1000000; i++) {
+        solver.sample_photon();
+    }
+    results.dump("results.bin");
 }
