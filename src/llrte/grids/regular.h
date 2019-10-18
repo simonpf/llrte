@@ -171,12 +171,12 @@ public:
             if (gp.i > 0) {
                 i = get_lower<0>(gp);
                 dx = (x_[i] - gp.x) / dir[0];
-                i++;
             }
         } else {
             if (gp.i < shape_[1]) {
                 i = get_higher<0>(gp);
                 dx = (x_[i] - gp.x) / dir[0];
+                i++;
             }
         }
 
@@ -197,6 +197,7 @@ public:
             if (gp.j < shape_[1]) {
                 j = get_higher<1>(gp);
                 dy = (y_[j] - gp.y) / dir[1];
+                j++;
             }
         }
 
@@ -217,6 +218,7 @@ public:
             if (gp.k < shape_[2]) {
                 k = get_higher<2>(gp);
                 dz = (z_[k] - gp.z) / dir[2];
+                k++;
             }
         }
 

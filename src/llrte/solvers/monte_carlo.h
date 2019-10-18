@@ -49,7 +49,7 @@ public:
     Vector operator-(const Vector &v) {
         Vector w;
         for (size_t i = 0; i < N; ++i) {
-            w[i] = v[i] + elements_[i];
+            w[i] = v[i] - elements_[i];
         }
     }
 
@@ -112,7 +112,7 @@ public:
 
     std::default_random_engine generator;
     std::uniform_real_distribution<Float> theta_d{-C::pi, C::pi};
-    std::uniform_real_distribution<Float> phi_d{-C::pi / 2.0, C::pi};
+    std::uniform_real_distribution<Float> phi_d{0, 1};
 
     PointSource(Vector position) :
     position_(position) {
@@ -122,7 +122,7 @@ public:
 
     Photon<Vector> sample_photon() {
         auto theta = theta_d(generator);
-        auto phi = phi_d(generator);
+        auto phi = asin(2.0 * phi_d(generator) - 1.0);
         Vector v = Vector{};
         v[0] = cos(phi) * cos(theta);
         v[1] = cos(phi) * sin(theta);
@@ -189,7 +189,7 @@ class Atmosphere {
 
     template<typename T>
     void trace(T) {
-        
+
     }
 
 
@@ -213,9 +213,14 @@ public:
         }
     }
 
+
     template<typename GridPos>
     void trace(GridPos gp) {
-        size_t index = gp.i * gp.j * gp.k;
+        size_t index = gp.k - 1;
+        index *= shape_[2];
+        index += gp.j - 1;
+        index *= shape_[1];
+        index += gp.i - 1;
         data_[index] += 1;
     }
 
@@ -223,9 +228,8 @@ public:
         std::ofstream file;
         file.open (filename, std::ios::out | std::ios::binary); 
         size_t n = shape_[0] * shape_[1] * shape_[2];
-        for (size_t i = 0; i < n; ++i) {
-            file << data_[i];
-        }
+        file.write((char*) data_.get(), n * sizeof(Index));
+        file.close();
     }
 
 private:
@@ -260,9 +264,10 @@ public:
         auto position = atmosphere_.get_grid_position(photon_position);
 
         while (true) {
+            results_.trace(position);
+
             auto absorption = atmosphere_.get_absorption(position);
-            auto intersection = atmosphere_.get_intersection(position,
-                                                             photon_direction);
+            auto intersection = atmosphere_.get_intersection(position, photon_direction);
 
             if (!atmosphere_.is_inside(std::get<1>(intersection))) {
                 break;
@@ -272,10 +277,7 @@ public:
             if (d > sample_path_length(1.0 / absorption)) {
                 break;
             }
-
-            results_.trace(position);
             position = std::get<1>(intersection);
-
         }
         //bool graveyard = false;
     }

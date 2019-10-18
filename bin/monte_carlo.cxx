@@ -7,7 +7,6 @@
 struct Deleter {
     template <typename T>
     void operator()(T *) {
-        std::cout << "shared ptr delter." << std::endl;
     }
 };
 
@@ -50,17 +49,17 @@ int main(int /*argc*/, const char **/***argv*/) {
 
     float start = -10.0e3;
     float stop = 10.0e3;
-    auto x = make_linear_vector(start, stop, 101);
-    auto y = make_linear_vector(start, stop, 101);
-    auto z = make_linear_vector(start, stop, 101);
-    size_t shape[3] = {101, 101, 101};
+    auto x = make_linear_vector(start, stop, 201);
+    auto y = make_linear_vector(start, stop, 201);
+    auto z = make_linear_vector(start, stop, 201);
+    size_t shape[3] = {201, 201, 201};
 
     auto grid = Grid{shape, x, y, z};
-    auto absorption_model = llrte::ConstantAbsorption<float>(1.0);
+    auto absorption_model = llrte::ConstantAbsorption<float>(1e-9);
     auto atmosphere = Atmosphere{grid, absorption_model};
     auto results = Results{grid};
 
-    auto solver = Solver(atmosphere, source, grid);
+    auto solver = Solver(atmosphere, source, results);
 
     for (size_t i = 0; i < 1000000; i++) {
         solver.sample_photon();
