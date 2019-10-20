@@ -18,7 +18,7 @@ std::shared_ptr<F[]> make_linear_vector(F start,
 
     std::shared_ptr<F[]> v{new F[steps], Deleter()};
 
-    F d = (stop - start) / steps;
+    F d = (stop - start) / (steps - 1);
     F x = start;
     for (size_t i = 0; i < steps;  ++i) {
         v[i] = x;
@@ -41,8 +41,8 @@ int main(int /*argc*/, const char **/***argv*/) {
 
     auto source_position = V3{};
     source_position[0] = 0.0;
-    source_position[0] = 0.0;
-    source_position[0] = 0.0;
+    source_position[1] = 0.0;
+    source_position[2] = 0.0;
 
     auto source = llrte::PointSource<V3>(source_position);
 
@@ -54,6 +54,11 @@ int main(int /*argc*/, const char **/***argv*/) {
     auto z = make_linear_vector(start, stop, 201);
     size_t shape[3] = {201, 201, 201};
 
+    for (size_t i = 0; i < 201; ++i) {
+        std::cout << x[i] << ", ";
+    }
+    std::cout << std::endl;
+
     auto grid = Grid{shape, x, y, z};
     auto absorption_model = llrte::ConstantAbsorption<float>(1e-9);
     auto atmosphere = Atmosphere{grid, absorption_model};
@@ -61,7 +66,7 @@ int main(int /*argc*/, const char **/***argv*/) {
 
     auto solver = Solver(atmosphere, source, results);
 
-    for (size_t i = 0; i < 1000000; i++) {
+    for (size_t i = 0; i < 2; i++) {
         solver.sample_photon();
     }
     results.dump("results.bin");

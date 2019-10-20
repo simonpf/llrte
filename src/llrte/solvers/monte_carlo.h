@@ -44,6 +44,15 @@ public:
         for (size_t i = 0; i < N; ++i) {
             w[i] = v[i] + elements_[i];
         }
+        return w;
+    }
+
+    Vector operator*(const Float &v) {
+        Vector w;
+        for (size_t i = 0; i < N; ++i) {
+            w[i] = v * elements_[i];
+        }
+        return w;
     }
 
     Vector operator-(const Vector &v) {
@@ -51,6 +60,7 @@ public:
         for (size_t i = 0; i < N; ++i) {
             w[i] = v[i] - elements_[i];
         }
+        return w;
     }
 
     Float length() {
@@ -187,11 +197,6 @@ class Atmosphere {
         return grid_.get_intersection(gp, direction);
     }
 
-    template<typename T>
-    void trace(T) {
-
-    }
-
 
 public:
     Grid grid_;
@@ -203,13 +208,14 @@ class Histogram {
 public:
 
     using Index = typename Grid::Index;
+    using Float = typename Grid::Float;
 
     Histogram(const Grid &grid) {
         std::tie(shape_[0], shape_[1], shape_[2]) = grid.get_extent();
-        size_t n = shape_[0] * shape_[1] * shape_[2];
-        data_ = std::shared_ptr<Index[]>(new Index[n]);
+        size_t n = (shape_[0] - 1) * (shape_[1] - 1) * (shape_[2] - 1);
+        data_ = std::shared_ptr<Float[]>(new Float[n]);
         for (size_t i = 0; i < n; ++i) {
-            data_[i] = 0;
+            data_[i] = 0.0;
         }
     }
 
@@ -217,25 +223,37 @@ public:
     template<typename GridPos>
     void trace(GridPos gp) {
         size_t index = gp.k - 1;
-        index *= shape_[2];
+        index *= (shape_[2] - 1);
         index += gp.j - 1;
-        index *= shape_[1];
+        index *= (shape_[1] - 1);
         index += gp.i - 1;
-        data_[index] += 1;
+        data_[index] += 1.0;
+        std::cout << " trace: " << gp.i << " / " << gp.j << " / " << gp.z << std::endl;
+    }
+
+    template<typename GridPos>
+        void trace(GridPos gp, Float val) {
+        size_t index = gp.k - 1;
+        index *= (shape_[2] - 1);
+        index += gp.j - 1;
+        index *= (shape_[1] - 1);
+        index += gp.i - 1;
+        data_[index] += val;
+        std::cout << " trace: " << gp.i << " / " << gp.j << " / " << gp.k << " : " << val << std::endl;
     }
 
     void dump(std::string filename) {
         std::ofstream file;
         file.open (filename, std::ios::out | std::ios::binary); 
-        size_t n = shape_[0] * shape_[1] * shape_[2];
-        file.write((char*) data_.get(), n * sizeof(Index));
+        size_t n = (shape_[0] - 1) * (shape_[1] - 1) * (shape_[2] - 1);
+        file.write((char*) data_.get(), n * sizeof(Float));
         file.close();
     }
 
 private:
 
-    Index shape_[3] = {0, 0, 0};
-    std::shared_ptr<Index[]> data_ = nullptr;
+    Float shape_[3] = {0, 0, 0};
+    std::shared_ptr<Float[]> data_ = nullptr;
 };
 
 template<typename Atmosphere,
@@ -264,20 +282,21 @@ public:
         auto position = atmosphere_.get_grid_position(photon_position);
 
         while (true) {
-            results_.trace(position);
-
             auto absorption = atmosphere_.get_absorption(position);
             auto intersection = atmosphere_.get_intersection(position, photon_direction);
-
-            if (!atmosphere_.is_inside(std::get<1>(intersection))) {
-                break;
-            }
-
             auto d = std::get<0>(intersection);
-            if (d > sample_path_length(1.0 / absorption)) {
+
+            auto p = sample_path_length(1.0 / absorption);
+            if (d > p) {
+                results_.trace(position, p);
                 break;
+            } else {
+                results_.trace(position, d);
+                if (!atmosphere_.is_inside(std::get<1>(intersection))) {
+                    break;
+                }
+                position = std::get<1>(intersection);
             }
-            position = std::get<1>(intersection);
         }
         //bool graveyard = false;
     }

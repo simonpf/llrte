@@ -180,12 +180,12 @@ public:
             }
         }
 
-        if ((dx > 0.0) && (dx < d)) {
+        if ((dx >= 0.0) && (dx < d)) {
             direction = 0;
             d = dx;
         }
 
-        float dy;
+        float dy = -1.0;
         size_t j = 0;
 
         if (dir[1] < 0.0) {
@@ -201,12 +201,12 @@ public:
             }
         }
 
-        if ((dy > 0.0) && (dy < d)) {
+        if ((dy >= 0.0) && (dy < d)) {
             direction = 1;
             d = dy;
         }
 
-        float dz;
+        float dz = -1.0;
         size_t k = 0;
 
         if (dir[2] < 0.0) {
@@ -222,7 +222,7 @@ public:
             }
         }
 
-        if ((dz > 0.0) && (dz < d)) {
+        if ((dz >= 0.0) && (dz < d)) {
             direction = 2;
             d = dz;
         }
