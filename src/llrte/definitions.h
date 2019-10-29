@@ -6,6 +6,9 @@
 
 namespace llrte {
 
+enum class Event {step, absorption, scattering};
+
+
 class ClassAttribute {
 public:
     template <typename T>
