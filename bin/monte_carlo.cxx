@@ -2,6 +2,12 @@
 //#include <llrte/compiler.h>
 #include <llrte/solvers/monte_carlo.h>
 #include <llrte/grids.h>
+#include <llrte/absorption.h>
+#include <llrte/atmosphere.h>
+#include <llrte/tracers.h>
+#include <llrte/sources.h>
+#include <llrte/photons.h>
+#include <llrte/types/vector.h>
 #include <memory>
 
 struct Deleter {
@@ -35,39 +41,41 @@ int main(int /*argc*/, const char **/***argv*/) {
     using Grid = llrte::RegularGrid<Float>;
     using AbsorptionModel = llrte::ConstantAbsorption<Float>;
     using Atmosphere = llrte::Atmosphere<Grid, AbsorptionModel>;
-    using Source = llrte::PointSource<V3>;
-    using Results = llrte::Histogram<Grid>;
-    using Solver = llrte::MonteCarloSolver<Atmosphere, Source, Results>;
+    using Tracer = llrte::Histogram<Grid>;
+    using Photon = llrte::Photon<V3, Tracer>;
+    using Source = llrte::BeamSource<Photon>;
+    using Solver = llrte::MonteCarloSolver<Atmosphere, Source>;
 
     auto source_position = V3{};
     source_position[0] = 0.0;
     source_position[1] = 0.0;
     source_position[2] = 0.0;
 
-    auto source = llrte::PointSource<V3>(source_position);
+    auto source_direction = V3{};
+    source_direction[0] = 1.0;
+    source_direction[1] = 0.0;
+    source_direction[2] = 0.0;
+
+    auto source = Source(source_position, source_direction);
 
 
-    float start = -10.0e3;
+    float start = 0.0e3;
     float stop = 10.0e3;
-    auto x = make_linear_vector(start, stop, 201);
-    auto y = make_linear_vector(start, stop, 201);
-    auto z = make_linear_vector(start, stop, 201);
-    size_t shape[3] = {201, 201, 201};
+    auto x = make_linear_vector<Float>(start, stop, 101);
+    auto y = make_linear_vector<Float>(-0.5, 0.5, 2);
+    auto z = make_linear_vector<Float>(-0.5, 0.5, 2);
+    size_t shape[3] = {101, 2, 2};
 
-    for (size_t i = 0; i < 201; ++i) {
-        std::cout << x[i] << ", ";
-    }
-    std::cout << std::endl;
 
     auto grid = Grid{shape, x, y, z};
-    auto absorption_model = llrte::ConstantAbsorption<float>(1e-9);
+    auto absorption_model = llrte::ConstantAbsorption<float>(1e-3);
     auto atmosphere = Atmosphere{grid, absorption_model};
-    auto results = Results{grid};
 
-    auto solver = Solver(atmosphere, source, results);
+    auto solver = Solver(atmosphere, source);
 
-    for (size_t i = 0; i < 2; i++) {
+    Tracer::initialize(grid);
+    for (size_t i = 0; i < 10000000; i++) {
         solver.sample_photon();
     }
-    results.dump("results.bin");
+    Tracer::dump("results.bin");
 }

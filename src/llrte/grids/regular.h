@@ -173,7 +173,7 @@ public:
                 dx = (x_[i] - gp.x) / dir[0];
             }
         } else {
-            if (gp.i < shape_[1]) {
+            if (gp.i < shape_[0]) {
                 i = get_higher<0>(gp);
                 dx = (x_[i] - gp.x) / dir[0];
                 i++;
