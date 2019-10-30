@@ -2,6 +2,7 @@
 #define _LLRTE_SOURCES_H_
 
 #include <random>
+
 #include "llrte/constants.h"
 
 namespace llrte {
@@ -14,37 +15,30 @@ namespace llrte {
  */
 template <typename P>
 class PointSource {
+ public:
+  using Photon = P;
+  using Vector = typename Photon::Vector;
+  using Float = typename Vector::Float;
+  using C = Constants<Float>;
 
-public:
+  PointSource(Vector position) : position_(position) {}
 
-    using Photon = P;
-    using Vector = typename Photon::Vector;
-    using Float = typename Vector::Float;
-    using C = Constants<Float>;
+  Photon sample_photon() {
+    auto theta = theta_d_(generator_);
+    auto phi = asin(2.0 * phi_d_(generator_) - 1.0);
+    Vector v = Vector{};
+    v[0] = cos(phi) * cos(theta);
+    v[1] = cos(phi) * sin(theta);
+    v[2] = sin(phi);
+    return Photon(position_, v);
+  }
 
-PointSource(Vector position) :
-    position_(position) {
+ private:
+  Vector position_;
 
-
-    }
-
-    Photon sample_photon() {
-        auto theta = theta_d_(generator_);
-        auto phi = asin(2.0 * phi_d_(generator_) - 1.0);
-        Vector v = Vector{};
-        v[0] = cos(phi) * cos(theta);
-        v[1] = cos(phi) * sin(theta);
-        v[2] = sin(phi);
-        return Photon(position_, v);
-    }
-
-private:
-    Vector position_;
-
-    std::default_random_engine generator_;
-    std::uniform_real_distribution<Float> theta_d_{-C::pi, C::pi};
-    std::uniform_real_distribution<Float> phi_d_{0, 1};
-
+  std::default_random_engine generator_;
+  std::uniform_real_distribution<Float> theta_d_{-C::pi, C::pi};
+  std::uniform_real_distribution<Float> phi_d_{0, 1};
 };
 
 /**
@@ -54,25 +48,20 @@ private:
  */
 template <typename P>
 class BeamSource {
+ public:
+  using Photon = P;
+  using Vector = typename Photon::Vector;
+  using Float = typename Vector::Float;
+  using C = Constants<Float>;
 
-public:
+  BeamSource(Vector position, Vector direction)
+      : position_(position), direction_(direction) {
+    // Nothing to do here.
+  }
 
-    using Photon = P;
-    using Vector = typename Photon::Vector;
-    using Float = typename Vector::Float;
-    using C = Constants<Float>;
+  Photon sample_photon() { return Photon(position_, direction_); }
 
-    BeamSource(Vector position, Vector direction) :
-    position_(position), direction_(direction) {
-        // Nothing to do here.
-    }
-
-    Photon sample_photon() {
-        return Photon(position_, direction_);
-    }
-
-private:
-    Vector position_, direction_;
-
+ private:
+  Vector position_, direction_;
 };
 #endif

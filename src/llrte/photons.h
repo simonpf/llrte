@@ -3,9 +3,7 @@
 
 #include "llrte/tracers.h"
 
-namespace llrte {
-
-}
+namespace llrte {}
 
 /**
  * Simple photon.
@@ -15,64 +13,60 @@ namespace llrte {
  */
 template <typename V, typename Tracer = NoTrace>
 class Photon {
-public:
+ public:
+  using Vector = V;
+  using Float = typename V::Float;
 
-    using Vector = V;
-    using Float = typename V::Float;
+  Photon(Vector position, Vector direction)
+      : position_(position), direction_(direction) {
+    // Nothing to do here.
+  }
 
-    Photon(Vector position,
-           Vector direction)
-    : position_(position), direction_(direction) {
-        // Nothing to do here.
-    }
+  template <typename Atmosphere, typename Random>
+  void propagate(Atmosphere atmosphere, Random& generator) {
+    auto position = atmosphere.get_grid_position(position_);
+    auto tau = generator.sample_tau();
 
-template<typename Atmosphere, typename Random>
-void propagate(Atmosphere atmosphere, Random & generator) {
+    while (true) {
+      auto absorption_xc = atmosphere.get_absorption_coefficient(position);
+      auto scattering_xc = atmosphere.get_scattering_coefficient(position);
 
-        auto position = atmosphere.get_grid_position(position_);
-        auto tau = generator.sample_tau();
+      auto l = tau / (absorption_xc + scattering_xc);
+      auto intersection = atmosphere.get_intersection(position, direction_, l);
+      auto d = std::get<0>(intersection);
 
-        while (true) {
-            auto absorption_xc = atmosphere.get_absorption_coefficient(position);
-            auto scattering_xc = atmosphere.get_scattering_coefficient(position);
-
-            auto l = tau / (absorption_xc + scattering_xc);
-            auto intersection = atmosphere.get_intersection(position, direction_, l);
-            auto d = std::get<0>(intersection);
-
-            // Scattering event.
-            if (l <= d) {
-                auto uniform = generator.sample_uniform();
-                if (uniform < scattering_xc / (scattering_xc + absorption_xc)) {
-                    auto phase_function = atmosphere.get_phase_function(position);
-                    direction_ = phase_function.get_direction(generator, direction_);
-                    Tracer::trace(position, Event::scattering);
-                } else {
-                    Tracer::trace(position, Event::absorption);
-                    break;
-                }
-            // Stepping on.
-            } else {
-                if (!atmosphere.is_inside(std::get<1>(intersection))) {
-                    Tracer::trace(position, Event::left_domain);
-                    break;
-                }
-                Tracer::trace(position, Event::step);
-                position = std::get<1>(intersection);
-                tau -= d * (absorption_xc + scattering_xc);
-            }
+      // Scattering event.
+      if (l <= d) {
+        auto uniform = generator.sample_uniform();
+        if (uniform < scattering_xc / (scattering_xc + absorption_xc)) {
+          auto phase_function = atmosphere.get_phase_function(position);
+          direction_ = phase_function.get_direction(generator, direction_);
+          Tracer::trace(position, Event::scattering);
+        } else {
+          Tracer::trace(position, Event::absorption);
+          break;
         }
+        // Stepping on.
+      } else {
+        if (!atmosphere.is_inside(std::get<1>(intersection))) {
+          Tracer::trace(position, Event::left_domain);
+          break;
+        }
+        Tracer::trace(position, Event::step);
+        position = std::get<1>(intersection);
+        tau -= d * (absorption_xc + scattering_xc);
+      }
     }
+  }
 
-
-private:
-    Vector position_;
-    Vector direction_;
+ private:
+  Vector position_;
+  Vector direction_;
 };
 
-//template <typename V>
-//class BackwardsRay {
-//public:
+// template <typename V>
+// class BackwardsRay {
+// public:
 //
 //    using Vector = V;
 //    using Float = typename Vector::Float;
@@ -105,16 +99,17 @@ private:
 //
 //
 //            auto p = generator.sample_path_length(1.0 / scattering_xs);
-//            auto intersection = atmosphere.get_intersection(position, direction_, p);
+//            auto intersection = atmosphere.get_intersection(position,
+//            direction_, p);
 //
 //            auto d = std::get<0>(intersection);
 //            auto posistion_new = std::get<1>(intersection);
 //            auto absorption_xs_new = atmosphere.get_absorption(position_new);
 //            auto scattering_xs_new = atmosphere.get_scattering(position_new);
 //
-//            optical_depth += 0.5 * (absorption_xs_old + absorption_xs_new) * d;
-//            absorption_xs_old = absorptions_xs_new;
-//            scattering_xs_old = scattering_xs_new;
+//            optical_depth += 0.5 * (absorption_xs_old + absorption_xs_new) *
+//            d; absorption_xs_old = absorptions_xs_new; scattering_xs_old =
+//            scattering_xs_new;
 //
 //            if (p > d) {
 //                // No scattering event has occured
@@ -138,9 +133,9 @@ private:
 //    }
 //};
 //
-//template <typename V>
-//class OpticalDepthIntegral {
-//public:
+// template <typename V>
+// class OpticalDepthIntegral {
+// public:
 //
 //    using Vector = V;
 //    using Float = typename Vector::Float;
@@ -173,16 +168,17 @@ private:
 //
 //
 //            auto p = generator.sample_path_length(1.0 / scattering_xs);
-//            auto intersection = atmosphere.get_intersection(position, direction_, p);
+//            auto intersection = atmosphere.get_intersection(position,
+//            direction_, p);
 //
 //            auto d = std::get<0>(intersection);
 //            auto posistion_new = std::get<1>(intersection);
 //            auto absorption_xs_new = atmosphere.get_absorption(position_new);
 //            auto scattering_xs_new = atmosphere.get_scattering(position_new);
 //
-//            optical_depth += 0.5 * (absorption_xs_old + absorption_xs_new) * d;
-//            absorption_xs_old = absorptions_xs_new;
-//            scattering_xs_old = scattering_xs_new;
+//            optical_depth += 0.5 * (absorption_xs_old + absorption_xs_new) *
+//            d; absorption_xs_old = absorptions_xs_new; scattering_xs_old =
+//            scattering_xs_new;
 //
 //            if (p > d) {
 //                // No scattering event has occured
@@ -207,13 +203,12 @@ private:
 //};
 //
 //
-//private:
+// private:
 //
 //    Float optical_depth_;
 //    Vector position_;
 //    Vector direction_;
 //
 //};
-
 }
 #endif

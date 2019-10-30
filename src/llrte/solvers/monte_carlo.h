@@ -1,47 +1,42 @@
 #ifndef _LLRTE_SOLVERS_MONTE_CARLO_H_
 #define _LLRTE_SOLVERS_MONTE_CARLO_H_
 
-#include <math.h>
-#include <random>
-#include <tuple>
 #include <llrte/constants.h>
 #include <llrte/random.h>
-#include <iostream>
+#include <math.h>
+
 #include <fstream>
+#include <iostream>
 #include <memory>
+#include <random>
+#include <tuple>
 
 namespace llrte {
 
-
-template<typename Atmosphere,
-         typename Source>
+template <typename Atmosphere, typename Source>
 class MonteCarloSolver {
-public:
+ public:
+  using Vector = typename Source::Vector;
+  using Float = typename Source::Float;
 
-    using Vector = typename Source::Vector;
-    using Float = typename Source::Float;
+  MonteCarloSolver(Atmosphere atmosphere, Source source)
+      : atmosphere_(atmosphere), source_(source), generator_() {
+    // Nothing to do here.
+  }
 
-    MonteCarloSolver(Atmosphere atmosphere,
-                     Source source)
-        : atmosphere_(atmosphere), source_(source), generator_()
-    {
-        // Nothing to do here.
-    }
+  void sample_photon() {
+    auto photon = source_.sample_photon();
+    photon.propagate(atmosphere_, generator_);
+  }
 
-    void sample_photon() {
-        auto photon = source_.sample_photon();
-        photon.propagate(atmosphere_, generator_);
-    }
+ private:
+  size_t n_photons = 0;
 
-private:
-    size_t n_photons = 0;
-
-    Atmosphere atmosphere_;
-    Source source_;
-    Generator<Vector> generator_;
-
+  Atmosphere atmosphere_;
+  Source source_;
+  Generator<Vector> generator_;
 };
 
-}
+}  // namespace llrte
 
 #endif
