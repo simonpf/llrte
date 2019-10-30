@@ -159,7 +159,8 @@ public:
 
     template<typename Vector>
     std::pair<Float, GridPosition<Float>> get_intersection(GridPosition<Float> gp,
-                                                           Vector dir) {
+                                                           Vector dir,
+                                                           Float step_length) {
 
         float d = std::numeric_limits<Float>::max();
         size_t direction = 0;
@@ -229,20 +230,26 @@ public:
 
         GridPosition<Float> gp_new(gp);
 
+        Float l = d * dir.length();
+        if (l > step_length) {
+            d = step_length / dir.length();
+        } else {
+            if (direction == 0) {
+                gp_new.i = i;
+            }
+            if (direction == 1) {
+                gp_new.j = j;
+            }
+            if (direction == 2) {
+                gp_new.k = k;
+            }
+        }
+
         gp_new.x = gp.x + d * dir[0];
         gp_new.y = gp.y + d * dir[1];
         gp_new.z = gp.z + d * dir[2];
 
-        if (direction == 0) {
-            gp_new.i = i;
-        }
-        if (direction == 1) {
-            gp_new.j = j;
-        }
-        if (direction == 2) {
-            gp_new.k = k;
-        }
-        return std::make_pair(d * dir.length(), gp_new);
+        return std::make_pair(l, gp_new);
     }
 
     void set_x(Float *x, size_t n) {

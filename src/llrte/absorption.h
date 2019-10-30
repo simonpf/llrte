@@ -5,15 +5,15 @@ template <typename Float>
 class ConstantAbsorption {
 public:
 ConstantAbsorption(Float absorption)
-    : absorption_(absorption){}
+    : absorption_coefficient_(absorption){}
 
     template <typename ... Ts>
-        Float get_absorption(Ts ...) {
-        return absorption_;
+        Float get_absorption_coefficient(Ts ...) {
+        return absorption_coefficient_;
     }
 
 private:
-    Float absorption_;
+    Float absorption_coefficient_;
 };
 
 }

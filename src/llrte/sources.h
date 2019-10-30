@@ -1,6 +1,9 @@
 #ifndef _LLRTE_SOURCES_H_
 #define _LLRTE_SOURCES_H_
 
+#include <random>
+#include "llrte/constants.h"
+
 namespace llrte {
 
 /**

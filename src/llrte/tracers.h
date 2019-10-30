@@ -1,6 +1,8 @@
 #ifndef _LLRTE_TRACERS_
 #define _LLRTE_TRACERS_
 
+#include <fstream>
+
 namespace llrte {
 
 struct NoTrace {

@@ -4,5 +4,6 @@ include_directories("${PROJECT_SOURCE_DIR}/src/")
 link_libraries(stdc++fs)
 #add_executable(test_module compile_module.cxx)
 
-add_executable(monte_carlo monte_carlo.cxx)
+add_executable(exercise_1_a exercise_1_a.cxx)
+add_executable(exercise_1_b exercise_1_b.cxx)
 

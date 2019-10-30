@@ -22,7 +22,7 @@ the RTE can be solved using the following Monte Carlo approach:
 2. Determine a sufficiently small step sixe :math:`\Delta x`
 3. Sample a random number :math:`r` from a uniform distribution over the inverval :math:`[0, 1]`
 4. If :math:`r > \exp(-\alpha \cdot \Delta x)` the photon is absorbed and the iteration stops. Otherwise
-     update the position of the photon continue with 1.
+update the position of the photon continue with 1.
 
 The probability density function (PDF) of path lengths obtained with the procedure outlined above
 will satisfy the differential form of the RTE. To see why this is the case, note that the

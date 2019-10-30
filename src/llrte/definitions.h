@@ -2,6 +2,7 @@
 #define _LLRTE_DEFINITIONS_H_
 
 #include <memory>
+#include <vector>
 #include "llrte/data_types.h"
 
 namespace llrte {

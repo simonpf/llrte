@@ -18,6 +18,14 @@ class Generator {
         return -m * log(y);
     }
 
+    Float sample_uniform() {
+        return distribution_(generator_);
+    }
+
+    Float sample_tau() {
+        auto y = distribution_(generator_);
+        return - log(y);
+    }
 
 public:
     std::default_random_engine generator_{};

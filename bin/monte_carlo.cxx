@@ -1,5 +1,3 @@
-//#include <llrte/compiler/backends.h>
-//#include <llrte/compiler.h>
 #include <llrte/solvers/monte_carlo.h>
 #include <llrte/grids.h>
 #include <llrte/absorption.h>
@@ -10,19 +8,13 @@
 #include <llrte/types/vector.h>
 #include <memory>
 
-struct Deleter {
-    template <typename T>
-    void operator()(T *) {
-    }
-};
-
 template<typename F>
 std::shared_ptr<F[]> make_linear_vector(F start,
                                         F stop,
                                         size_t steps) {
 
 
-    std::shared_ptr<F[]> v{new F[steps], Deleter()};
+    std::shared_ptr<F[]> v{new F[steps]};
 
     F d = (stop - start) / (steps - 1);
     F x = start;
@@ -40,7 +32,8 @@ int main(int /*argc*/, const char **/***argv*/) {
     using Float = float;
     using Grid = llrte::RegularGrid<Float>;
     using AbsorptionModel = llrte::ConstantAbsorption<Float>;
-    using Atmosphere = llrte::Atmosphere<Grid, AbsorptionModel>;
+    using ScatteringModel = llrte::NoScattering<Float>
+    using Atmosphere = llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel>;
     using Tracer = llrte::Histogram<Grid>;
     using Photon = llrte::Photon<V3, Tracer>;
     using Source = llrte::BeamSource<Photon>;
@@ -58,7 +51,6 @@ int main(int /*argc*/, const char **/***argv*/) {
 
     auto source = Source(source_position, source_direction);
 
-
     float start = 0.0e3;
     float stop = 10.0e3;
     auto x = make_linear_vector<Float>(start, stop, 101);
@@ -66,10 +58,10 @@ int main(int /*argc*/, const char **/***argv*/) {
     auto z = make_linear_vector<Float>(-0.5, 0.5, 2);
     size_t shape[3] = {101, 2, 2};
 
-
     auto grid = Grid{shape, x, y, z};
     auto absorption_model = llrte::ConstantAbsorption<float>(1e-3);
-    auto atmosphere = Atmosphere{grid, absorption_model};
+    auto scattering_model = NoScattering();
+    auto atmosphere = Atmosphere{grid, absorption_model, scattering_model};
 
     auto solver = Solver(atmosphere, source);
 
@@ -77,5 +69,6 @@ int main(int /*argc*/, const char **/***argv*/) {
     for (size_t i = 0; i < 10000000; i++) {
         solver.sample_photon();
     }
+
     Tracer::dump("results.bin");
 }
