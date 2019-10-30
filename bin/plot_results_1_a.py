@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 #
 
 # Run MC
-print("Running Monte Carlo ...")
+print("Running Monte Carlo simulation for Exercise 1a.")
 subprocess.call(["./exercise_1_a"])
 
 # Load matplotlib style
@@ -44,7 +44,9 @@ plt.xlim([0, 10])
 plt.ylabel(r"$I_\nu$ [$I_{\nu, 0}$]")
 plt.xlabel("Distance [km]")
 plt.tight_layout()
-plt.savefig("results_1_a_1.png", bbox_inches = "tight", dpi = 300)
+filename = "results_1_a_1.png"
+print("Saving results to {}".format(filename))
+plt.savefig(filename, bbox_inches = "tight", dpi = 300)
 
 #
 # 1a
@@ -77,6 +79,8 @@ plt.xlim([0, 10])
 plt.ylabel(r"$I_\nu$ [$I_{\nu, 0}$]")
 plt.xlabel("Distance [km]")
 plt.tight_layout()
-plt.savefig("results_1_a_2.png", bbox_inches = "tight", dpi = 300)
+filename = "results_1_a_2.png"
+print("Saving results to {}".format(filename))
+plt.savefig(filename, bbox_inches = "tight", dpi = 300)
 
 plt.figure()
