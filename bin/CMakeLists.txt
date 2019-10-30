@@ -7,3 +7,5 @@ link_libraries(stdc++fs)
 add_executable(exercise_1_a exercise_1_a.cxx)
 add_executable(exercise_1_b exercise_1_b.cxx)
 
+configure_file(plot_results_1a.py plot_results_1a.py COPYONLY)
+configure_file(plot_results_1b.py plot_results_1b.py COPYONLY)

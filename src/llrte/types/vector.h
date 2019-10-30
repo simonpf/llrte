@@ -71,6 +71,14 @@ public:
     Float elements_[N];
 };
 
+template <size_t N, typename Float>
+Vector<N, Float> operator*(Float c, Vector<N, Float> v) {
+    Vector <N, Float> w{};
+    for (size_t i = 0; i < N; ++i) {
+    w[i] = c * v[i];
+    }
+}
+
 template <size_t N, typename Real>
     std::ostream& operator<<(std::ostream& os, const Vector<N, Real>& v)
 {

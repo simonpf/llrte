@@ -29,8 +29,8 @@ public:
     }
 
 
-    template<typename GridPos>
-    static void trace(GridPos gp, Event /*e*/) {
+    template<typename GridPos, typename ... Ts>
+    static void trace(GridPos gp, Event /*e*/, Ts ...) {
         size_t index = gp.k - 1;
         index *= (shape_[2] - 1);
         index += gp.j - 1;
@@ -39,15 +39,6 @@ public:
         data_[index] += 1.0;
     }
 
-    template<typename GridPos>
-        static void trace(GridPos gp, Float val) {
-        size_t index = gp.k - 1;
-        index *= (shape_[2] - 1);
-        index += gp.j - 1;
-        index *= (shape_[1] - 1);
-        index += gp.i - 1;
-        data_[index] += val;
-    }
 
     static void dump(std::string filename) {
         std::ofstream file;

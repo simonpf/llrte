@@ -57,6 +57,11 @@ class Atmosphere {
         return grid_.get_intersection(gp, direction, step_length);
     }
 
+    template <typename GridPosition>
+    size_t get_boundary_index(GridPosition gp) {
+        return grid_.get_boundary_index(gp);
+    }
+
 
 public:
     Grid grid_;

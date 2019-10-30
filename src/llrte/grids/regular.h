@@ -252,6 +252,29 @@ public:
         return std::make_pair(l, gp_new);
     }
 
+    template<typename Vector>
+    size_t get_boundary_index(GridPosition<Float> gp) {
+        if (gp.x <= x_[0]) {
+            return 0;
+        }
+        if (gp.x >= x_[1]) {
+            return 1;
+        }
+        if (gp.y <= y_[0]) {
+            return 2;
+        }
+        if (gp.y >= y_[1]) {
+            return 3;
+        }
+        if (gp.z <= z_[0]) {
+            return 4;
+        }
+        if (gp.z >= z_[1]) {
+            return 5;
+        }
+        return 999;
+    }
+
     void set_x(Float *x, size_t n) {
         shape_[0] = n;
         x_ = std::make_shared<Float[]>(n);

@@ -46,16 +46,18 @@ void propagate(Atmosphere atmosphere, Random & generator) {
                 if (uniform < scattering_xc / (scattering_xc + absorption_xc)) {
                     auto phase_function = atmosphere.get_phase_function(position);
                     direction_ = phase_function.get_direction(generator, direction_);
+                    Tracer::trace(position, Event::scattering);
                 } else {
                     Tracer::trace(position, Event::absorption);
                     break;
                 }
             // Stepping on.
             } else {
-                Tracer::trace(position, Event::step);
                 if (!atmosphere.is_inside(std::get<1>(intersection))) {
+                    Tracer::trace(position, Event::left_domain);
                     break;
                 }
+                Tracer::trace(position, Event::step);
                 position = std::get<1>(intersection);
                 tau -= d * (absorption_xc + scattering_xc);
             }

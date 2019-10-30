@@ -14,7 +14,7 @@ message(STATUS "CMAKE_COMPILER_IS_GNUCXX   = ${CMAKE_COMPILER_IS_GNUCXX}"  )
 # C++17
 #
 
-set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_CXX_STANDARD 17)
 
 #
 # Build flags
@@ -43,4 +43,5 @@ endif()
 #
 
 # Build binaries
+add_subdirectory(misc)
 add_subdirectory(bin)
