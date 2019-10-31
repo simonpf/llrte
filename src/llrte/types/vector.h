@@ -72,6 +72,7 @@ Vector<N, Float> operator*(Float c, Vector<N, Float> v) {
   for (size_t i = 0; i < N; ++i) {
     w[i] = c * v[i];
   }
+  return w;
 }
 
 template <size_t N, typename Real>

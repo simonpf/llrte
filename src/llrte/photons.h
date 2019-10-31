@@ -18,9 +18,14 @@ class Photon {
   using Float = typename V::Float;
 
   Photon(Vector position, Vector direction)
-      : position_(position), direction_(direction) {
+ : position_(position), direction_(direction), n_scattered_(0) {
     // Nothing to do here.
   }
+
+  size_t get_scattering_events() const {
+     return n_scattered_;
+  }
+
 
   template <typename Atmosphere, typename Random>
   void propagate(Atmosphere atmosphere, Random& generator) {
@@ -34,27 +39,30 @@ class Photon {
       auto l = tau / (absorption_xc + scattering_xc);
       auto intersection = atmosphere.get_intersection(position, direction_, l);
       auto d = std::get<0>(intersection);
+      tau -= d * (absorption_xc + scattering_xc);
 
-      // Scattering event.
+      position = std::get<1>(intersection);
+
+      // Scattering or absorption event.
       if (l <= d) {
         auto uniform = generator.sample_uniform();
         if (uniform < scattering_xc / (scattering_xc + absorption_xc)) {
           auto phase_function = atmosphere.get_phase_function(position);
           direction_ = phase_function.get_direction(generator, direction_);
-          Tracer::trace(position, Event::scattering);
+          n_scattered_++;
+          tau = generator.sample_tau();
+          Tracer::trace(*this, position, Event::scattering);
         } else {
-          Tracer::trace(position, Event::absorption);
+          Tracer::trace(*this, position, Event::absorption);
           break;
         }
         // Stepping on.
       } else {
-        if (!atmosphere.is_inside(std::get<1>(intersection))) {
-          Tracer::trace(position, Event::left_domain);
+        if (!atmosphere.is_inside(position)) {
+          Tracer::trace(*this, position, Event::left_domain);
           break;
         }
-        Tracer::trace(position, Event::step);
-        position = std::get<1>(intersection);
-        tau -= d * (absorption_xc + scattering_xc);
+        Tracer::trace(*this, position, Event::step);
       }
     }
   }
@@ -62,6 +70,8 @@ class Photon {
  private:
   Vector position_;
   Vector direction_;
+  size_t n_scattered_ = 0;
+
 };
 
 // template <typename V>

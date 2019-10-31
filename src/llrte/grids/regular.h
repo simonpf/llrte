@@ -172,7 +172,6 @@ class RegularGrid {
         i++;
       }
     }
-
     if ((dx >= 0.0) && (dx < d)) {
       direction = 0;
       d = dx;
@@ -244,24 +243,23 @@ class RegularGrid {
     return std::make_pair(l, gp_new);
   }
 
-  template <typename Vector>
-  size_t get_boundary_index(GridPosition<Float> gp) {
+  size_t get_boundary_index(GridPosition<Float> gp) const {
     if (gp.x <= x_[0]) {
       return 0;
     }
-    if (gp.x >= x_[1]) {
+    if (gp.x >= x_[shape_[0]]) {
       return 1;
     }
     if (gp.y <= y_[0]) {
       return 2;
     }
-    if (gp.y >= y_[1]) {
+    if (gp.y >= y_[shape_[1]]) {
       return 3;
     }
     if (gp.z <= z_[0]) {
       return 4;
     }
-    if (gp.z >= z_[1]) {
+    if (gp.z >= z_[shape_[2]]) {
       return 5;
     }
     return 999;
