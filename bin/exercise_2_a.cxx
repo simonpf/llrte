@@ -30,7 +30,7 @@ void run_experiment(size_t n_grid_cells,
                     size_t n_photons,
                     std::string filename) {
 
-    using Float = double;
+    using Float = float;
     using V3 = llrte::Vector<3, Float>;
     using Grid = llrte::RegularGrid<Float>;
     using AbsorptionModel = llrte::ConstantAbsorption<Float>;
@@ -61,8 +61,8 @@ void run_experiment(size_t n_grid_cells,
     size_t shape[3] = {n_grid_cells + 1, 2, 2};
 
     auto grid = Grid{shape, x, y, z};
-    auto absorption_model = llrte::ConstantAbsorption<Float>(5e-4);
-    auto scattering_model = llrte::BidirectionalScattering<Float>(5e-4);
+    auto absorption_model = llrte::ConstantAbsorption<Float>(2e-5);
+    auto scattering_model = llrte::BidirectionalScattering<Float>(8e-5, 0.8);
     auto atmosphere = Atmosphere{grid, absorption_model, scattering_model};
 
     auto solver = Solver(atmosphere, source);

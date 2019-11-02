@@ -8,7 +8,7 @@
 
 namespace llrte {
 
-enum class Event { step, absorption, scattering, left_domain };
+enum class Event { step, absorption, scattering, left_domain, out_of_energy};
 
 class ClassAttribute {
  public:

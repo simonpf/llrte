@@ -33,20 +33,20 @@ class BidirectionalScattering {
   using Float = F;
 
   struct PhaseFunction {
-    PhaseFunction() {}
     template <typename G, typename T>
     T get_direction(G& g, const T& t) {
       auto x = g.sample_uniform();
-      if (x < 0.5) {
-        return t;
-      } else {
+      if (x > fb_ratio) {
         return static_cast<Float>(-1.0) * t;
+      } else {
+          return t;
       }
     }
+    Float fb_ratio;
   };
 
-  BidirectionalScattering(Float scattering_coefficient)
-      : scattering_coefficient_(scattering_coefficient) {
+  BidirectionalScattering(Float scattering_coefficient, Float fb_ratio)
+      : scattering_coefficient_(scattering_coefficient), fb_ratio_(fb_ratio) {
     // Nothing to do here.
   }
 
@@ -57,11 +57,12 @@ class BidirectionalScattering {
 
   template <typename... Ts>
   constexpr PhaseFunction get_phase_function(Ts...) {
-    return PhaseFunction();
+    return PhaseFunction{fb_ratio_};
   }
 
  private:
   F scattering_coefficient_;
+  F fb_ratio_;
 };
 
 }  // namespace llrte
