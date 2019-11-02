@@ -177,7 +177,7 @@ class RegularGrid {
       d = dx;
     }
 
-    float dy = -1.0;
+    Float dy = -1.0;
     size_t j = 0;
 
     if (dir[1] < 0.0) {
@@ -198,7 +198,7 @@ class RegularGrid {
       d = dy;
     }
 
-    float dz = -1.0;
+    Float dz = -1.0;
     size_t k = 0;
 
     if (dir[2] < 0.0) {
@@ -223,22 +223,43 @@ class RegularGrid {
 
     Float l = d * dir.length();
     if (l > step_length) {
+      l = step_length;
       d = step_length / dir.length();
+      gp_new.x = gp.x + d * dir[0];
+      gp_new.y = gp.y + d * dir[1];
+      gp_new.z = gp.z + d * dir[2];
     } else {
       if (direction == 0) {
         gp_new.i = i;
+        if (dir[0] < 0.0) {
+          gp_new.x = x_[i];
+        } else {
+          gp_new.x = x_[i - 1];
+        }
+        gp_new.y = gp.y + d * dir[1];
+        gp_new.z = gp.z + d * dir[2];
       }
       if (direction == 1) {
         gp_new.j = j;
+        gp_new.x = gp.x + d * dir[0];
+        if (dir[1] < 0.0) {
+          gp_new.y = y_[j - 1];
+        } else {
+          gp_new.y = y_[j];
+        }
+        gp_new.z = gp.z + d * dir[2];
       }
       if (direction == 2) {
         gp_new.k = k;
+        gp_new.x = gp.x + d * dir[0];
+        gp_new.y = gp.y + d * dir[1];
+        if (dir[2] < 0.0) {
+          gp_new.z = z_[k - 1];
+        } else {
+          gp_new.z = z_[k];
+        }
       }
     }
-
-    gp_new.x = gp.x + d * dir[0];
-    gp_new.y = gp.y + d * dir[1];
-    gp_new.z = gp.z + d * dir[2];
 
     return std::make_pair(l, gp_new);
   }

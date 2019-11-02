@@ -30,14 +30,14 @@ void run_experiment(size_t n_grid_cells,
                     size_t n_photons,
                     std::string filename) {
 
-    using V3 = llrte::Vector<3, float>;
-    using Float = float;
+    using Float = double;
+    using V3 = llrte::Vector<3, Float>;
     using Grid = llrte::RegularGrid<Float>;
     using AbsorptionModel = llrte::ConstantAbsorption<Float>;
     using ScatteringModel = llrte::BidirectionalScattering<Float>;
     using Atmosphere = llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel>;
     using Tracer = llrte::AbsorptionTracer<Grid>;
-    using Photon = llrte::Photon<V3, Tracer>;
+    using Photon = llrte::FixedEnergyPhoton<V3, Tracer>;
     using Source = llrte::BeamSource<Photon>;
     using Solver = llrte::MonteCarloSolver<Atmosphere, Source>;
 
@@ -53,8 +53,8 @@ void run_experiment(size_t n_grid_cells,
 
     auto source = Source(source_position, source_direction);
 
-    float start = 0.0e3;
-    float stop = 10.0e3;
+    Float start = 0.0e3;
+    Float stop = 10.0e3;
     auto x = make_linear_vector<Float>(start, stop, n_grid_cells + 1);
     auto y = make_linear_vector<Float>(-0.5, 0.5, 2);
     auto z = make_linear_vector<Float>(-0.5, 0.5, 2);

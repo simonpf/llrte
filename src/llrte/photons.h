@@ -74,6 +74,80 @@ class Photon {
 
 };
 
+/**
+ * Simple photon.
+ *
+ * Simple photon that propagates through space until it is
+ * absorbed.
+ */
+template <typename V,
+          typename Tracer = NoTrace>
+class FixedEnergyPhoton {
+ public:
+  using Vector = V;
+  using Float = typename V::Float;
+
+  FixedEnergyPhoton(Vector position, Vector direction)
+ : position_(position), direction_(direction), n_scattered_(0), energy_(1.0) {
+    // Nothing to do here.
+  }
+
+  size_t get_scattering_events() const {
+     return n_scattered_;
+  }
+
+
+  template <typename Atmosphere, typename Random>
+  void propagate(Atmosphere atmosphere, Random& generator) {
+    auto position = atmosphere.get_grid_position(position_);
+    auto tau = generator.sample_tau();
+
+    while (true) {
+      auto absorption_xc = atmosphere.get_absorption_coefficient(position);
+      auto scattering_xc = atmosphere.get_scattering_coefficient(position);
+
+      auto l = tau / scattering_xc;
+      auto intersection = atmosphere.get_intersection(position, direction_, l);
+      auto d = std::get<0>(intersection);
+      tau -= d * scattering_xc;
+
+      // Handle absorption.
+      auto f_abs = exp(-absorption_xc * d);
+      Tracer::trace(*this, position, energy_ * (1.0 - f_abs), Event::absorption);
+      energy_ *= f_abs;
+      if (energy_ < minimum_energy_) {
+        break;
+      }
+
+      position = std::get<1>(intersection);
+
+      // Check if left atmosphere.
+      if (!atmosphere.is_inside(position)) {
+        Tracer::trace(*this, position, energy_, Event::left_domain);
+        break;
+      }
+
+      // Check if scattering event.
+      if (l <= d) {
+        auto phase_function = atmosphere.get_phase_function(position);
+        direction_ = phase_function.get_direction(generator, direction_);
+        n_scattered_++;
+        tau = generator.sample_tau();
+        Tracer::trace(*this, position, Event::scattering);
+      }
+
+      Tracer::trace(*this, position, Event::step);
+    }
+  }
+
+ private:
+  Vector position_;
+  Vector direction_;
+  size_t n_scattered_ = 0;
+  Float minimum_energy_ = 1e-6;
+  Float energy_ = 1.0;
+};
+
 // template <typename V>
 // class BackwardsRay {
 // public:
