@@ -1,0 +1,8 @@
+language: cpp
+dist: xenial
+
+script:
+  - mkdir -p build
+  - cd build
+  - cmake ..
+  - make
