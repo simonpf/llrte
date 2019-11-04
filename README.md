@@ -16,17 +16,17 @@ can be found [here](https://simonpf.github.io/llrte).
 To build the executable for the exercises:
 
 ````
-    $ git clone https://github.com/simonpf/llrte
-    $ cd llrte
-    $ mkdir build
-    $ cd build
-    $ cmake ..
-    $ make
+$ git clone https://github.com/simonpf/llrte
+$ cd llrte
+$ mkdir build
+$ cd build
+$ cmake ..
+$ make
 ````
 
 To run the simulations and generate plots:
 
 ````
-    $ make exercise_1
-    $ make exercise_2
+$ make exercise_1
+$ make exercise_2
 ````
