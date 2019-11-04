@@ -61,7 +61,7 @@ void run_experiment(size_t n_grid_cells,
     size_t shape[3] = {n_grid_cells + 1, 2, 2};
 
     auto grid = Grid{shape, x, y, z};
-    auto absorption_model = llrte::ConstantAbsorption<Float>(1e-3);
+    auto absorption_model = llrte::ConstantAbsorption<Float>(1e-4);
     auto scattering_model = llrte::NoScattering<Float>();
     auto atmosphere = Atmosphere{grid, absorption_model, scattering_model};
 

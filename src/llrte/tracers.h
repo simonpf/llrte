@@ -22,20 +22,22 @@ class Histogram {
   static void initialize(const Grid &grid) {
     std::tie(shape_[0], shape_[1], shape_[2]) = grid.get_extent();
     size_t n = (shape_[0] - 1) * (shape_[1] - 1) * (shape_[2] - 1);
-    data_ = std::unique_ptr<Float[]>(new Float[n]);
+    data_ = std::make_unique<Float[]>(n);
     for (size_t i = 0; i < n; ++i) {
       data_[i] = 0.0;
     }
   }
 
   template <typename Photon, typename GridPos, typename... Ts>
-  static void trace(const Photon &/*p*/, GridPos gp, Event /*e*/, Ts...) {
-    size_t index = gp.k - 1;
-    index *= (shape_[2] - 1);
-    index += gp.j - 1;
-    index *= (shape_[1] - 1);
-    index += gp.i - 1;
-    data_[index] += 1.0;
+  static void trace(const Photon &/*p*/, GridPos gp, Event e, Ts...) {
+    if (e == Event::step) {
+      size_t index = gp.k - 1;
+      index *= (shape_[2] - 1);
+      index += gp.j - 1;
+      index *= (shape_[1] - 1);
+      index += gp.i - 1;
+      data_[index] += 1.0;
+    }
   }
 
   static void dump(std::string filename) {
@@ -140,7 +142,7 @@ class AbsorptionTracer {
       index += gp.j - 1;
       index *= (shape_[1] - 1);
       index += gp.i - 1;
-      scattering_counts_[index] += 1.0;
+      scattering_counts_[index] += value;
     } else if (e == Event::left_domain) {
       auto i = grid_->get_boundary_index(gp);
       leaving_photons_[i] += value;

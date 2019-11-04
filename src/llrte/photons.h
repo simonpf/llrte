@@ -31,6 +31,7 @@ class Photon {
   void propagate(Atmosphere atmosphere, Random& generator) {
     auto position = atmosphere.get_grid_position(position_);
     auto tau = generator.sample_tau();
+    Tracer::trace(*this, position, Event::step);
 
     while (true) {
       auto absorption_xc = atmosphere.get_absorption_coefficient(position);
@@ -42,6 +43,12 @@ class Photon {
       tau -= d * (absorption_xc + scattering_xc);
 
       position = std::get<1>(intersection);
+
+      // Check if left atmosphere
+      if (!atmosphere.is_inside(position)) {
+        Tracer::trace(*this, position, Event::left_domain);
+        break;
+      }
 
       // Scattering or absorption event.
       if (l <= d) {
@@ -56,14 +63,8 @@ class Photon {
           Tracer::trace(*this, position, Event::absorption);
           break;
         }
-        // Stepping on.
-      } else {
-        if (!atmosphere.is_inside(position)) {
-          Tracer::trace(*this, position, Event::left_domain);
-          break;
-        }
-        Tracer::trace(*this, position, Event::step);
       }
+      Tracer::trace(*this, position, Event::step);
     }
   }
 
@@ -133,7 +134,7 @@ class FixedEnergyPhoton {
         direction_ = phase_function.get_direction(generator, direction_);
         n_scattered_++;
         tau = generator.sample_tau();
-        Tracer::trace(*this, position, Event::scattering);
+        Tracer::trace(*this, position, energy_, Event::scattering);
       }
 
       Tracer::trace(*this, position, Event::step);

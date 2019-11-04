@@ -28,6 +28,9 @@ std::shared_ptr<F[]> make_linear_vector(F start,
 
 void run_experiment(size_t n_grid_cells,
                     size_t n_photons,
+                    float optical_depth,
+                    float fb_ratio,
+                    float ssa,
                     std::string filename) {
 
     using Float = float;
@@ -61,8 +64,8 @@ void run_experiment(size_t n_grid_cells,
     size_t shape[3] = {n_grid_cells + 1, 2, 2};
 
     auto grid = Grid{shape, x, y, z};
-    auto absorption_model = llrte::ConstantAbsorption<Float>(2e-5);
-    auto scattering_model = llrte::BidirectionalScattering<Float>(8e-5, 0.8);
+    auto absorption_model = llrte::ConstantAbsorption<Float>((1.0 - ssa) * optical_depth / 1e4);
+    auto scattering_model = llrte::BidirectionalScattering<Float>(ssa * optical_depth / 1e4, fb_ratio);
     auto atmosphere = Atmosphere{grid, absorption_model, scattering_model};
 
     auto solver = Solver(atmosphere, source);
@@ -75,10 +78,19 @@ void run_experiment(size_t n_grid_cells,
 }
 
 int main(int /*argc*/, const char **/***argv*/) {
-    run_experiment(10, 10000, "results_2_a_1.bin");
-    run_experiment(100, 10000, "results_2_a_2.bin");
-    run_experiment(1000, 10000, "results_2_a_3.bin");
-    run_experiment(100, 100, "results_2_a_4.bin");
-    run_experiment(100, 10000, "results_2_a_5.bin");
-    run_experiment(100, 1000000, "results_2_a_6.bin");
+    run_experiment(10,   10000,   1.0, 0.8, 0.8, "results_2_a_1.bin");
+    run_experiment(100,  10000,   1.0, 0.8, 0.8, "results_2_a_2.bin");
+    run_experiment(1000, 10000,   1.0, 0.8, 0.8, "results_2_a_3.bin");
+    run_experiment(100,  100,     1.0, 0.8, 0.8, "results_2_a_4.bin");
+    run_experiment(100,  10000,   1.0, 0.8, 0.8, "results_2_a_5.bin");
+    run_experiment(100,  1000000, 1.0, 0.8, 0.8, "results_2_a_6.bin");
+    run_experiment(100,  10000,    1.0, 0.8, 0.8, "results_2_a_7.bin");
+    run_experiment(100,  10000,    2.0, 0.8, 0.8, "results_2_a_8.bin");
+    run_experiment(100,  10000,    3.0, 0.8, 0.8, "results_2_a_9.bin");
+    run_experiment(100,  10000,    1.0, 0.2, 0.8, "results_2_a_10.bin");
+    run_experiment(100,  10000,    1.0, 0.5, 0.8, "results_2_a_11.bin");
+    run_experiment(100,  10000,    1.0, 0.8, 0.8, "results_2_a_12.bin");
+    run_experiment(100,  10000,    1.0, 0.8, 0.2, "results_2_a_13.bin");
+    run_experiment(100,  10000,    1.0, 0.8, 0.5, "results_2_a_14.bin");
+    run_experiment(100,  10000,    1.0, 0.8, 0.8, "results_2_a_15.bin");
 }
