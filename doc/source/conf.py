@@ -116,7 +116,7 @@ htmlhelp_basename = 'llrtedoc'
 # -- Options for LaTeX output ------------------------------------------------
 
 latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
+    #latex_toplevel_sectioning : 'section'    # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',
 
@@ -138,7 +138,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'llrte.tex', 'llrte Documentation',
-     'Simon Pfreundschuh', 'manual'),
+     'Simon Pfreundschuh', 'howto'),
 ]
 
 
