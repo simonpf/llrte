@@ -1,0 +1,194 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Exercise 2 &#8212; llrte 0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Exercise 1" href="exercise_1.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="exercise-2">
+<h1>Exercise 2<a class="headerlink" href="#exercise-2" title="Permalink to this headline">¶</a></h1>
+<p>For the second exercise, a domain was considered that would not only
+absorb radiation, but also scatter it in forward or backward direction.
+Again, the exercise consisted of two parts. In the first one a homogeneous
+domain was to be simulated and in the second on a heterogeneous domain.</p>
+<p>Similar as for the first exercise, the simulations can be run by building the <code class="code docutils literal notranslate"><span class="pre">exercise_2</span></code>
+target using <code class="code docutils literal notranslate"><span class="pre">make</span></code>:</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span>$ make exercise_2
+</pre></div>
+</div>
+<div class="section" id="part-1">
+<h2>Part 1<a class="headerlink" href="#part-1" title="Permalink to this headline">¶</a></h2>
+<p>The first part of the exercise consisted of the simulation of a homogeneous
+medium with the following properties</p>
+<ul class="simple">
+<li>Optical-depth: <span class="math notranslate nohighlight">\(\tau\)</span> = 1</li>
+<li>Single scattering albedo: <span class="math notranslate nohighlight">\(a\)</span> = 0.8</li>
+<li>Forward-to-backscattering ratio <span class="math notranslate nohighlight">\(VR = 0.8\)</span></li>
+</ul>
+<p>For a homogeneous slab of an extent of 10 km, this translates to an
+absorption coefficient <span class="math notranslate nohighlight">\(\sigma_a = 0.2 \cdot 10^{-4}\ \text{m}^{-1}\)</span> and
+scattering coefficient <span class="math notranslate nohighlight">\(\sigma_s = 0.8 \cdot 10^{-4}\ \text{m}^{-1}\)</span>.</p>
+<div class="section" id="benchmark-results">
+<h3>Benchmark results<a class="headerlink" href="#benchmark-results" title="Permalink to this headline">¶</a></h3>
+<p>The following values were observed for the amounts of absorbed energy in the
+domain versus the amount of energy leaving the domain through the boundaries:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="39%" />
+<col width="23%" />
+<col width="39%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Left boundary</th>
+<th class="head">Medium</th>
+<th class="head">Right boundary</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>0.1172</td>
+<td>0.1801</td>
+<td>0.702</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="varying-grid-resolution">
+<h3>Varying grid resolution<a class="headerlink" href="#varying-grid-resolution" title="Permalink to this headline">¶</a></h3>
+<p>The results for varying grid sizes are displayed in the figure below. Compared
+to the first exercise, the high single-scattering albedo and forward-to-backscattering
+ratio effectively reduces amount of radiation the is absorbed by the domain.</p>
+<p>A quite drastic effect of the grid resolution on the amount of scattered intensity
+is visible in the results. This is not surprising since the number of samples per
+grid cell decreases as the number of grid cells decreases. For the absorption, however,
+this effect is not observed since photons continuously deposit energy along their path
+thus increasing the number of samples per bin.</p>
+<div class="figure" id="id1">
+<img alt="Results of exercise 2 a" src="_images/results_2_a_1.png" />
+<p class="caption"><span class="caption-text">Monte carlo simulation results of a homogeneous absorbing and scattering medium for
+varying grid resolution.</span></p>
+</div>
+</div>
+<div class="section" id="varying-photon-counts">
+<h3>Varying photon counts<a class="headerlink" href="#varying-photon-counts" title="Permalink to this headline">¶</a></h3>
+<p>For variations in the number of simulated photons an effect on both the absorbed intensity
+as well as the scattered intensity is observed. As expected, for low photon counts, the results
+become more noisy.</p>
+<div class="figure" id="id2">
+<img alt="Results of exercise 2 a" src="_images/results_2_a_2.png" />
+<p class="caption"><span class="caption-text">Monte carlo simulation results of a homogeneous absorbing and scattering medium for
+varying photon counts.</span></p>
+</div>
+</div>
+<div class="section" id="varying-optical-depth">
+<h3>Varying optical depth<a class="headerlink" href="#varying-optical-depth" title="Permalink to this headline">¶</a></h3>
+<p>Quite naturally, the results become more interesting as the optical properties of the medium
+are varied. The figure below shows the how the radiative transfer through the medium is
+modified as its optical depth is varied. These results were obtained with 100 grid cells and
+<span class="math notranslate nohighlight">\(10^4\)</span> sampled photons. Quite intuitively, the absorption as well as the scattering
+increases as the optical depth of the medium is increased.</p>
+<div class="figure" id="id3">
+<img alt="Results of exercise 2 a" src="_images/results_2_a_3.png" />
+<p class="caption"><span class="caption-text">Monte carlo simulation results of a homogeneous absorbing and scattering medium for
+varying the optical depth of the medium.</span></p>
+</div>
+</div>
+<div class="section" id="varying-forward-to-backscattering-ratio">
+<h3>Varying forward-to-backscattering ratio<a class="headerlink" href="#varying-forward-to-backscattering-ratio" title="Permalink to this headline">¶</a></h3>
+<p>The next figure displays the effect of varying the forward-to-backscattering
+ratio between <span class="math notranslate nohighlight">\(0.2\)</span> and <span class="math notranslate nohighlight">\(0.8\)</span>. The effect of this is most clearly
+visible in absorption curves show in panel (a). A decreased value of <span class="math notranslate nohighlight">\(VR\)</span>
+leads to increased absorption closer to the source and decreased absorption
+further away from the source. For high values of <span class="math notranslate nohighlight">\(VR\)</span> the effect is the
+opposite. Overall a lower forward-to-backscattering ratio increases the amount
+of radiation absorbed by the medium. This is a fairly intuitive result since
+backscattering event increase the path length of photons traveling through the
+medium.</p>
+<div class="figure" id="id4">
+<img alt="Results of exercise 2 a" src="_images/results_2_a_4.png" />
+<p class="caption"><span class="caption-text">Monte carlo simulation results of a homogeneous absorbing and scattering medium for
+varying the forward-to-backscattering ratio.</span></p>
+</div>
+</div>
+<div class="section" id="varying-single-scattering-albedo">
+<h3>Varying single-scattering albedo<a class="headerlink" href="#varying-single-scattering-albedo" title="Permalink to this headline">¶</a></h3>
+<p>Finally, the effect of varying the single-scattering albedo is investigated. The results
+are displayed in the figure below. A lowered single-scattering albedo increases the absorption
+in the medium, while an increased single-scattering albedo decreases it. Also this result
+is quite intuitive since the lower single scattering albedo corresponds to an increased
+absorption cross section and considering the high foward-to-backscattering ratio of the medium.</p>
+<div class="figure" id="id5">
+<img alt="Results of exercise 2 a" src="_images/results_2_a_5.png" />
+<p class="caption"><span class="caption-text">Monte carlo simulation results of a homogeneous absorbing and scattering medium for
+varying the single-scattering albedo.</span></p>
+</div>
+</div>
+</div>
+<div class="section" id="part-2">
+<h2>Part 2<a class="headerlink" href="#part-2" title="Permalink to this headline">¶</a></h2>
+<p>We briefly show results for a heterogeneous medium. The simulation uses the same
+geometry as above with an optical depth <span class="math notranslate nohighlight">\(\tau = 1\)</span>. The heterogeneity is
+introduced at <span class="math notranslate nohighlight">\(x = 5\)</span> km, where the single scattering changes from
+<span class="math notranslate nohighlight">\(VR = 0.8\)</span> to <span class="math notranslate nohighlight">\(VR = 0.2\)</span>. The results are shown in the figure below.
+The effect of the increased absorption caused by the jump in forward to
+back-scattering ratio is clearly visible in the results. In particular, the
+non-local effect of the scattering properties of the medium become apparent,
+since the absorption is increased even in the first half of the domain.
+Regarding the frequency of scattering events, it is noticeable that the number
+of zero scattering event is unchanged by the heterogeneity, which is expected as
+the scattering cross section of the material is unchanged.</p>
+<div class="figure" id="id6">
+<img alt="Results of exercise 2 a" src="_images/results_2_b.png" />
+<p class="caption"><span class="caption-text">Monte carlo simulation results of a heterogeneous absorbing and scattering medium.</span></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Simon Pfreundschuh.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/exercise_2.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
