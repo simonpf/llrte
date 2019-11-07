@@ -1,5 +1,13 @@
-language: cpp
-dist: bionic
+matrix:
+  include:
+    - language: python
+      dist: bionic
+      python: 3.6
+      script:
+        - pip install breathe
+
+    - language: cpp
+      dist: bionic
 
 addons:
   apt:
