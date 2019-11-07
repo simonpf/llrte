@@ -3,6 +3,11 @@
 
 namespace llrte {
 
+/** Atmosphere
+ *
+ * This class represents the atmosphere in which the RT calculation is performed.
+ *
+ */
 template <typename Grid, typename AbsorptionModel, typename ScatteringModel>
 class Atmosphere {
  public:

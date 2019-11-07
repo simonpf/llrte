@@ -30,19 +30,18 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Ofast")
 
 #
-# Warnings
+# Add custom modules.
 #
 
-if(MSVC)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX")
-else()
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Werror")
-endif()
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
 #
 # Libraries.
 #
 find_package(PythonInterp)
+
+# Build doc
+add_subdirectory(doc)
 
 # Build binaries
 add_subdirectory(misc)
