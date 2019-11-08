@@ -5,20 +5,34 @@ namespace llrte {
 
 /** Atmosphere
  *
- * This class represents the atmosphere in which the RT calculation is performed.
+ * This class represents the atmosphere in which an RT calculation is performed.
+ * Its main role is to bundle all objects that make up the atmosphere, that means
+ * determine its optical properties, and provides an interface for the photons
+ * and beams that propagate through it.
  *
  */
-template <typename Grid, typename AbsorptionModel, typename ScatteringModel>
+template <
+    typename Grid,
+    typename AbsorptionModel,
+    typename ScatteringModel,
+    typename ... Boundaries
+>
 class Atmosphere {
  public:
+
+  /** The floating point type used to represent scalars. */
   using Float = typename Grid::Float;
+  /** The class representing the phase function. */
   using PhaseFunction = typename ScatteringModel::PhaseFunction;
 
-  Atmosphere(Grid grid, AbsorptionModel absorption_model,
-             ScatteringModel scattering_model)
+  Atmosphere(Grid grid,
+             AbsorptionModel absorption_model,
+             ScatteringModel scattering_model,
+             std::tuple<Boundaries ...> boundaries = std::tuple<Boundaries ...>())
       : grid_(grid),
         absorption_model_(absorption_model),
-        scattering_model_(scattering_model) {
+        scattering_model_(scattering_model),
+        boundaries_(boundaries) {
     // Nothing to do here.
   }
 
@@ -59,10 +73,12 @@ class Atmosphere {
     return grid_.get_boundary_index(gp);
   }
 
- public:
+ private:
   Grid grid_;
   AbsorptionModel absorption_model_;
   ScatteringModel scattering_model_;
+  std::tuple<Boundaries ...> boundaries_;
+
 };
 }  // namespace llrte
 
