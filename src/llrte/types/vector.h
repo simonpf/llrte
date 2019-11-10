@@ -1,4 +1,5 @@
 #ifndef _LLRTE_TYPES_VECTOR_H_
+#define _LLRTE_TYPES_VECTOR_H_
 
 #include <iostream>
 

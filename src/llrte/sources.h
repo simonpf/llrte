@@ -64,4 +64,6 @@ class BeamSource {
  private:
   Vector position_, direction_;
 };
+
+}
 #endif

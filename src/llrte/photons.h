@@ -3,7 +3,7 @@
 
 #include "llrte/tracers.h"
 
-namespace llrte {}
+namespace llrte {
 
 /**
  * Simple photon.
@@ -45,7 +45,7 @@ class Photon {
       position = std::get<1>(intersection);
 
       // Check if left atmosphere
-      if (!atmosphere.is_inside(position)) {
+      if (d < 0.0) {
         Tracer::trace(*this, position, Event::left_domain);
         break;
       }
@@ -97,6 +97,13 @@ class FixedEnergyPhoton {
      return n_scattered_;
   }
 
+  Float get_energy() const {
+    return energy_;
+  }
+
+  Float set_energy(Float e) {
+    energy_ = e;
+  }
 
   template <typename Atmosphere, typename Random>
   void propagate(Atmosphere atmosphere, Random& generator) {
@@ -135,6 +142,8 @@ class FixedEnergyPhoton {
         n_scattered_++;
         tau = generator.sample_tau();
         Tracer::trace(*this, position, energy_, Event::scattering);
+      } else {
+        atmosphere.apply_boundaries(*this);
       }
 
       Tracer::trace(*this, position, Event::step);

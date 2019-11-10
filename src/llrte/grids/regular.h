@@ -157,19 +157,23 @@ class RegularGrid {
     float d = std::numeric_limits<Float>::max();
     size_t direction = 0;
 
+    // x-direction
     float dx = -1.0;
     size_t i = 0;
-
     if (dir[0] < 0.0) {
       if (gp.i > 0) {
         i = get_lower<0>(gp);
         dx = (x_[i] - gp.x) / dir[0];
+      } else {
+        return std::make_pair(-1.0, gp);
       }
     } else {
       if (gp.i < shape_[0]) {
         i = get_higher<0>(gp);
         dx = (x_[i] - gp.x) / dir[0];
         i++;
+      } else {
+        return std::make_pair(-1.0, gp);
       }
     }
     if ((dx >= 0.0) && (dx < d)) {
@@ -177,19 +181,23 @@ class RegularGrid {
       d = dx;
     }
 
+    // y-direction
     Float dy = -1.0;
     size_t j = 0;
-
     if (dir[1] < 0.0) {
       if (gp.j > 0) {
         j = get_lower<1>(gp);
         dy = (y_[j] - gp.y) / dir[1];
+      } else {
+        return std::make_pair(-1.0, gp);
       }
     } else {
       if (gp.j < shape_[1]) {
         j = get_higher<1>(gp);
         dy = (y_[j] - gp.y) / dir[1];
         j++;
+      } else {
+        return std::make_pair(-1.0, gp);
       }
     }
 
@@ -198,19 +206,23 @@ class RegularGrid {
       d = dy;
     }
 
+    // z-direction
     Float dz = -1.0;
     size_t k = 0;
-
     if (dir[2] < 0.0) {
       if (gp.k > 0) {
         k = get_lower<2>(gp);
         dz = (z_[k] - gp.z) / dir[2];
+      } else {
+        return std::make_pair(-1.0, gp);
       }
     } else {
       if (gp.k < shape_[2]) {
         k = get_higher<2>(gp);
         dz = (z_[k] - gp.z) / dir[2];
         k++;
+      } else {
+        return std::make_pair(-1.0, gp);
       }
     }
 
@@ -219,8 +231,8 @@ class RegularGrid {
       d = dz;
     }
 
+    // Compute new position.
     GridPosition<Float> gp_new(gp);
-
     Float l = d * dir.length();
     if (l > step_length) {
       l = step_length;
@@ -260,7 +272,6 @@ class RegularGrid {
         }
       }
     }
-
     return std::make_pair(l, gp_new);
   }
 

@@ -46,3 +46,4 @@ add_subdirectory(doc)
 # Build binaries
 add_subdirectory(misc)
 add_subdirectory(bin)
+add_subdirectory(test)
