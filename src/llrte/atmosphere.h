@@ -35,7 +35,7 @@ template <
     typename Grid,
     typename AbsorptionModel,
     typename ScatteringModel,
-    typename ... Boundaries
+    typename Boundaries = std::tuple<>
 >
 class Atmosphere {
  public:
@@ -48,7 +48,7 @@ class Atmosphere {
   Atmosphere(Grid grid,
              AbsorptionModel absorption_model,
              ScatteringModel scattering_model,
-             std::tuple<Boundaries ...> boundaries = std::tuple<Boundaries ...>())
+             Boundaries boundaries = Boundaries{})
       : grid_(grid),
         absorption_model_(absorption_model),
         scattering_model_(scattering_model),
@@ -164,7 +164,9 @@ class Atmosphere {
   }
 
   template <size_t i>
-  auto get_boundary() {
+  auto get_boundary()
+  -> typename std::tuple_element<i, Boundaries>::type
+  {
       return std::get<i>(boundaries_);
   }
 
@@ -172,7 +174,7 @@ class Atmosphere {
   Grid grid_;
   AbsorptionModel absorption_model_;
   ScatteringModel scattering_model_;
-  std::tuple<Boundaries ...> boundaries_;
+  Boundaries boundaries_;
 
 };
 }  // namespace llrte

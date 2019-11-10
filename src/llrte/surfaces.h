@@ -44,6 +44,9 @@ namespace llrte::surfaces {
         p.set_energy(0.0);
     }
 
+    Float get_absorbed_energy() const {
+        return absorbed_energy_;
+    }
 
     private:
     Float absorbed_energy_ = 0.0;
