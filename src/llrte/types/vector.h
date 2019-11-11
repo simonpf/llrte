@@ -2,6 +2,7 @@
 #define _LLRTE_TYPES_VECTOR_H_
 
 #include <iostream>
+#include <math.h>
 
 namespace llrte {
 
@@ -19,19 +20,12 @@ class Vector {
     }
   }
 
-  template <typename... Ts>
-  Vector(Ts... ts) {
-    auto t = std::make_tuple(ts...);
-    for (size_t i = 0; i < N; ++i) {
-      // elements_[i] = std::get<i>(t);
-    }
-  }
 
   Float operator[](size_t i) const { return elements_[i]; }
 
   Float& operator[](size_t i) { return elements_[i]; }
 
-  Vector operator+(const Vector& v) {
+  Vector operator+(const Vector& v) const {
     Vector w;
     for (size_t i = 0; i < N; ++i) {
       w[i] = v[i] + elements_[i];
@@ -39,7 +33,7 @@ class Vector {
     return w;
   }
 
-  Vector operator*(const Float& v) {
+  Vector operator*(const Float& v) const {
     Vector w;
     for (size_t i = 0; i < N; ++i) {
       w[i] = v * elements_[i];
@@ -47,10 +41,10 @@ class Vector {
     return w;
   }
 
-  Vector operator-(const Vector& v) {
+  Vector operator-(const Vector& v) const {
     Vector w;
     for (size_t i = 0; i < N; ++i) {
-      w[i] = v[i] - elements_[i];
+      w[i] = elements_[i] - v[i];
     }
     return w;
   }
@@ -66,6 +60,15 @@ class Vector {
  public:
   Float elements_[N];
 };
+
+template <size_t N, typename Float>
+    Float dot(Vector<N, Float> v, Vector<N, Float> w) {
+    Float d = 0.0;
+    for (size_t i = 0; i < N; ++i) {
+        d += v[i] * w[i];
+    }
+    return d;
+}
 
 template <size_t N, typename Float>
 Vector<N, Float> operator*(Float c, Vector<N, Float> v) {

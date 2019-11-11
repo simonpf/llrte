@@ -9,15 +9,32 @@
 
 namespace llrte {
 
-template <typename Float, typename Index = size_t>
+template <typename Vector, typename Index = size_t>
 struct GridPosition {
-  size_t i, j, k;
-  Float x, y, z;
+  using Float = typename Vector::Float;
+  Index i, j, k;
+  Vector *vector;
+
+  GridPosition(Index i_,
+               Index j_,
+               Index k_,
+               Vector& v)
+  : i(i_), j(j_), k(j_), vector(&v) {}
+
+    GridPosition(const GridPosition &other) :
+    i(other.i), j(other.j), k(other.k), vector(other.vector) {}
+
+    Float & x() {return (*vector)[0];}
+    Float & y() {return (*vector)[1];}
+    Float & z() {return (*vector)[2];}
+    Float x() const {return (*vector)[0];}
+    Float y() const {return (*vector)[1];}
+    Float z() const {return (*vector)[2];}
 };
 
-template <typename Real>
-std::ostream& operator<<(std::ostream& os, const GridPosition<Real>& gp) {
-  os << "[" << gp.x << ", " << gp.y << ", " << gp.z << "]" << std::endl;
+template <typename Vector>
+std::ostream& operator<<(std::ostream& os, const GridPosition<Vector>& gp) {
+    os << "[" << gp.x() << ", " << gp.y() << ", " << gp.z() << "] :: " << gp.vector << std::endl;
   os << "[" << gp.i << ", " << gp.j << ", " << gp.k << "]" << std::endl;
   return os;
 }
@@ -56,27 +73,27 @@ class RegularGrid {
   }
 
   template <typename Vector>
-  GridPosition<Float> get_grid_position(Vector pos) {
+  GridPosition<Vector> get_grid_position(Vector& position) {
     size_t i = 0;
     size_t j = 0;
     size_t k = 0;
-    while ((x_[i] <= pos[0]) && (i < shape_[0])) {
+    while ((x_[i] <= position[0]) && (i < shape_[0])) {
       i++;
     }
-    while ((y_[j] <= pos[1]) && (j < shape_[1])) {
+    while ((y_[j] <= position[1]) && (j < shape_[1])) {
       j++;
     }
-    while ((z_[k] <= pos[2]) && (k < shape_[2])) {
+    while ((z_[k] <= position[2]) && (k < shape_[2])) {
       k++;
     }
-    return GridPosition<Float>{i, j, k, pos[0], pos[1], pos[2]};
+    return GridPosition(i, j, k, position);
   }
 
   template <typename GridPosition>
   bool is_inside(GridPosition gp) {
-    bool inside = ((gp.x > x_[0]) && (gp.x < x_[shape_[0] - 1]));
-    inside &= ((gp.y > y_[0]) && (gp.y < y_[shape_[1] - 1]));
-    inside &= ((gp.z > z_[0]) && (gp.z < z_[shape_[2] - 1]));
+    bool inside = ((gp.x() > x_[0]) && (gp.x() < x_[shape_[0] - 1]));
+    inside &= ((gp.y() > y_[0]) && (gp.y() < y_[shape_[1] - 1]));
+    inside &= ((gp.z() > z_[0]) && (gp.z() < z_[shape_[2] - 1]));
     return inside;
   }
 
@@ -124,8 +141,8 @@ class RegularGrid {
     }
   }
 
-  template <size_t axis>
-  size_t get_lower(GridPosition<Float> gp) {
+  template <size_t axis, typename GridPosition>
+  size_t get_lower(GridPosition gp) {
     if (axis == 0) {
       return std::max<size_t>(gp.i - 1, 0);
     }
@@ -137,8 +154,8 @@ class RegularGrid {
     }
   }
 
-  template <size_t axis>
-  size_t get_higher(GridPosition<Float> gp) {
+  template <size_t axis, typename GridPosistion>
+  size_t get_higher(const GridPosistion &gp) {
     if (axis == 0) {
       return std::min(gp.i, shape_[0] - 1);
     }
@@ -151,9 +168,9 @@ class RegularGrid {
   }
 
   template <typename Vector>
-  std::pair<Float, GridPosition<Float>> get_intersection(GridPosition<Float> gp,
-                                                         Vector dir,
-                                                         Float step_length) {
+  std::pair<Float, GridPosition<Vector>> get_intersection(GridPosition<Vector> gp,
+                                                          Vector dir,
+                                                          Float step_length) {
     float d = std::numeric_limits<Float>::max();
     size_t direction = 0;
 
@@ -163,14 +180,14 @@ class RegularGrid {
     if (dir[0] < 0.0) {
       if (gp.i > 0) {
         i = get_lower<0>(gp);
-        dx = (x_[i] - gp.x) / dir[0];
+        dx = (x_[i] - gp.x()) / dir[0];
       } else {
         return std::make_pair(-1.0, gp);
       }
-    } else {
+    } else if (dir[0] > 0.0) {
       if (gp.i < shape_[0]) {
         i = get_higher<0>(gp);
-        dx = (x_[i] - gp.x) / dir[0];
+        dx = (x_[i] - gp.x()) / dir[0];
         i++;
       } else {
         return std::make_pair(-1.0, gp);
@@ -187,14 +204,14 @@ class RegularGrid {
     if (dir[1] < 0.0) {
       if (gp.j > 0) {
         j = get_lower<1>(gp);
-        dy = (y_[j] - gp.y) / dir[1];
+        dy = (y_[j] - gp.y()) / dir[1];
       } else {
         return std::make_pair(-1.0, gp);
       }
-    } else {
+    } else if (dir[1] > 0.0) {
       if (gp.j < shape_[1]) {
         j = get_higher<1>(gp);
-        dy = (y_[j] - gp.y) / dir[1];
+        dy = (y_[j] - gp.y()) / dir[1];
         j++;
       } else {
         return std::make_pair(-1.0, gp);
@@ -212,14 +229,14 @@ class RegularGrid {
     if (dir[2] < 0.0) {
       if (gp.k > 0) {
         k = get_lower<2>(gp);
-        dz = (z_[k] - gp.z) / dir[2];
+        dz = (z_[k] - gp.z()) / dir[2];
       } else {
         return std::make_pair(-1.0, gp);
       }
-    } else {
+    } else if (dir[2] > 0.0) {
       if (gp.k < shape_[2]) {
         k = get_higher<2>(gp);
-        dz = (z_[k] - gp.z) / dir[2];
+        dz = (z_[k] - gp.z()) / dir[2];
         k++;
       } else {
         return std::make_pair(-1.0, gp);
@@ -232,66 +249,67 @@ class RegularGrid {
     }
 
     // Compute new position.
-    GridPosition<Float> gp_new(gp);
+    GridPosition<Vector> gp_new(gp);
     Float l = d * dir.length();
     if (l > step_length) {
       l = step_length;
       d = step_length / dir.length();
-      gp_new.x = gp.x + d * dir[0];
-      gp_new.y = gp.y + d * dir[1];
-      gp_new.z = gp.z + d * dir[2];
+      gp_new.x()= gp.x() + d * dir[0];
+      gp_new.y()= gp.y() + d * dir[1];
+      gp_new.z()= gp.z() + d * dir[2];
     } else {
       if (direction == 0) {
         gp_new.i = i;
         if (dir[0] < 0.0) {
-          gp_new.x = x_[i];
+          gp_new.x()= x_[i];
         } else {
-          gp_new.x = x_[i - 1];
+          gp_new.x()= x_[i - 1];
         }
-        gp_new.y = gp.y + d * dir[1];
-        gp_new.z = gp.z + d * dir[2];
+        gp_new.y()= gp.y() + d * dir[1];
+        gp_new.z()= gp.z() + d * dir[2];
       }
       if (direction == 1) {
         gp_new.j = j;
-        gp_new.x = gp.x + d * dir[0];
+        gp_new.x()= gp.x() + d * dir[0];
         if (dir[1] < 0.0) {
-          gp_new.y = y_[j - 1];
+          gp_new.y()= y_[j];
         } else {
-          gp_new.y = y_[j];
+          gp_new.y()= y_[j - 1];
         }
-        gp_new.z = gp.z + d * dir[2];
+        gp_new.z()= gp.z() + d * dir[2];
       }
       if (direction == 2) {
         gp_new.k = k;
-        gp_new.x = gp.x + d * dir[0];
-        gp_new.y = gp.y + d * dir[1];
+        gp_new.x()= gp.x() + d * dir[0];
+        gp_new.y()= gp.y() + d * dir[1];
         if (dir[2] < 0.0) {
-          gp_new.z = z_[k - 1];
+          gp_new.z()= z_[k];
         } else {
-          gp_new.z = z_[k];
+          gp_new.z()= z_[k - 1];
         }
       }
     }
     return std::make_pair(l, gp_new);
   }
 
-  size_t get_boundary_index(GridPosition<Float> gp) const {
-    if (gp.x <= x_[0]) {
+  template <typename GridPosition>
+  size_t get_boundary_index(GridPosition gp) const {
+    if (gp.x() <= x_[0]) {
       return 0;
     }
-    if (gp.x >= x_[shape_[0]]) {
+    if (gp.x() >= x_[shape_[0]]) {
       return 1;
     }
-    if (gp.y <= y_[0]) {
+    if (gp.y() <= y_[0]) {
       return 2;
     }
-    if (gp.y >= y_[shape_[1]]) {
+    if (gp.y() >= y_[shape_[1]]) {
       return 3;
     }
-    if (gp.z <= z_[0]) {
+    if (gp.z() <= z_[0]) {
       return 4;
     }
-    if (gp.z >= z_[shape_[2]]) {
+    if (gp.z() >= z_[shape_[2]]) {
       return 5;
     }
     return 999;

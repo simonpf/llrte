@@ -16,8 +16,8 @@ namespace llrte {
 template <typename Atmosphere, typename Source>
 class MonteCarloSolver {
  public:
-  using Vector = typename Source::Vector;
-  using Float = typename Source::Float;
+  using Vector = typename std::remove_reference_t<Source>::Vector;
+  using Float = typename std::remove_reference_t<Source>::Float;
 
   MonteCarloSolver(Atmosphere atmosphere, Source source)
       : atmosphere_(atmosphere), source_(source), generator_() {

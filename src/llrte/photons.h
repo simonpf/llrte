@@ -18,14 +18,11 @@ class Photon {
   using Float = typename V::Float;
 
   Photon(Vector position, Vector direction)
- : position_(position), direction_(direction), n_scattered_(0) {
+      : position_(position), direction_(direction), n_scattered_(0) {
     // Nothing to do here.
   }
 
-  size_t get_scattering_events() const {
-     return n_scattered_;
-  }
-
+  size_t get_scattering_events() const { return n_scattered_; }
 
   template <typename Atmosphere, typename Random>
   void propagate(Atmosphere atmosphere, Random& generator) {
@@ -72,7 +69,6 @@ class Photon {
   Vector position_;
   Vector direction_;
   size_t n_scattered_ = 0;
-
 };
 
 /**
@@ -81,32 +77,28 @@ class Photon {
  * Simple photon that propagates through space until it is
  * absorbed.
  */
-template <typename V,
-          typename Tracer = NoTrace>
+template <typename V, typename Tracer = NoTrace>
 class FixedEnergyPhoton {
  public:
   using Vector = V;
   using Float = typename V::Float;
 
   FixedEnergyPhoton(Vector position, Vector direction)
- : position_(position), direction_(direction), n_scattered_(0), energy_(1.0) {
+      : position_(position),
+        direction_(direction),
+        n_scattered_(0),
+        energy_(1.0) {
     // Nothing to do here.
   }
 
-  size_t get_scattering_events() const {
-     return n_scattered_;
-  }
-
-  Float get_energy() const {
-    return energy_;
-  }
-
-  Float set_energy(Float e) {
-    energy_ = e;
-  }
+  size_t get_scattering_events() const { return n_scattered_; }
+  Float get_energy() const { return energy_; }
+  void set_energy(Float e) { energy_ = e; }
+  const Vector& get_position() const { return position_; }
+  void set_position(Vector p) { position_ = p; }
 
   template <typename Atmosphere, typename Random>
-  void propagate(Atmosphere atmosphere, Random& generator) {
+  void propagate(Atmosphere& atmosphere, Random& generator) {
     auto position = atmosphere.get_grid_position(position_);
     auto tau = generator.sample_tau();
 
@@ -119,21 +111,22 @@ class FixedEnergyPhoton {
       auto d = std::get<0>(intersection);
       tau -= d * scattering_xc;
 
+      // Check if left atmosphere.
+      if (d <= -1.0) {
+        Tracer::trace(*this, position, energy_, Event::left_domain);
+        break;
+      }
+
       // Handle absorption.
       auto f_abs = exp(-absorption_xc * d);
-      Tracer::trace(*this, position, energy_ * (1.0 - f_abs), Event::absorption);
+      Tracer::trace(*this, position, energy_ * (1.0 - f_abs),
+                    Event::absorption);
       energy_ *= f_abs;
       if (energy_ < minimum_energy_) {
         break;
       }
 
       position = std::get<1>(intersection);
-
-      // Check if left atmosphere.
-      if (!atmosphere.is_inside(position)) {
-        Tracer::trace(*this, position, energy_, Event::left_domain);
-        break;
-      }
 
       // Check if scattering event.
       if (l <= d) {
@@ -143,7 +136,12 @@ class FixedEnergyPhoton {
         tau = generator.sample_tau();
         Tracer::trace(*this, position, energy_, Event::scattering);
       } else {
-        atmosphere.apply_boundaries(*this);
+        bool hit = atmosphere.apply_boundaries(*this);
+        if (hit) {
+          position = atmosphere.get_grid_position(position_);
+        }
+        std::cout << "after: " << position << std::endl;
+        std::cout << "dir: " << direction_ << std::endl;
       }
 
       Tracer::trace(*this, position, Event::step);
@@ -304,5 +302,5 @@ class FixedEnergyPhoton {
 //    Vector direction_;
 //
 //};
-}
+}  // namespace llrte
 #endif

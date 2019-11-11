@@ -42,7 +42,7 @@ public:
 
     template <typename Grid, typename Position>
     Float get_absorption_coefficient(Grid /*grid*/, Position position) {
-        if (position.x < boundary_) {
+        if (position.x() < boundary_) {
             return abs_1_;
         } else {
             return abs_2_;
@@ -80,7 +80,7 @@ public:
 
     template <typename Grid, typename Position>
     Float get_scattering_coefficient(Grid /*grid*/, Position position) {
-        if (position.x < boundary_) {
+        if (position.x() < boundary_) {
             return sigma_s_1_;
         } else {
             return sigma_s_2_;
@@ -89,7 +89,7 @@ public:
 
     template <typename Grid, typename Position>
     PhaseFunction get_phase_function(Grid /*grid*/, Position position) {
-        if (position.x < boundary_) {
+        if (position.x() < boundary_) {
             return PhaseFunction{fb_ratio_1_};
         } else {
             return PhaseFunction{fb_ratio_2_};

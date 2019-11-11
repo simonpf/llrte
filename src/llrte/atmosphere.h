@@ -5,48 +5,44 @@
 
 namespace llrte {
 
-  namespace detail {
-    /** Boundary acting on photon.
-     *
-     * Dummy struct that performs the action of a boundary on
-     * a photon:
-     * - Checks whether photon has crossed boundary
-     * - If so, applies action of boundary on photon
-     */
-    struct BoundaryApplier {
-      template <typename Boundary, typename Photon>
-      void apply(Boundary b, Photon p) {
-        if (b.has_crossed(p)) {
-          b.apply(p);
-        }
-      }
-    };
+namespace detail {
+/** Boundary acting on photon.
+ *
+ * Dummy struct that performs the action of a boundary on
+ * a photon:
+ * - Checks whether photon has crossed boundary
+ * - If so, applies action of boundary on photon
+ */
+struct BoundaryApplier {
+  template <typename Boundary, typename Photon>
+  void apply(Boundary &b, Photon &p) {
+    if (b.has_crossed(p.get_position())) {
+      b.apply(p);
+      hit = true;
+    }
   }
+  bool hit = false;
+};
+}  // namespace detail
 
 /** Atmosphere
  *
  * This class represents the atmosphere in which an RT calculation is performed.
- * Its main role is to bundle all objects that make up the atmosphere, that means
- * determine its optical properties, and provides an interface for the photons
- * and beams that propagate through it.
+ * Its main role is to bundle all objects that make up the atmosphere, that
+ * means determine its optical properties, and provides an interface for the
+ * photons and beams that propagate through it.
  *
  */
-template <
-    typename Grid,
-    typename AbsorptionModel,
-    typename ScatteringModel,
-    typename Boundaries = std::tuple<>
->
+template <typename Grid, typename AbsorptionModel, typename ScatteringModel,
+          typename Boundaries = std::tuple<> >
 class Atmosphere {
  public:
-
   /** The floating point type used to represent scalars. */
   using Float = typename Grid::Float;
   /** The class representing the phase function. */
   using PhaseFunction = typename ScatteringModel::PhaseFunction;
 
-  Atmosphere(Grid grid,
-             AbsorptionModel absorption_model,
+  Atmosphere(Grid grid, AbsorptionModel absorption_model,
              ScatteringModel scattering_model,
              Boundaries boundaries = Boundaries{})
       : grid_(grid),
@@ -111,7 +107,7 @@ class Atmosphere {
    * grid.
    */
   template <typename Vector>
-  auto get_grid_position(Vector position) {
+  auto get_grid_position(Vector &position) {
     return grid_.get_grid_position(position);
   }
 
@@ -151,23 +147,21 @@ class Atmosphere {
     return grid_.get_intersection(gp, direction, step_length);
   }
 
-
   template <typename GridPosition>
   size_t get_boundary_index(GridPosition gp) {
     return grid_.get_boundary_index(gp);
   }
 
   template <typename Photon>
-  void apply_boundaries(Photon &p) {
-      detail::BoundaryApplier ba{};
-      tuple::map(ba, boundaries_);
+  bool apply_boundaries(Photon &p) {
+    detail::BoundaryApplier ba{};
+    tuple::map(ba, boundaries_, p);
+    return ba.hit;
   }
 
   template <size_t i>
-  auto get_boundary()
-  -> typename std::tuple_element<i, Boundaries>::type
-  {
-      return std::get<i>(boundaries_);
+  auto get_boundary() -> typename std::tuple_element<i, Boundaries>::type & {
+    return std::get<i>(boundaries_);
   }
 
  private:
@@ -175,7 +169,6 @@ class Atmosphere {
   AbsorptionModel absorption_model_;
   ScatteringModel scattering_model_;
   Boundaries boundaries_;
-
 };
 }  // namespace llrte
 

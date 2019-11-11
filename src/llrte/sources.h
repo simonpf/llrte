@@ -59,11 +59,15 @@ class BeamSource {
     // Nothing to do here.
   }
 
+  void set_direction(const Vector &v) { direction_ = v; }
+  const Vector & get_direction(const Vector &v) const { direction_ = v; }
+
+
   Photon sample_photon() { return Photon(position_, direction_); }
 
  private:
   Vector position_, direction_;
 };
 
-}
+}  // namespace llrte
 #endif

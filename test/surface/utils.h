@@ -26,20 +26,17 @@ std::shared_ptr<F[]> make_linear_vector(F start,
     return v;
 }
 
-template<typename Boundary,
-         typename ... Args>
-auto make_test_atmosphere(Args ... args) {
+template<typename Boundaries>
+auto make_test_atmosphere(Boundaries &boundaries) {
 
     using V3 = llrte::Vector<3, float>;
     using Float = float;
     using Grid = llrte::RegularGrid<Float>;
     using AbsorptionModel = llrte::NoAbsorption<Float>;
     using ScatteringModel = llrte::NoScattering<Float>;
-    using Boundaries = std::tuple<Boundary>;
     using Atmosphere = llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel, Boundaries>;
-    using Photon = llrte::Photon<V3>;
+    using Photon = llrte::FixedEnergyPhoton<V3>;
     using Source = llrte::BeamSource<Photon>;
-    using Solver = llrte::MonteCarloSolver<Atmosphere, Source>;
 
     auto source_position = V3{};
     source_position[0] = 0.0;
@@ -53,8 +50,6 @@ auto make_test_atmosphere(Args ... args) {
 
     auto source = Source(source_position, source_direction);
 
-    float start = 0.0e3;
-    float stop = 10.0e3;
     auto x = make_linear_vector<Float>(0.0, 1.0, 2);
     auto y = make_linear_vector<Float>(-0.5, 0.5, 2);
     auto z = make_linear_vector<Float>(-0.5, 0.5, 2);
@@ -63,7 +58,6 @@ auto make_test_atmosphere(Args ... args) {
     auto grid = Grid{shape, x, y, z};
     auto absorption_model = llrte::NoAbsorption<Float>();
     auto scattering_model = llrte::NoScattering<Float>();
-    auto boundaries = std::make_tuple(Boundary(args ...));
     auto atmosphere = Atmosphere{grid,
                                  absorption_model,
                                  scattering_model,
