@@ -49,7 +49,17 @@ class Vector {
     return w;
   }
 
-  Float length() {
+  Vector operator==(const Vector &v) const {
+    bool same = false;
+    for (size_t i = 0; i < 3; ++i) {
+      if (v[i] != elements_[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Float length() const {
     Float s = 0.0;
     for (size_t i = 0; i < N; ++i) {
       s += elements_[i] * elements_[i];
@@ -70,6 +80,15 @@ template <size_t N, typename Float>
     return d;
 }
 
+template <typename Float>
+Vector<3, Float> cross(Vector<3, Float> u, Vector<3, Float> v) {
+  Vector<3, Float> w{};
+  w[0] = u[1] * v[2] - u[2] * v[1];
+  w[1] = u[2] * v[0] - u[0] * v[2];
+  w[2] = u[0] * v[1] - u[1] * v[0];
+  return w;
+}
+
 template <size_t N, typename Float>
 Vector<N, Float> operator*(Float c, Vector<N, Float> v) {
   Vector<N, Float> w{};
@@ -88,6 +107,7 @@ std::ostream& operator<<(std::ostream& os, const Vector<N, Real>& v) {
   os << v[N - 1] << "]" << std::endl;
   return os;
 }
+
 
 }  // namespace llrte
 #endif

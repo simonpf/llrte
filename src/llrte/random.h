@@ -23,6 +23,14 @@ class Generator {
     return -log(y);
   }
 
+  template<typename Vector>
+  Vector random_direction() {
+      using Float = typename Vector::Float;
+      Vector v{};
+      Float phi, theta;
+
+  }
+
  public:
   std::default_random_engine generator_{};
   std::uniform_real_distribution<Float> distribution_{0.0, 1.0};
