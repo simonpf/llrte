@@ -87,7 +87,7 @@ for d, n in zip(results, [100, 10000, 1000000]):
                            label = r"$n_\text{{photons}}$ = {}".format(n))]
 
 ax_l = plt.subplot(gs[1])
-labels = ["Absorption law"] + [r"$n_\text{{grid}}$ = {}".format(n) for n in [1000, 100, 10]]
+labels = ["Absorption law"] + [r"$n_\text{{photons}}$ = {}".format(n) for n in [100, 10000, 1000000]]
 ax_l.set_axis_off()
 ax_l.legend(handles = handles, labels = labels, loc = "center")
 
