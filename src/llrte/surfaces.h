@@ -60,7 +60,6 @@ class PeriodicBoundary {
   }
 
   bool has_crossed(const Vector &v) {
-      std::cout << v << std::endl;
     if (dot(v - base_1_, normal_) <= 0.0) {
       return true;
     }
@@ -73,7 +72,6 @@ class PeriodicBoundary {
   template <typename Photon>
   void apply(Photon &p) {
       using Float = typename Photon::Float;
-      std::cout << "ppppperiod." << std::endl;
     auto position = p.get_position();
     decltype(position) db{};
     if (dot(position - base_1_, normal_) <= 0.0) {

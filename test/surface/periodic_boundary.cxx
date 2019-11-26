@@ -3,7 +3,7 @@
 
 #include "utils.h"
 
-int main(int args, const char **argv) {
+int main(int /*args*/, const char **/*argv*/) {
   using V3 = llrte::Vector<3, float>;
 
   // Setup black boundary.

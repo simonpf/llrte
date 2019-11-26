@@ -19,10 +19,10 @@ struct GridPosition {
                Index j_,
                Index k_,
                Vector& v)
-  : i(i_), j(j_), k(j_), vector(&v) {}
+  : i(i_), j(j_), k(k_), vector(&v) {}
 
-    GridPosition(const GridPosition &other) :
-    i(other.i), j(other.j), k(other.k), vector(other.vector) {}
+    //GridPosition(const GridPosition &other) :
+    //i(other.i), j(other.j), k(other.k), vector(other.vector) {}
 
     Float & x() {return (*vector)[0];}
     Float & y() {return (*vector)[1];}

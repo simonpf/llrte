@@ -56,7 +56,6 @@ boxplot.flierprops.color           : black
 boxplot.flierprops.marker          : o
 boxplot.flierprops.markerfacecolor : none
 boxplot.flierprops.markeredgecolor : black
-boxplot.flierprops.markeredgewidth : 1.0
 boxplot.flierprops.markersize      : 6
 boxplot.flierprops.linestyle       : none
 boxplot.flierprops.linewidth       : 1.0
@@ -417,7 +416,6 @@ hist.bins : 20                   ## The default number of histogram bins.
 
 #### SCATTER PLOTS
 scatter.marker : o               ## The default marker type for scatter plots.
-scatter.edgecolors : face        ## The default edgecolors for scatter plots.
 
 #### Agg rendering
 #### Warning: experimental, 2008/10/10

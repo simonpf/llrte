@@ -140,8 +140,6 @@ class FixedEnergyPhoton {
         if (hit) {
           position = atmosphere.get_grid_position(position_);
         }
-        std::cout << "after: " << position << std::endl;
-        std::cout << "dir: " << direction_ << std::endl;
       }
 
       Tracer::trace(*this, position, Event::step);
