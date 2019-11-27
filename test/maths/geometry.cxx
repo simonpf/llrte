@@ -1,29 +1,40 @@
-#include <llrte/surfaces.h>
-#include <llrte/types/vector.h>
-#include <llrte/rotations.h>
-#include <llrte/maths/geometry.h>
-#include <llrte/types/matrix.h>
-#include <llrte/constants.h>
+#include <math.h>
+#include <iostream>
 
-template <typename F>
-bool test_geometry() {
-  using Float = F;
+#include <llrte/constants.h>
+#include <llrte/maths/geometry.h>
+#include <llrte/random.h>
+#include <llrte/rotations.h>
+#include <llrte/surfaces.h>
+#include <llrte/types/matrix.h>
+#include <llrte/types/vector.h>
+
+template <typename Generator>
+bool test_geometry(Generator &generator) {
+  using Float = typename Generator::Float;
   using Vector = llrte::Vector<3, Float>;
   using Matrix = llrte::Matrix<3, 3, Float>;
 
-  using llrte::maths::geometry::unit_vector;
+  using llrte::maths::geometry::is_close;
   using llrte::maths::geometry::orthonormal_basis;
+  using llrte::maths::geometry::unit_vector;
+  using llrte::random_direction;
+  using llrte::column;
 
-  Vector x = unit_vector<Vector, 0>();
-  Vector y = unit_vector<Vector, 1>();
-  Vector z = unit_vector<Vector, 2>();
+  auto r = random_direction<Vector>(generator);
+  auto b = orthonormal_basis<Matrix>(r);
+  auto b3 = llrte::cross(column<Vector>(b, 0), column<Vector>(b, 1));
 
-  std::cout << orthonormal_basis<Matrix>(x) << std::endl;
-  std::cout << orthonormal_basis<Matrix>(y) << std::endl;
-  std::cout << orthonormal_basis<Matrix>(z) << std::endl;
-
+  return is_close(b3 * (1.0 / b3.length()),
+                  llrte::column<Vector>(b, 2));
 }
 
 int main(int args, const char **argv) {
-    test_geometry<float>();
+  auto generator = llrte::Generator<float>();
+  for (size_t i = 0; i < 100; ++i) {
+    if (!test_geometry(generator)) {
+      return 1;
+    }
+  }
+  return 0;
 }

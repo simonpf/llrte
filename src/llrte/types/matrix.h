@@ -91,14 +91,6 @@ class Matrix {
     return v;
   }
 
-  template <typename Vector>
-  Vector column(size_t j) const {
-    Vector v{};
-    for (size_t i = 0; i < M; ++i) {
-      v[i] = (*this)(i, j);
-    }
-  }
-
  private:
   Float elements_[M * N];
 };
@@ -112,6 +104,15 @@ Matrix<M, N, Float> operator*(Float c, const Matrix<M, N, Float>& a) {
     }
   }
   return b;
+}
+
+template <typename Vector, size_t M, size_t N, typename Float>
+Vector column(const Matrix<M, N, Float>& m, size_t j) {
+  Vector v{};
+  for (size_t i = 0; i < M; ++i) {
+    v[i] = m(i, j);
+  }
+  return v;
 }
 
 template <size_t M, size_t N, typename Real>

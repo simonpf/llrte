@@ -1,34 +1,32 @@
 #ifndef _LLRTE_RANDOM_
 #define _LLRTE_RANDOM_
 
-template <typename V>
+#include <random>
+
+#include "llrte/constants.h"
+#include "llrte/rotations.h"
+
+namespace llrte {
+
+template <typename F>
 class Generator {
  public:
-  using Vector = V;
-  using Float = typename Vector::Float;
+  using Float = F;
 
   Generator() {
     // Nothing to do here.
   }
+
+  Float sample_uniform() { return distribution_(generator_); }
 
   Float sample_path_length(Float m) {
     auto y = distribution_(generator_);
     return -m * log(y);
   }
 
-  Float sample_uniform() { return distribution_(generator_); }
-
   Float sample_tau() {
     auto y = distribution_(generator_);
     return -log(y);
-  }
-
-  template<typename Vector>
-  Vector random_direction() {
-      using Float = typename Vector::Float;
-      Vector v{};
-      Float phi, theta;
-
   }
 
  public:
@@ -36,4 +34,21 @@ class Generator {
   std::uniform_real_distribution<Float> distribution_{0.0, 1.0};
 };
 
+template <typename Vector, typename Generator>
+Vector random_direction(Generator &generator) {
+  using Float = typename Vector::Float;
+  Float phi, theta;
+
+  Vector v{};
+  v[0] = 0;
+  v[1] = 0;
+  v[2] = 1.0;
+
+  phi = 2.0 * Constants<Float>::pi * generator.sample_uniform();
+  theta = Constants<Float>::pi * generator.sample_uniform();
+
+  return rotations::rotate(v, phi, theta);
+}
+
+}  // namespace llrte
 #endif

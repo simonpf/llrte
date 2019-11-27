@@ -96,6 +96,8 @@ class FixedEnergyPhoton {
   void set_energy(Float e) { energy_ = e; }
   const Vector& get_position() const { return position_; }
   void set_position(Vector p) { position_ = p; }
+  const Vector& get_direction() const { return direction_; }
+  void set_direction(Vector d) { direction_ = d; }
 
   template <typename Atmosphere, typename Random>
   void propagate(Atmosphere& atmosphere, Random& generator) {

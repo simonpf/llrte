@@ -16,7 +16,6 @@ template <typename U, typename V>
 bool is_close(U u, V v) {
   auto d = u - v;
   auto eps = Limits<typename decltype(d)::Float>::eps;
-  std::cout << d.length() << std::endl;
   if (d.length() > eps) {
     return false;
   }
@@ -29,37 +28,43 @@ Matrix orthonormal_basis(const Vector &v) {
   Matrix b{};
 
   auto l = v.length();
-  decltype(l) vx, vy, vz;
+  decltype(l) vx, vy, vz, vmax;
   vx = v[0] / l;
   vy = v[1] / l;
   vz = v[2] / l;
+
+  vmax = vx;
+  if (abs(vy) > abs(vmax)) vmax = vy;
+  if (abs(vz) > abs(vmax)) vmax = vz;
+
+  if (vmax < 0.0) {
+      vx *= -1.0;
+      vy *= -1.0;
+      vz *= -1.0;
+  }
 
   b(0, 0) = vx;
   b(1, 0) = vy;
   b(2, 0) = vz;
 
-  if (vx > 0.5) {
+  if (abs(vx) > 0.5) {
     l = sqrt(vz * vz + vx * vx);
     b(0, 1) = -vz / l;
     b(2, 1) = vx / l;
-    l = sqrt(vx * vx + vy * vy);
-    b(0, 2) = vy / l;
-    b(1, 2) = vx / l;
-  } else if (vy > 0.5) {
+  } else if (abs(vy) > 0.5) {
     l = sqrt(vx * vx + vy * vy);
     b(0, 1) = vy / l;
     b(1, 1) = vx / l;
-    l = sqrt(vy * vy + vz * vz);
-    b(1, 2) = vz / l;
-    b(2, 2) = -vy / l;
-  } else if (vz > 0.5) {
+  } else if (abs(vz) > 0.5) {
     l = sqrt(vy * vy + vz * vz);
     b(1, 1) = vz / l;
     b(2, 1) = - vy / l;
-    l = sqrt(vx * vx + vz * vz);
-    b(0, 2) = - vz / l;
-    b(2, 2) = vx / l;
   }
+
+  b(0, 2) = b(1, 0) * b(2, 1) - b(2, 0) * b(1, 1);
+  b(1, 2) = b(2, 0) * b(0, 1) - b(0, 0) * b(2, 1);
+  b(2, 2) = b(0, 0) * b(1, 1) - b(1, 0) * b(0, 1);
+
   return b;
 }
 

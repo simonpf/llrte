@@ -1,8 +1,8 @@
 #ifndef _LLRTE_TYPES_VECTOR_H_
 #define _LLRTE_TYPES_VECTOR_H_
 
-#include <iostream>
 #include <math.h>
+#include <iostream>
 
 namespace llrte {
 
@@ -20,9 +20,7 @@ class Vector {
     }
   }
 
-
   Float operator[](size_t i) const { return elements_[i]; }
-
   Float& operator[](size_t i) { return elements_[i]; }
 
   Vector operator+(const Vector& v) const {
@@ -49,7 +47,7 @@ class Vector {
     return w;
   }
 
-  Vector operator==(const Vector &v) const {
+  Vector operator==(const Vector& v) const {
     bool same = false;
     for (size_t i = 0; i < 3; ++i) {
       if (v[i] != elements_[i]) {
@@ -67,17 +65,19 @@ class Vector {
     return sqrt(s);
   }
 
+  Vector normed() const { return (*this) * (1.0 / length()); }
+
  public:
   Float elements_[N];
 };
 
 template <size_t N, typename Float>
-    Float dot(Vector<N, Float> v, Vector<N, Float> w) {
-    Float d = 0.0;
-    for (size_t i = 0; i < N; ++i) {
-        d += v[i] * w[i];
-    }
-    return d;
+Float dot(Vector<N, Float> v, Vector<N, Float> w) {
+  Float d = 0.0;
+  for (size_t i = 0; i < N; ++i) {
+    d += v[i] * w[i];
+  }
+  return d;
 }
 
 template <typename Float>
@@ -107,7 +107,6 @@ std::ostream& operator<<(std::ostream& os, const Vector<N, Real>& v) {
   os << v[N - 1] << "]" << std::endl;
   return os;
 }
-
 
 }  // namespace llrte
 #endif

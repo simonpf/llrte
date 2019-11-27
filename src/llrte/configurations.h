@@ -8,7 +8,7 @@ namespace llrte {
 
   template<>
   struct Limits<float> {
-    static constexpr float eps = 1e-3;
+    static constexpr float eps = 1e-2;
   };
 
   template<>
