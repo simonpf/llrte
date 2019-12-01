@@ -8,11 +8,13 @@ add_executable(exercise_1_a exercise_1_a.cxx)
 add_executable(exercise_1_b exercise_1_b.cxx)
 add_executable(exercise_2_a exercise_2_a.cxx)
 add_executable(exercise_2_b exercise_2_b.cxx)
+add_executable(exercise_3_a exercise_3_a.cxx)
 
 configure_file(plot_results_1_a.py plot_results_1_a.py COPYONLY)
 configure_file(plot_results_1_b.py plot_results_1_b.py COPYONLY)
 configure_file(plot_results_2_a.py plot_results_2_a.py COPYONLY)
 configure_file(plot_results_2_b.py plot_results_2_b.py COPYONLY)
+configure_file(plot_results_3_a.py plot_results_3_a.py COPYONLY)
 
 find_package(PythonInterp)
 if (PYTHONINTERP_FOUND)

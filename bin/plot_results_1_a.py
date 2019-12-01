@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import subprocess
+import scipy as sp
 from scipy.integrate import cumtrapz
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec

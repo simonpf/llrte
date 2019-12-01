@@ -66,9 +66,9 @@ void run_experiment(size_t n_grid_cells,
     using ScatteringModel = llrte::NoScattering<Float>;
     using Atmosphere = llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel>;
     using Tracer = llrte::Histogram<Grid>;
-    using Photon = llrte::Photon<V3, Tracer>;
+    using Photon = llrte::Photon<V3>;
     using Source = llrte::BeamSource<Photon>;
-    using Solver = llrte::MonteCarloSolver<Atmosphere, Source>;
+    using Solver = llrte::MonteCarloSolver<Atmosphere, Source, Tracer>;
 
     auto source_position = V3{};
     source_position[0] = 0.0;

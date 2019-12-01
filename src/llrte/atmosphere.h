@@ -14,10 +14,10 @@ namespace detail {
  * - If so, applies action of boundary on photon
  */
 struct BoundaryApplier {
-  template <typename Boundary, typename Photon>
-  void apply(Boundary &b, Photon &p) {
-    if (b.has_crossed(p.get_position())) {
-      b.apply(p);
+  template <typename Boundary, typename Generator, typename Photon>
+  void apply(Boundary &b, Generator &g, Photon &p) {
+    if (b.has_crossed(p)) {
+      b.apply(g, p);
       hit = true;
     }
   }
@@ -142,7 +142,7 @@ class Atmosphere {
    */
   template <typename Vector, typename GridPosition, typename Float>
   std::pair<Float, GridPosition> get_intersection(GridPosition gp,
-                                                  Vector direction,
+                                                  const Vector &direction,
                                                   Float step_length) {
     return grid_.get_intersection(gp, direction, step_length);
   }
@@ -152,10 +152,10 @@ class Atmosphere {
     return grid_.get_boundary_index(gp);
   }
 
-  template <typename Photon>
-  bool apply_boundaries(Photon &p) {
+ template <typename Generator, typename Photon>
+ bool apply_boundaries(Generator &g, Photon &p) {
     detail::BoundaryApplier ba{};
-    tuple::map(ba, boundaries_, p);
+    tuple::map(ba, boundaries_, g, p);
     return ba.hit;
   }
 

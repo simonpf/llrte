@@ -2,9 +2,14 @@
 #define _LLRTE_TRACERS_
 
 #include <fstream>
+
 #include "llrte/definitions.h"
 
 namespace llrte {
+
+////////////////////////////////////////////////////////////////////////////////
+// No Trace
+////////////////////////////////////////////////////////////////////////////////
 
 struct NoTrace {
   template <typename... T>
@@ -12,6 +17,10 @@ struct NoTrace {
     // Nothing.
   }
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// Histogram
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename Grid>
 class Histogram {
@@ -61,6 +70,10 @@ template <typename Grid>
 std::unique_ptr<typename Histogram<Grid>::Float[]> Histogram<Grid>::data_ =
     nullptr;
 
+////////////////////////////////////////////////////////////////////////////////
+// Absorption Tracer
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename Grid>
 class AbsorptionTracer {
  public:
@@ -93,8 +106,8 @@ class AbsorptionTracer {
     }
   }
 
-  template <typename Photon, typename GridPos, typename... Ts>
-  static void trace(const Photon &p, GridPos gp, Event e, Ts...) {
+  template <typename Photon, typename GridPos>
+  static void trace(const Photon &p, GridPos gp, Event e) {
     if (e == Event::absorption) {
       size_t index = gp.k - 1;
       index *= (shape_[2] - 1);
@@ -129,8 +142,8 @@ class AbsorptionTracer {
   }
 
   template <typename Photon, typename GridPos, typename... Ts>
-  static void trace(const Photon &p, GridPos gp, typename Photon::Float value,
-                    Event e, Ts...) {
+  static void trace(const Photon &p, GridPos gp, Event e,
+                    typename Photon::Float value, Ts...) {
     if (e == Event::absorption) {
       size_t index = gp.k - 1;
       index *= (shape_[2] - 1);
@@ -164,17 +177,16 @@ class AbsorptionTracer {
     }
   }
 
-static void
-dump(std::string filename) {
-  std::ofstream file;
-  file.open(filename, std::ios::out | std::ios::binary);
-  size_t n = (shape_[0] - 1) * (shape_[1] - 1) * (shape_[2] - 1);
-  file.write((char *)absorption_counts_.get(), n * sizeof(Float));
-  file.write((char *)scattering_counts_.get(), n * sizeof(Float));
-  file.write((char *)leaving_photons_.get(), 6 * sizeof(Float));
-  file.write((char *)scattering_frequencies_.get(), 11 * sizeof(Float));
-  file.close();
-}
+  static void dump(std::string filename) {
+    std::ofstream file;
+    file.open(filename, std::ios::out | std::ios::binary);
+    size_t n = (shape_[0] - 1) * (shape_[1] - 1) * (shape_[2] - 1);
+    file.write((char *)absorption_counts_.get(), n * sizeof(Float));
+    file.write((char *)scattering_counts_.get(), n * sizeof(Float));
+    file.write((char *)leaving_photons_.get(), 6 * sizeof(Float));
+    file.write((char *)scattering_frequencies_.get(), 11 * sizeof(Float));
+    file.close();
+  }
 
  private:
   static Float shape_[3];
@@ -188,15 +200,50 @@ dump(std::string filename) {
 template <typename Grid>
 typename Grid::Float AbsorptionTracer<Grid>::shape_[3] = {0, 0, 0};
 template <typename Grid>
-std::unique_ptr<typename Grid::Float[]> AbsorptionTracer<Grid>::absorption_counts_{nullptr};
+std::unique_ptr<typename Grid::Float[]>
+    AbsorptionTracer<Grid>::absorption_counts_{nullptr};
 template <typename Grid>
-std::unique_ptr<typename Grid::Float[]> AbsorptionTracer<Grid>::scattering_counts_{nullptr};
+std::unique_ptr<typename Grid::Float[]>
+    AbsorptionTracer<Grid>::scattering_counts_{nullptr};
 template <typename Grid>
-std::unique_ptr<typename Grid::Float[]> AbsorptionTracer<Grid>::scattering_frequencies_{nullptr};
+std::unique_ptr<typename Grid::Float[]>
+    AbsorptionTracer<Grid>::scattering_frequencies_{nullptr};
 template <typename Grid>
-std::unique_ptr<typename Grid::Float[]> AbsorptionTracer<Grid>::leaving_photons_{nullptr};
+std::unique_ptr<typename Grid::Float[]>
+    AbsorptionTracer<Grid>::leaving_photons_{nullptr};
 template <typename Grid>
-const Grid * AbsorptionTracer<Grid>::grid_{nullptr};
+const Grid *AbsorptionTracer<Grid>::grid_{nullptr};
+
+////////////////////////////////////////////////////////////////////////////////
+// Photon Tracer
+////////////////////////////////////////////////////////////////////////////////
+
+template <typename Photon>
+class PhotonTracer {
+ public:
+  using Float = typename Photon::Float;
+
+  template <typename GridPos, typename... Ts>
+  static void trace(const Photon &/*p*/, GridPos /*gp*/, Event /*e*/, Ts...) {}
+
+  template <typename GridPos, typename... Ts>
+  static void trace(const Photon &p, GridPos /*gp*/, Event e,
+                    typename Photon::Float /*value*/, Ts...) {
+    if (e == Event::out_of_energy) {
+      photons_.push_back(p);
+    } else if (e == Event::left_domain) {
+      photons_.push_back(p);
+    }
+  }
+
+  static std::vector<Photon> & get_photons() { return photons_; }
+
+ private:
+  static std::vector<Photon> photons_;
+};
+
+template <typename Photon>
+std::vector<Photon> PhotonTracer<Photon>::photons_{};
 
 }  // namespace llrte
 #endif

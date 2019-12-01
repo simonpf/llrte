@@ -117,9 +117,9 @@ int main(int /*argc*/, const char **/***argv*/) {
     using ScatteringModel = HeterogeneousScattering<Float>;
     using Atmosphere = llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel>;
     using Tracer = llrte::AbsorptionTracer<Grid>;
-    using Photon = llrte::FixedEnergyPhoton<V3, Tracer>;
+    using Photon = llrte::Photon<V3>;
     using Source = llrte::BeamSource<Photon>;
-    using Solver = llrte::MonteCarloSolver<Atmosphere, Source>;
+    using Solver = llrte::MonteCarloSolver<Atmosphere, Source, Tracer>;
 
     auto source_position = V3{};
     source_position[0] = 0.0;

@@ -18,6 +18,7 @@ class Generator {
   }
 
   Float sample_uniform() { return distribution_(generator_); }
+  Float sample_angle_uniform() { return Constants<Float>::pi * distribution_(generator_); }
 
   Float sample_path_length(Float m) {
     auto y = distribution_(generator_);

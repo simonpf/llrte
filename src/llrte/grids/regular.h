@@ -4,8 +4,8 @@
 #include <iostream>
 #include <limits>
 #include <utility>
+#include <memory>
 
-#include "llrte/definitions.h"
 
 namespace llrte {
 
@@ -169,7 +169,7 @@ class RegularGrid {
 
   template <typename Vector>
   std::pair<Float, GridPosition<Vector>> get_intersection(GridPosition<Vector> gp,
-                                                          Vector dir,
+                                                          const Vector &dir,
                                                           Float step_length) {
     float d = std::numeric_limits<Float>::max();
     size_t direction = 0;

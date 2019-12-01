@@ -1,6 +1,8 @@
 #ifndef _LLRTE_ROTATIONS_H_
 #define _LLRTE_ROTATIONS_H_
 
+#include "llrte/types/matrix.h"
+
 namespace llrte::rotations {
 
   template <template <size_t, size_t, typename F> typename Matrix, typename F>
@@ -45,6 +47,36 @@ namespace llrte::rotations {
     r(1, 1) = cos(theta);
     r(2, 2) = 1.0;
     return r;
+  }
+
+  template <typename Matrix, typename Vector>
+  Matrix make_rotation(const Vector &v,
+                       typename Vector::Float  theta) {
+    auto ct = cos(theta);
+    auto st = sin(theta);
+    Matrix r{};
+
+    r(0, 0) = ct + v[0] * v[0] * (1.0 - ct);
+    r(0, 1) = v[0] * v[1] * (1.0 - ct) - v[2] * st;
+    r(0, 2) = v[0] * v[2] * (1.0 - ct) + v[1] * st;
+
+    r(1, 0) = v[1] * v[2] * (1.0 - ct) + v[2] * st;
+    r(1, 1) = ct + v[1] * v[1] * (1.0 - ct);
+    r(1, 2) = v[1] * v[2] * (1.0 - ct) - v[0] * st;
+
+    r(2, 0) = v[2] * v[1] * (1 - ct) - v[1] * st;
+    r(2, 1) = v[2] * v[1] * (1 - ct) + v[0] * st;
+    r(2, 2) = ct + v[2] * v[2] * (1 - ct);
+
+    return r;
+  }
+
+  template <typename Vector>
+  Vector rotate(const Vector &v,
+                const Vector &n,
+                typename Vector::Float  theta) {
+    using Float = typename Vector::Float;
+    return make_rotation<Matrix<3, 3, Float>>(n, theta) * v;
   }
 
   template <typename Vector, typename Float>

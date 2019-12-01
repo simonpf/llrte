@@ -7,13 +7,13 @@
 #include <llrte/tracers.h>
 #include <llrte/sources.h>
 #include <llrte/photons.h>
+#include <llrte/tracers.h>
 #include <llrte/scattering.h>
 #include <llrte/solvers/monte_carlo.h>
 #include <llrte/types/vector.h>
 
 template<typename F>
-std::shared_ptr<F[]> make_linear_vector(F start,
-                                        F stop,
+std::shared_ptr<F[]> make_linear_vector(F start, F stop,
                                         size_t steps) {
     std::shared_ptr<F[]> v{new F[steps]};
 
@@ -35,7 +35,7 @@ auto make_test_atmosphere(Boundaries &boundaries) {
     using AbsorptionModel = llrte::NoAbsorption<Float>;
     using ScatteringModel = llrte::NoScattering<Float>;
     using Atmosphere = llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel, Boundaries>;
-    using Photon = llrte::FixedEnergyPhoton<V3>;
+    using Photon = llrte::Photon<V3>;
     using Source = llrte::BeamSource<Photon>;
 
     auto source_position = V3{};

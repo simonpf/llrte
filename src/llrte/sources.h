@@ -62,11 +62,42 @@ class BeamSource {
   void set_direction(const Vector &v) { direction_ = v; }
   const Vector & get_direction(const Vector &v) const { direction_ = v; }
 
-
-  Photon sample_photon() { return Photon(position_, direction_); }
+  template <typename Generator>
+  Photon sample_photon(Generator &) { return Photon(position_, direction_); }
 
  private:
   Vector position_, direction_;
+};
+
+template <typename Source>
+class RandomOffset : public Source {
+public:
+
+  using Float   = typename Source::Float;
+  using Vector = typename Source::Vector;
+  using Photon = typename Source::Photon;
+
+  template <typename ... Ts>
+  RandomOffset(Vector direction,
+               Float limit_low,
+               Float limit_high,
+               Ts ... ts)
+  : Source(ts ...), direction_(direction), limit_low_(limit_low), limit_high_(limit_high)
+  {}
+
+  template <typename Generator>
+  Photon sample_photon(Generator &g) {
+    auto p = Source::sample_photon(g);
+    auto s = limit_low_ + (limit_high_ - limit_low_) * g.sample_uniform();
+    auto pp = p.get_position();
+    p.set_position(pp + s * direction_);
+    return p;
+    }
+
+ private:
+  Vector direction_;
+  Float limit_low_ = 0.0;
+  Float limit_high_ = 0.0;
 };
 
 }  // namespace llrte
