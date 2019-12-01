@@ -44,7 +44,7 @@ void run_experiment(size_t n_grid_cells, size_t n_photons,
 
   // Setup black boundary.
   auto base_b = V3{};
-  base_b[0] = 1.0;
+  base_b[0] = 0.0;
   base_b[1] = 0.0;
   base_b[2] = 0.0;
 
@@ -108,7 +108,7 @@ void run_experiment(size_t n_grid_cells, size_t n_photons,
   //////////////////////////////////////////////////////////////////////
 
   float start = 0.0e3;
-  float stop = 10.0e3;
+  float stop = 100.0e3;
   auto x = make_linear_vector<Float>(start, stop, n_grid_cells + 1);
   auto y = make_linear_vector<Float>(start, stop, n_grid_cells + 1);
   auto z = make_linear_vector<Float>(-0.5, 0.5, 2);
@@ -116,7 +116,7 @@ void run_experiment(size_t n_grid_cells, size_t n_photons,
 
   auto grid = Grid{shape, x, y, z};
   auto absorption_model = llrte::ConstantAbsorption<Float>(0.5e-4);
-  auto scattering_model = ScatteringModel(0.5e-4, 100);
+  auto scattering_model = ScatteringModel(0.5e-4, 180);
   auto atmosphere =
       Atmosphere{grid, absorption_model, scattering_model, surfaces};
   auto solver = Solver(atmosphere, source);

@@ -15,7 +15,7 @@ template <typename Vector>
 class Plane {
  protected:
   Plane(const Vector &base, const Vector &normal)
-      : base_(base.normed()), normal_(normal.normed()) {
+      : base_(base), normal_(normal.normed()) {
     // Nothing to do here.
   }
 
@@ -102,6 +102,7 @@ class ReflectingPlane : public Plane<Vector> {
     p.set_energy(albedo_ * e);
 
     auto d = Type::get_outgoing_direction(g, p.get_direction(), normal_);
+
     p.set_direction(d);
   }
 
