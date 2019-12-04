@@ -86,7 +86,7 @@ void run_experiment(size_t n_grid_cells, size_t n_photons,
   //////////////////////////////////////////////////////////////////////
 
   auto source_position = V3{};
-  source_position[0] = 10e3;
+  source_position[0] = 100e3;
   source_position[1] = 0.0;
   source_position[2] = 0.0;
 
@@ -115,8 +115,8 @@ void run_experiment(size_t n_grid_cells, size_t n_photons,
   size_t shape[3] = {n_grid_cells + 1, n_grid_cells + 1, 2};
 
   auto grid = Grid{shape, x, y, z};
-  auto absorption_model = llrte::ConstantAbsorption<Float>(0.5e-4);
-  auto scattering_model = ScatteringModel(0.5e-4, 180);
+  auto absorption_model = llrte::ConstantAbsorption<Float>(0.5e-5);
+  auto scattering_model = ScatteringModel(0.5e-5, 180);
   auto atmosphere =
       Atmosphere{grid, absorption_model, scattering_model, surfaces};
   auto solver = Solver(atmosphere, source);
