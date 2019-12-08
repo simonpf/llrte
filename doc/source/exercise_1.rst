@@ -40,7 +40,7 @@ simulation.
 After all, since the domain is homogeneous it is not very surprising that
 the grid resolution does not have a strong impact on the results.
 
-.. figure:: ../../plots/results_1_a_1.png
+.. figure:: ../../bin/results_1_a_1.png
    :alt: Results of exercise 1 a
 
    Monte carlo simulation results of a homogeneous purely absorbing medium for
@@ -55,7 +55,7 @@ photons was varied. For photon counts as low as 100 the results exhibit clearly
 visible, random deviations from the reference curve. For photon counts higher
 than that, however, they remain virtually indistinguishable.
 
-.. figure:: ../../plots/results_1_a_2.png
+.. figure:: ../../bin/results_1_a_2.png
    :alt: Results of exercise 1 a
 
    Monte carlo simulation results of a homogeneous purely absorbing medium for
@@ -127,13 +127,13 @@ domain is clearly visible through the increased decrease of the intensity in the
 of the domain. The qualitative results regarding grid resolution and photon count are the same
 as for the first part.
 
-.. figure:: ../../plots/results_1_b_1.png
+.. figure:: ../../bin/results_1_b_1.png
    :alt: Results of exercise 1 b
 
    Monte carlo simulation results for a heterogeneous, purely absorbing medium for
    varying grid resolution.
 
-.. figure:: ../../plots/results_1_b_2.png
+.. figure:: ../../bin/results_1_b_2.png
    :alt: Results of exercise 1 b
 
    Monte carlo simulation results for a heterogeneous, purely absorbing medium for

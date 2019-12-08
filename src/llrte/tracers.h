@@ -188,6 +188,19 @@ class AbsorptionTracer {
     file.close();
   }
 
+  static Float get_total_absorption_counts() {
+    Float sum = 0.0;
+    size_t n = (shape_[0] - 1) * (shape_[1] - 1) * (shape_[2] - 1);
+    for (size_t i = 0; i < n; ++i) {
+      sum += absorption_counts_[i];
+    }
+    return sum;
+  }
+
+  static Float get_total_leaving_counts(size_t i) {
+    return leaving_photons_[i];
+  }
+
  private:
   static Float shape_[3];
   static std::unique_ptr<Float[]> absorption_counts_;

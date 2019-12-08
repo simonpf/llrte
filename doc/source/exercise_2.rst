@@ -52,7 +52,7 @@ grid cell decreases as the number of grid cells decreases. For the absorption, h
 this effect is not observed since photons continuously deposit energy along their path
 thus increasing the number of samples per bin.
 
-.. figure:: ../../plots/results_2_a_1.png
+.. figure:: ../../bin/results_2_a_1.png
    :alt: Results of exercise 2 a
 
    Monte carlo simulation results of a homogeneous absorbing and scattering medium for
@@ -65,7 +65,7 @@ For variations in the number of simulated photons an effect on both the absorbed
 as well as the scattered intensity is observed. As expected, for low photon counts, the results
 become more noisy.
 
-.. figure:: ../../plots/results_2_a_2.png
+.. figure:: ../../bin/results_2_a_2.png
    :alt: Results of exercise 2 a
 
    Monte carlo simulation results of a homogeneous absorbing and scattering medium for
@@ -80,7 +80,7 @@ modified as its optical depth is varied. These results were obtained with 100 gr
 :math:`10^4` sampled photons. Quite intuitively, the absorption as well as the scattering
 increases as the optical depth of the medium is increased.
 
-.. figure:: ../../plots/results_2_a_3.png
+.. figure:: ../../bin/results_2_a_3.png
    :alt: Results of exercise 2 a
 
    Monte carlo simulation results of a homogeneous absorbing and scattering medium for
@@ -99,7 +99,7 @@ of radiation absorbed by the medium. This is a fairly intuitive result since
 backscattering event increase the path length of photons traveling through the
 medium.
 
-.. figure:: ../../plots/results_2_a_4.png
+.. figure:: ../../bin/results_2_a_4.png
    :alt: Results of exercise 2 a
 
    Monte carlo simulation results of a homogeneous absorbing and scattering medium for
@@ -114,7 +114,7 @@ in the medium, while an increased single-scattering albedo decreases it. Also th
 is quite intuitive since the lower single scattering albedo corresponds to an increased
 absorption cross section and considering the high foward-to-backscattering ratio of the medium.
 
-.. figure:: ../../plots/results_2_a_5.png
+.. figure:: ../../bin/results_2_a_5.png
    :alt: Results of exercise 2 a
 
    Monte carlo simulation results of a homogeneous absorbing and scattering medium for
@@ -135,7 +135,7 @@ Regarding the frequency of scattering events, it is noticeable that the number
 of zero scattering event is unchanged by the heterogeneity, which is expected as
 the scattering cross section of the material is unchanged.
 
-.. figure:: ../../plots/results_2_b.png
+.. figure:: ../../bin/results_2_b.png
    :alt: Results of exercise 2 a
 
    Monte carlo simulation results of a heterogeneous absorbing and scattering medium.
