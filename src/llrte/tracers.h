@@ -38,7 +38,8 @@ class Histogram {
   }
 
   template <typename Photon, typename GridPos, typename... Ts>
-  static void trace(const Photon & /*p*/, GridPos gp, Event e, Ts...) {
+  static void trace(const Photon &p, GridPos gp, Event e,
+                    typename Photon::Float value, Ts...) {
     if (e == Event::step) {
       if ((gp.i < shape_[0]) && (gp.j < shape_[1]) && (gp.k < shape_[2])) {
         size_t index = gp.k - 1;
@@ -46,7 +47,7 @@ class Histogram {
         index += gp.j - 1;
         index *= (shape_[1] - 1);
         index += gp.i - 1;
-        data_[index] += 1.0;
+        data_[index] += value;
       }
     }
   }

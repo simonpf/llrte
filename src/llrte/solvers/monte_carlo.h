@@ -70,7 +70,7 @@ class MonteCarloSolver {
           position = atmosphere_.get_grid_position(photon.get_position());
         }
       }
-      Tracer::trace(photon, position, Event::step);
+      Tracer::trace(photon, position, Event::step, photon.get_energy());
     }
   }
 
