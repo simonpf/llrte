@@ -15,6 +15,7 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Exercise 4" href="exercise_4.html" />
     <link rel="prev" title="Exercise 2" href="exercise_2.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -49,17 +50,19 @@ medium with the following properties</p>
 <li><p>Optical-depth: <span class="math notranslate nohighlight">\(\tau\)</span> = 1</p></li>
 <li><p>Single scattering albedo: <span class="math notranslate nohighlight">\(a\)</span> = 0.5</p></li>
 <li><p>Rayleight-scattering phase function</p></li>
-<li><p>Lower horizontal surface with an albedo $A = 0.8$ and Lambertian reflection</p></li>
+<li><p>Lower horizontal surface with an albedo <span class="math notranslate nohighlight">\(A = 0.8\)</span> and Lambertian reflection</p></li>
 <li><p>Periodic vertical boundaries.</p></li>
 </ul>
-<p>The simulation as performed in a three-dimensional domain with a horizontal
+<p>The simulation was performed in a three-dimensional domain with a horizontal
 extent of <span class="math notranslate nohighlight">\(10\)</span> km, a vertical extent of <span class="math notranslate nohighlight">\(100\)</span> km and a depth of
 <span class="math notranslate nohighlight">\(1\)</span> km. The depth dimension is not relevant here since the scattering
 plane for all scattering processes was restricted to the <span class="math notranslate nohighlight">\(xy\)</span>-plane, which
 is why the simulation was effectively performed as a 2D simulation. For the
-described medium the corresponding optical properties are:
-- absorption coefficient <span class="math notranslate nohighlight">\(\sigma_a = 0.4 \cdot 10^{-5}\ \text{m}^{-1}\)</span>
-- scattering coefficient <span class="math notranslate nohighlight">\(\sigma_s = 0.5 \cdot 10^{-5}\ \text{m}^{-1}\)</span></p>
+described medium the corresponding optical properties are:</p>
+<ul class="simple">
+<li><p>absorption coefficient <span class="math notranslate nohighlight">\(\sigma_a = 0.5 \cdot 10^{-5}\ \text{m}^{-1}\)</span></p></li>
+<li><p>scattering coefficient <span class="math notranslate nohighlight">\(\sigma_s = 0.5 \cdot 10^{-5}\ \text{m}^{-1}\)</span></p></li>
+</ul>
 <div class="section" id="benchmark-results">
 <h3>Benchmark results<a class="headerlink" href="#benchmark-results" title="Permalink to this headline">¶</a></h3>
 <p>The total absorbed intensity for the different parts of the simulated domain
@@ -68,18 +71,19 @@ but remain within the margin of uncertainty considering the large reported
 differences between the “simple” and the “exact” integration schemes.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 37%" />
-<col style="width: 5%" />
-<col style="width: 17%" />
-<col style="width: 41%" />
+<col style="width: 36%" />
+<col style="width: 24%" />
+<col style="width: 40%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head" colspan="3"><p>Lower surface |  Medium</p></th>
+<tr class="row-odd"><th class="head"><p>Lower surface</p></th>
+<th class="head"><p>Medium</p></th>
 <th class="head"><p>Upper boundary</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td colspan="3"><p>0.104  | 0.661</p></td>
+<tr class="row-even"><td><p>0.104</p></td>
+<td><p>0.661</p></td>
 <td><p>0.236</p></td>
 </tr>
 </tbody>

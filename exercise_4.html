@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Exercise 4 &#8212; llrte 0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Exercise 3" href="exercise_3.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="exercise-4">
+<h1>Exercise 4<a class="headerlink" href="#exercise-4" title="Permalink to this headline">¶</a></h1>
+<p>For the fourth exercise, a medium with a Henyey-Greenstein phase function was
+considered. The simulations can be run by building the <code class="code docutils literal notranslate"><span class="pre">exercise_4</span></code> target
+using <code class="code docutils literal notranslate"><span class="pre">make</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make exercise_4
+</pre></div>
+</div>
+<div class="section" id="part-1">
+<h2>Part 1<a class="headerlink" href="#part-1" title="Permalink to this headline">¶</a></h2>
+<p>The first part of the exercise consisted of the simulation of a homogeneous
+medium with the following properties</p>
+<ul class="simple">
+<li><p>Optical-depth: <span class="math notranslate nohighlight">\(\tau\)</span> = 5</p></li>
+<li><p>Single scattering albedo: <span class="math notranslate nohighlight">\(a\)</span> = 0.8</p></li>
+<li><p>Henyey-Greenstein phase function with <span class="math notranslate nohighlight">\(g\)</span> = 0.9</p></li>
+<li><p>Lower horizontal surface with an albedo <span class="math notranslate nohighlight">\(A = 0.7\)</span> and Lambertian reflection</p></li>
+<li><p>Periodic vertical boundaries.</p></li>
+</ul>
+<p>The simulation was performed in a three-dimensional domain with a horizontal
+extent of <span class="math notranslate nohighlight">\(4000\)</span> m, a vertical extent of <span class="math notranslate nohighlight">\(100\)</span> m and a depth of
+<span class="math notranslate nohighlight">\(1\)</span> m. The depth dimension is not relevant here since the scattering
+plane for all scattering processes was restricted to the <span class="math notranslate nohighlight">\(xy\)</span>-plane, so
+that the simulation was effectively performed as a 2D simulation.
+The corresponding optical properties for the described medium are:</p>
+<ul class="simple">
+<li><p>absorption coefficient <span class="math notranslate nohighlight">\(\sigma_a = 1 \cdot 10^{-2}\ \text{m}^{-1}\)</span></p></li>
+<li><p>scattering coefficient <span class="math notranslate nohighlight">\(\sigma_s = 4 \cdot 10^{-2}\ \text{m}^{-1}\)</span></p></li>
+</ul>
+<div class="section" id="the-henyey-greenstein-phase-function">
+<h3>The Henyey-Greenstein phase function<a class="headerlink" href="#the-henyey-greenstein-phase-function" title="Permalink to this headline">¶</a></h3>
+<p>The Henyey-Greenstein phase function is given by the following expression</p>
+<div class="math notranslate nohighlight">
+\[p(\theta) = \frac{1 - g^2}{(1 + g^2 + 2\ g\ \cos( \theta))^{\frac{3}{2}}}.\]</div>
+<p>It is parametrized by the asymmetry parameter <span class="math notranslate nohighlight">\(g\)</span>, which quantifies the
+asymmetry of the scattering process with respect to the forward and backward
+directions. The figure below displays the phase function for different values of
+the asymmetry parameter <span class="math notranslate nohighlight">\(g\)</span>. For negative <span class="math notranslate nohighlight">\(g\)</span>, the curve has a
+strong backward-scattering peak. As <span class="math notranslate nohighlight">\(g\)</span> increases the backward scattering
+peak becomes weaker until the phase function becomes completely flat
+for <span class="math notranslate nohighlight">\(g = 0\)</span>. For positive values of <span class="math notranslate nohighlight">\(g\)</span>, the phase function exhibits
+an increasingly strong forward scattering peak.</p>
+<div class="figure align-default" id="id1">
+<img alt="Henyey-Greenstein phase function" src="_images/henyey_greenstein.png" />
+<p class="caption"><span class="caption-text">The Henyey-Greenstein phase function for different values of the asymmetry parameter
+<span class="math notranslate nohighlight">\(g\)</span>.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+<div class="section" id="benchmark-results">
+<h3>Benchmark results<a class="headerlink" href="#benchmark-results" title="Permalink to this headline">¶</a></h3>
+<p>The total absorbed intensity for the different parts of the simulated domain are
+given in the table below. The values deviate from the reference benchmark values
+given in the exercise. It remains unclear what causes the devaitions but the
+stepping scheme remains a possible explanation.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 36%" />
+<col style="width: 24%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Lower surface</p></th>
+<th class="head"><p>Medium</p></th>
+<th class="head"><p>Upper boundary</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0.108</p></td>
+<td><p>0.835</p></td>
+<td><p>0.057</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="part-2">
+<h2>Part 2<a class="headerlink" href="#part-2" title="Permalink to this headline">¶</a></h2>
+<p>For the second part of the exercise, the effect of the parameter <span class="math notranslate nohighlight">\(g\)</span> on the
+radiation field was investigated by repeating the simulation described above for
+a range of values of <span class="math notranslate nohighlight">\(g\)</span> within the interval <span class="math notranslate nohighlight">\([-1, 1]\)</span>. The obtained
+results are displayed in terms of the fractions of the intensity absorbed in the
+different parts of the domain in the figure below.</p>
+<p>The intensity leaving the domain through the upper boundary exhibits a peak for
+the smallest values of <span class="math notranslate nohighlight">\(g\)</span>. At the same time, the intensity absorbed by
+the medium and the intensity absorbed by the lower surface reach their minima.
+As <span class="math notranslate nohighlight">\(g\)</span> increases, both the intensity absorbed by the medium and that
+absorbed by the lower surface increase. However, due to the large optical depth
+of the medium, the intensity absorbed by the lower surface remains much smaller
+than that absorbed by the medium. At the same time as the intensity absorbed by
+the medium and the lower surface decreases, the intensity that leaves the domain
+through the upper boundary is reduced.</p>
+<p>Also shown in the figure are the simulation results that were obtained with a
+Rayleigh-Scattering function. The Rayleigh scattering function is symmetric and
+thus has an asymmetry factor of <span class="math notranslate nohighlight">\(g = 0\)</span>. The results obtained with the
+Rayleigh phase function are very close to those obtained with the
+Henyey-Greenstein function. This indicates that for <span class="math notranslate nohighlight">\(g = 0\)</span>, the
+Henyey-Greenstein function represents the relevant properties of the Rayleigh
+phase function well.</p>
+<div class="figure align-default" id="id2">
+<img alt="Simulation results for domain with Henyey-Greenstein function" src="_images/results_4_b.png" />
+<p class="caption"><span class="caption-text">Fractions of intensity absorbed in different parts of the simulated domain
+for varying values of the parameter <span class="math notranslate nohighlight">\(g\)</span> of the Henyey-Greenstein phase
+function. Crosses show the simulation results obtained with the Rayleigh
+scattering function.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Simon Pfreundschuh.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/exercise_4.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
