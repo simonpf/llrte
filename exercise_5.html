@@ -62,9 +62,9 @@ assumed</p>
 <p>The absorbed intensities in the different parts of the domain are displayed
 in the figure below. Since the single-scattering albedo of the clear-sky part
 of the domain is 1, no radiation is absorbed outside of the cloud. Within the
-cloud the most radiation is absorbed at cloud top and decreases towards cloud
+cloud, most of the radiation is absorbed at cloud top and decreases towards cloud
 base. Since the scene is symmetric along the <span class="math notranslate nohighlight">\(x\)</span>-axis, no the results
-exhibit no horizontal structure except the MC noise.</p>
+exhibit no horizontal structure except for the MC noise.</p>
 <div class="figure align-default" id="id1">
 <img alt="1D cloud model" src="_images/results_5_a.png" />
 <p class="caption"><span class="caption-text">Absorbed intensity for a cloud layer in a horizontally homogeneous
@@ -75,8 +75,8 @@ in the different parts of the domain. Due to the low albedo of the surface and
 because of the low single-scattering albedo of the cloud, the largest part of
 the radiation is absorbed by the surface although it is completely covered by
 the cloud. The radiation absorbed by the medium is slightly less than that
-absorbed by the surface, while only about <span class="math notranslate nohighlight">\(5 \%\)</span> leave the domain through
-the upper boundary.</p>
+absorbed by the surface, while only about <span class="math notranslate nohighlight">\(5 \%\)</span> of the radiation leave
+the domain through the upper boundary.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 36%" />
@@ -100,8 +100,8 @@ the upper boundary.</p>
 <h3>Part 2<a class="headerlink" href="#part-2" title="Permalink to this headline">¶</a></h3>
 <p>For the second part of the exercise, a horizontally heterogeneous cloud
 has been simulated. The results are displayed in the figure below. The results
-are mostly similar to those obtained in the first part except for the flanks
-of the cloud, where the absorption is reduced.</p>
+are mostly similar to those obtained in the first part except for the lower flanks
+of the cloud, where the absorption is slightly reduced.</p>
 <div class="figure align-default" id="id2">
 <img alt="2D cloud model" src="_images/results_5_b.png" />
 <p class="caption"><span class="caption-text">Absorbed intensity for of a horizontally heterogeneous cloud layer.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
@@ -109,10 +109,11 @@ of the cloud, where the absorption is reduced.</p>
 <p>The effect of the horizontally heterogeneous cloud layer on the distribution of
 the absorbed intensities is displayed in the table below. Since the surface is
 only partially covered by cloud, the energy which is absorbed by the surface
-increases. At the same time,  energy absorbed in the medium decreases compared
-to Part 1 since absorption occurs only in the cloud. The radiation that leaves
-the domain increases as well, probably because of the strong forward scattering
-peak of the Henyey-Greenstein phase function used to model the cloud hydrometeors.</p>
+increases. At the same time, energy absorbed in the medium decreases compared to
+Part 1 since absorption occurs only in the cloud. The radiation that leaves the
+domain increases as well, probably because of the strong forward scattering peak
+of the Henyey-Greenstein phase function which is used to model the cloud
+hydrometeors.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 36%" />
