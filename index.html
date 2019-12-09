@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Monte Carlo methods for radiative transfer &#8212; llrte 0.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,7 +11,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Exercise 1" href="exercise_1.html" />
@@ -43,11 +42,11 @@ to solve the radiative transfer equation (RTE).</p>
 <p>Starting with the simplest case, a homogeneous, purely absorbing medium,
 the RTE can be solved using the following Monte Carlo approach:</p>
 <ol class="arabic simple">
-<li>Create a photon at the source. Its optical depth <span class="math notranslate nohighlight">\(\tau_\text{photon}\)</span> is zero.</li>
-<li>Sample a random optical depth <span class="math notranslate nohighlight">\(\tau\)</span> from an exponential distribution <span class="math notranslate nohighlight">\(p(x) = \exp(-x)\)</span></li>
-<li>Integrate the absorption coefficient <span class="math notranslate nohighlight">\(\alpha\)</span> along the photon path to obtain the photon’s optical
-depth <span class="math notranslate nohighlight">\(\tau_\text{photon}\)</span>.</li>
-<li>When <span class="math notranslate nohighlight">\(\tau_\text{photon} = \tau\)</span> the photon is absorbed. Continue with the next photon.</li>
+<li><p>Create a photon at the source. Its optical depth <span class="math notranslate nohighlight">\(\tau_\text{photon}\)</span> is zero.</p></li>
+<li><p>Sample a random optical depth <span class="math notranslate nohighlight">\(\tau\)</span> from an exponential distribution <span class="math notranslate nohighlight">\(p(x) = \exp(-x)\)</span></p></li>
+<li><p>Integrate the absorption coefficient <span class="math notranslate nohighlight">\(\alpha\)</span> along the photon path to obtain the photon’s optical
+depth <span class="math notranslate nohighlight">\(\tau_\text{photon}\)</span>.</p></li>
+<li><p>When <span class="math notranslate nohighlight">\(\tau_\text{photon} = \tau\)</span> the photon is absorbed. Continue with the next photon.</p></li>
 </ol>
 <p>It is easy to see that the fraction of photons reaching a given distance from their emission
 source satisfies the RTE for the spectral intensity. For this, let <span class="math notranslate nohighlight">\(X\)</span> denote the path that
@@ -64,15 +63,16 @@ the RTE for a homogeneous, purely absorbing medium.</p>
 <p>The above algorithm can be easily extended to allow for multiple scattering. All that
 is required for this is to</p>
 <ol class="arabic simple">
-<li>Create a photon at the source. Its optical depth <span class="math notranslate nohighlight">\(\tau_\text{photon}\)</span> is zero.</li>
-<li>Sample a random optical depth :math`tau` from an exponential distribution <span class="math notranslate nohighlight">\(p(x) = \exp(-x)\)</span></li>
-<li>Integrate the attenuation coefficient <span class="math notranslate nohighlight">\(\mu\)</span> along the photon path to obtain the photon’s optical
-depth <span class="math notranslate nohighlight">\(\tau_\text{photon}\)</span>.</li>
-<li>If <span class="math notranslate nohighlight">\(\tau_\text{photon} \geq \tau\)</span>, sample another random number <span class="math notranslate nohighlight">\(r\)</span><ol class="loweralpha">
-<li>If <span class="math notranslate nohighlight">\(r\)</span> is smaller or equal than the single scattering albedo, the photon is scattered. Sample
-a new direction from the phase function and continue with 2.</li>
-<li>If <span class="math notranslate nohighlight">\(r\)</span> is larger than the single scattering albedo, the photon is absorbed. Continue
-with the next photon.</li>
+<li><p>Create a photon at the source. Its optical depth <span class="math notranslate nohighlight">\(\tau_\text{photon}\)</span> is zero.</p></li>
+<li><p>Sample a random optical depth :math`tau` from an exponential distribution <span class="math notranslate nohighlight">\(p(x) = \exp(-x)\)</span></p></li>
+<li><p>Integrate the attenuation coefficient <span class="math notranslate nohighlight">\(\mu\)</span> along the photon path to obtain the photon’s optical
+depth <span class="math notranslate nohighlight">\(\tau_\text{photon}\)</span>.</p></li>
+<li><p>If <span class="math notranslate nohighlight">\(\tau_\text{photon} \geq \tau\)</span>, sample another random number <span class="math notranslate nohighlight">\(r\)</span></p>
+<ol class="loweralpha simple">
+<li><p>If <span class="math notranslate nohighlight">\(r\)</span> is smaller or equal than the single scattering albedo, the photon is scattered. Sample
+a new direction from the phase function and continue with 2.</p></li>
+<li><p>If <span class="math notranslate nohighlight">\(r\)</span> is larger than the single scattering albedo, the photon is absorbed. Continue
+with the next photon.</p></li>
 </ol>
 </li>
 </ol>
@@ -98,16 +98,11 @@ away FORTRAN programmers.</p>
 <p>The solutions to the specific solution exercises can be found below.</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="exercise_1.html">Exercise 1</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="exercise_1.html#part-1">Part 1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="exercise_1.html#part-2">Part 2</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="exercise_2.html">Exercise 2</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="exercise_2.html#part-1">Part 1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="exercise_2.html#part-2">Part 2</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="exercise_1.html">Exercise 1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exercise_2.html">Exercise 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exercise_3.html">Exercise 3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exercise_4.html">Exercise 4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exercise_5.html">Exercise 5</a></li>
 </ul>
 </div>
 </div>
@@ -123,7 +118,7 @@ away FORTRAN programmers.</p>
       &copy;2019, Simon Pfreundschuh.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
