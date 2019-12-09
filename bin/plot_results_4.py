@@ -38,8 +38,13 @@ handles += ax.plot(g, results[:, 1:].sum(axis = -1), c = "grey", ls = "--")
 labels += ["Total"]
 ax.set_ylabel(r"Absorbed intensity [$I_{\nu, 0}$]")
 ax.set_xlabel("Asymmetry parameter")
-ax.set_xlim(-2.0, 1.0)
+ax.set_xlim(-1.0, 1.0)
 ax.set_ylim(0.0, 1.1)
+
+rayleigh = np.array([0.31868, 0.66074, 0.0205798])
+ax.scatter([0], rayleigh[0], c = "C0", marker = "x", s = 100)
+ax.scatter([0], rayleigh[1], c = "C1", marker = "x", s = 100)
+ax.scatter([0], rayleigh[2], c = "C2", marker = "x", s = 100)
 
 ax = plt.subplot(gs[0, 1])
 ax.set_axis_off()
