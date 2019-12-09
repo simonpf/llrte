@@ -59,7 +59,7 @@ Part 2
 
 For the second part of the exercise, a horizontally heterogeneous cloud
 has been simulated. The results are displayed in the figure below. The results
-are mostly similar to those obtained in the first part except for the flanks
+are mostly similar to those obtained in the first part except for the lower flanks
 of the cloud, where the absorption is slightly reduced.
 
 .. figure:: ../../bin/results_5_b.png
