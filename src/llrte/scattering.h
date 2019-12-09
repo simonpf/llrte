@@ -1,6 +1,8 @@
 #ifndef _LLRTE_SCATTERING_H_
 #define _LLRTE_SCATTERING_H_
 
+#include <math.h>
+
 #include <llrte/types/array.h>
 #include <llrte/maths/geometry.h>
 #include <llrte/constants.h>
@@ -124,6 +126,62 @@ public:
       auto xr = x + 0.5 * da;
       auto yl = 0.75 * (1.0 + cos(xl) * cos(xl)) * sin(xl);
       auto yr = 0.75 * (1.0 + cos(xr) * cos(xr)) * sin(xr);
+
+      sa_[i] = x;
+      p_int_[i] = s;
+      x += da;
+      s += 0.5 * (yl + yr) * da;
+    }
+    sa_[n_steps] = x;
+    p_int_[n_steps] = s;
+
+    for (size_t i = 0; i < n_steps + 1; ++i) {
+      p_int_[i] /= s;
+    }
+  }
+
+  template <typename... Ts>
+  constexpr F get_scattering_coefficient(Ts...) {
+    return scattering_coefficient_;
+  }
+
+  template <typename... Ts>
+  PhaseFunction get_phase_function(Ts...) {
+    return PhaseFunction(sa_, p_int_);
+  }
+
+  private:
+  Float scattering_coefficient_ = 0.0;
+  Array<Float> sa_ = Array<Float>();
+  Array<Float> p_int_ = Array<Float>();
+};
+
+template<typename Float>
+Float henyey_greenstein(Float g, Float theta) {
+    return (static_cast<Float>(1.0) - g * g) / pow(1.0 +  g * g - g * cos(theta) * 2.0, 1.5);
+}
+
+template <typename F, typename ScatteringPlane = maths::geometry::RandomPlane>
+class HenyeyGreenstein {
+public:
+  using Float = F;
+  using PhaseFunction = NumericPhaseFunction<Float, ScatteringPlane>;
+  HenyeyGreenstein(Float scattering_coefficient,
+                   Float g,
+                   size_t n_steps)
+  : scattering_coefficient_(scattering_coefficient) {
+    sa_ = Array<Float>(n_steps + 1);
+    p_int_ = Array<Float>(n_steps + 1);
+    Float da = Constants<Float>::pi / n_steps;
+    Float x = 0.0;
+    Float s = 0.0;
+
+    for (size_t i = 0; i < n_steps; ++i) {
+
+      Float xl = x - 0.5 * da;
+      Float xr = x + 0.5 * da;
+      Float yl = henyey_greenstein(g, xl);
+      Float yr = henyey_greenstein(g, xr);
 
       sa_[i] = x;
       p_int_[i] = s;

@@ -21,16 +21,17 @@ medium with the following properties
 - Optical-depth: :math:`\tau` = 1
 - Single scattering albedo: :math:`a` = 0.5
 - Rayleight-scattering phase function
-- Lower horizontal surface with an albedo $A = 0.8$ and Lambertian reflection
+- Lower horizontal surface with an albedo :math:`A = 0.8` and Lambertian reflection
 - Periodic vertical boundaries.
 
-The simulation as performed in a three-dimensional domain with a horizontal
+The simulation was performed in a three-dimensional domain with a horizontal
 extent of :math:`10` km, a vertical extent of :math:`100` km and a depth of
 :math:`1` km. The depth dimension is not relevant here since the scattering
 plane for all scattering processes was restricted to the :math:`xy`-plane, which
 is why the simulation was effectively performed as a 2D simulation. For the
 described medium the corresponding optical properties are:
-- absorption coefficient :math:`\sigma_a = 0.4 \cdot 10^{-5}\ \text{m}^{-1}` 
+
+- absorption coefficient :math:`\sigma_a = 0.5 \cdot 10^{-5}\ \text{m}^{-1}` 
 - scattering coefficient :math:`\sigma_s = 0.5 \cdot 10^{-5}\ \text{m}^{-1}`
 
 Benchmark results

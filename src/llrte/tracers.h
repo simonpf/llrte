@@ -106,21 +106,25 @@ class AbsorptionTracer {
     }
   }
 
+  template <typename GridPos>
+  static size_t get_index(const GridPos &gp) {
+      size_t index = (gp.k - 1) % (shape_[2] - 1);
+      index *= (shape_[1] - 1);
+
+      index += (gp.j - 1) % (shape_[1] - 1);
+      index *= (shape_[0] - 1);
+
+      index += (gp.i - 1) % (shape_[0] - 1);
+      return index;
+  }
+
   template <typename Photon, typename GridPos>
   static void trace(const Photon &p, GridPos gp, Event e) {
     if (e == Event::absorption) {
-      size_t index = gp.k - 1;
-      index *= (shape_[2] - 1);
-      index += gp.j - 1;
-      index *= (shape_[1] - 1);
-      index += gp.i - 1;
+      size_t index = get_index(gp);
       absorption_counts_[index] += 1.0;
     } else if (e == Event::scattering) {
-      size_t index = gp.k - 1;
-      index *= (shape_[2] - 1);
-      index += gp.j - 1;
-      index *= (shape_[1] - 1);
-      index += gp.i - 1;
+      size_t index = get_index(gp);
       scattering_counts_[index] += 1.0;
     } else if (e == Event::left_domain) {
       auto i = grid_->get_boundary_index(gp);
@@ -145,18 +149,10 @@ class AbsorptionTracer {
   static void trace(const Photon &p, GridPos gp, Event e,
                     typename Photon::Float value, Ts...) {
     if (e == Event::absorption) {
-      size_t index = gp.k - 1;
-      index *= (shape_[2] - 1);
-      index += gp.j - 1;
-      index *= (shape_[1] - 1);
-      index += gp.i - 1;
+      size_t index = get_index(gp);
       absorption_counts_[index] += value;
     } else if (e == Event::scattering) {
-      size_t index = gp.k - 1;
-      index *= (shape_[2] - 1);
-      index += gp.j - 1;
-      index *= (shape_[1] - 1);
-      index += gp.i - 1;
+      size_t index = get_index(gp);
       scattering_counts_[index] += value;
     } else if (e == Event::left_domain) {
       auto i = grid_->get_boundary_index(gp);
@@ -202,7 +198,7 @@ class AbsorptionTracer {
   }
 
  private:
-  static Float shape_[3];
+  static size_t shape_[3];
   static std::unique_ptr<Float[]> absorption_counts_;
   static std::unique_ptr<Float[]> scattering_counts_;
   static std::unique_ptr<Float[]> scattering_frequencies_;
@@ -211,7 +207,7 @@ class AbsorptionTracer {
 };
 
 template <typename Grid>
-typename Grid::Float AbsorptionTracer<Grid>::shape_[3] = {0, 0, 0};
+size_t AbsorptionTracer<Grid>::shape_[3] = {0, 0, 0};
 template <typename Grid>
 std::unique_ptr<typename Grid::Float[]>
     AbsorptionTracer<Grid>::absorption_counts_{nullptr};

@@ -1,5 +1,5 @@
 git checkout gh-pages
-cp -r build/html/* ..
+cp -r build/* ..
 git add ../*.html
 git add ../*.js
 git add ../_images/*
