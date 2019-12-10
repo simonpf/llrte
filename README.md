@@ -1,4 +1,5 @@
 # Monte Carlo methods for radiative transfer
+[![Build Status](https://travis-ci.com/simonpf/llrte.svg?branch=master)](https://travis-ci.com/simonpf/llrte.svg?branch=maste)
 
 This project is an exploration of Monte Carlo (MC) methods for radiative
 transfer. It is developed as part of a graduate course on radiative transfer.
