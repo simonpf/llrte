@@ -59,7 +59,7 @@ m = 200
 n = 600
 l = (m - 1) * (n - 1)
 
-data = np.fromfile("results_5_a.bin", dtype = np.float32)
+data = np.fromfile("results_5_b.bin", dtype = np.float32)
 results_a = data[:l].reshape(m - 1, n - 1, order = "F")
 results_s = data[l:2 * l].reshape(m - 1, n - 1, order = "F")
 results_b = data[2 * l: 2 * l + 6]

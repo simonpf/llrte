@@ -152,8 +152,8 @@ class Atmosphere {
     return grid_.get_boundary_index(gp);
   }
 
- template <typename Generator, typename Photon>
- bool apply_boundaries(Generator &g, Photon &p) {
+  template <typename Generator, typename Photon>
+  bool apply_boundaries(Generator &g, Photon &p) {
     detail::BoundaryApplier ba{};
     tuple::map(ba, boundaries_, g, p);
     return ba.hit;

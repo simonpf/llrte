@@ -8,6 +8,7 @@ add_executable(exercise_1_a exercise_1_a.cxx)
 add_executable(exercise_1_b exercise_1_b.cxx)
 add_executable(exercise_2_a exercise_2_a.cxx)
 add_executable(exercise_2_b exercise_2_b.cxx)
+add_executable(exercise_2_c exercise_2_c.cxx)
 add_executable(exercise_3_a exercise_3_a.cxx)
 add_executable(exercise_3_b_1 exercise_3_b_1.cxx)
 add_executable(exercise_3_b_2 exercise_3_b_2.cxx)
@@ -22,6 +23,7 @@ configure_file(plot_results_1_a.py plot_results_1_a.py COPYONLY)
 configure_file(plot_results_1_b.py plot_results_1_b.py COPYONLY)
 configure_file(plot_results_2_a.py plot_results_2_a.py COPYONLY)
 configure_file(plot_results_2_b.py plot_results_2_b.py COPYONLY)
+configure_file(plot_results_2_c.py plot_results_2_c.py COPYONLY)
 configure_file(plot_results_3.py plot_results_3.py COPYONLY)
 configure_file(plot_results_4.py plot_results_4.py COPYONLY)
 configure_file(plot_results_5.py plot_results_5.py COPYONLY)
@@ -38,6 +40,7 @@ if (PYTHONINTERP_FOUND)
     exercise_2
     ${PYTHON_EXECUTABLE} plot_results_2_a.py
     COMMAND ${PYTHON_EXECUTABLE} plot_results_2_b.py
+    COMMAND ${PYTHON_EXECUTABLE} plot_results_2_c.py
     DEPEND exercise_2_a
     )
   add_custom_target(

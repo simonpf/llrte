@@ -139,3 +139,28 @@ the scattering cross section of the material is unchanged.
    :alt: Results of exercise 2 a
 
    Monte carlo simulation results of a heterogeneous absorbing and scattering medium.
+
+Part 3
+======
+
+For the final part of the exercise, a reflecting surface was added at the end of
+the simulation domain. The absorbed intensity in the different parts of the
+domain are shown in the table. They agree well with the benchmark values.
+
++-----------------+----------+-----------------+
+| Left boundary   | Medium   | Right boundary  |
++=================+==========+=================+
+|        0.299    | 0.217    |          0.484  |
++-----------------+----------+-----------------+
+
+The plot of the simulation results displays an increase of the absorbed as well
+as the scattered intensity over the whole domain. This is easily understood
+considering that photons that are reflected by the surface travel a longer
+distance through the medium and are thus more likely to be absorbed or
+scattered.
+
+
+.. figure:: ../../bin/results_2_c.png
+   :alt: Results of exercise 2 a
+
+   Monte carlo simulation of a homogeneous medium with reflection.

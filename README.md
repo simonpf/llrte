@@ -29,4 +29,7 @@ To run the simulations and generate plots:
 ````
 $ make exercise_1
 $ make exercise_2
+$ make exercise_3
+$ make exercise_4
+$ make exercise_5
 ````

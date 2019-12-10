@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
 #
-# 2 a
+# 2 b
 #
 
 # Run MC
-print("Running Monte Carlo simulation for Exercise 2a ...")
+print("Running Monte Carlo simulation for Exercise 2b ...")
 subprocess.call(["./exercise_2_b"])
 
 # Load matplotlib style
