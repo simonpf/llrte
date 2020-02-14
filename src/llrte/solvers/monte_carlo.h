@@ -53,6 +53,7 @@ class MonteCarloSolver {
                     photon.get_energy() * (1.0 - f_abs));
       photon.scale_energy(f_abs);
       if (photon.get_energy() < minimum_energy_) {
+        Tracer::trace(photon, position, Event::out_of_energy, photon.get_energy());
         break;
       }
 
@@ -70,7 +71,7 @@ class MonteCarloSolver {
           position = atmosphere_.get_grid_position(photon.get_position());
         }
       }
-      Tracer::trace(photon, position, Event::step);
+      Tracer::trace(photon, position, Event::step, photon.get_energy());
     }
   }
 

@@ -24,9 +24,9 @@ std::shared_ptr<F[]> make_linear_vector(F start, F stop, size_t steps) {
   return v;
 }
 
-void run_experiment(size_t n_grid_cells,
-                    size_t n_photons,
-                    std::string filename) {
+std::tuple<float, float, float> run_experiment(size_t n_grid_cells,
+                                               size_t n_photons,
+                                               float surface_albedo) {
   using V3 = llrte::Vector<3, float>;
   using Float = float;
   using Grid = llrte::RegularGrid<Float>;
@@ -75,7 +75,7 @@ void run_experiment(size_t n_grid_cells,
                                        llrte::surfaces::Lambertian<ScatteringPlane>>;
 
   auto surfaces = std::make_tuple(
-      ReflectingSurface(base_b, normal_b, 0.8),
+      ReflectingSurface(base_b, normal_b, surface_albedo),
       llrte::surfaces::PeriodicBoundary<V3>(base_1_p, base_2_p, normal_p));
   using Surfaces = decltype(surfaces);
   using Atmosphere =
@@ -126,15 +126,21 @@ void run_experiment(size_t n_grid_cells,
   for (size_t i = 0; i < n_photons; i++) {
     solver.sample_photon();
   }
-  std::cout << "Upwelling intensity:           ";
-  std::cout << Tracer::get_total_leaving_counts(1) / n_photons << std::endl;
-  std::cout << "Total absorbed intensity:      ";
-  std::cout << Tracer::get_total_absorption_counts() / n_photons << std::endl;
-  std::cout << "Intensity absorbed by surface: ";
-  std::cout << atmosphere.get_boundary<0>().get_absorbed_energy() / n_photons << std::endl;
 
+  float upwelling = Tracer::get_total_leaving_counts(1) / n_photons;
+  float absorbed = Tracer::get_total_absorption_counts() / n_photons;
+  float surface =
+      atmosphere.get_boundary<0>().get_absorbed_energy() / n_photons;
+
+  return std::make_tuple(upwelling, absorbed, surface);
 }
 
 int main(int /*argc*/, const char ** /***argv*/) {
-  run_experiment(100, 100000, "./results_3_a.bin");
+  std::vector<float> albedos = {0.0, 0.1, 0.2, 0.3, 0.4,
+                                0.5, 0.6, 0.7, 0.8, 0.9, 1.0};
+  for (size_t i = 0; i < albedos.size(); ++i) {
+    auto results = run_experiment(100, 10000, albedos[i]);
+    std::cout << std::get<0>(results) << " " << std::get<1>(results);
+    std::cout << " " << std::get<2>(results) << std::endl;
+  }
 }

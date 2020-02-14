@@ -24,17 +24,14 @@ std::shared_ptr<F[]> make_linear_vector(F start, F stop, size_t steps) {
   return v;
 }
 
-void run_experiment(size_t n_grid_cells,
-                    size_t n_photons,
-                    std::string filename) {
-  using V3 = llrte::Vector<3, float>;
-  using Float = float;
+using Float = double;
+
+std::tuple<Float, Float, Float> run_experiment(size_t n_photons, Float g) {
+  using V3 = llrte::Vector<3, Float>;
   using Grid = llrte::RegularGrid<Float>;
   using AbsorptionModel = llrte::ConstantAbsorption<Float>;
-  using ScatteringPlane =
-      llrte::maths::geometry::FixedScatteringPlane<2>;
-  using ScatteringModel =
-      llrte::RayleighScattering<Float, ScatteringPlane>;
+  using ScatteringPlane = llrte::maths::geometry::FixedScatteringPlane<2>;
+  using ScatteringModel = llrte::HenyeyGreenstein<Float, ScatteringPlane>;
   using Tracer = llrte::AbsorptionTracer<Grid>;
   using Photon = llrte::Photon<V3>;
   using Source = llrte::RandomOffset<llrte::BeamSource<Photon>>;
@@ -62,7 +59,7 @@ void run_experiment(size_t n_grid_cells,
 
   auto base_2_p = V3{};
   base_2_p[0] = 0.0;
-  base_2_p[1] = 10e3;
+  base_2_p[1] = 4000;
   base_2_p[2] = 0.0;
 
   auto normal_p = V3{};
@@ -70,12 +67,12 @@ void run_experiment(size_t n_grid_cells,
   normal_p[1] = -1.0;
   normal_p[2] = 0.0;
 
-  using ReflectingSurface =
-      llrte::surfaces::ReflectingPlane<V3,
-                                       llrte::surfaces::Lambertian<ScatteringPlane>>;
+  using ReflectingSurface = llrte::surfaces::ReflectingPlane<
+      V3, llrte::surfaces::Lambertian<ScatteringPlane>>;
 
+  Float sa = 0.7;
   auto surfaces = std::make_tuple(
-      ReflectingSurface(base_b, normal_b, 0.8),
+      ReflectingSurface(base_b, normal_b, sa),
       llrte::surfaces::PeriodicBoundary<V3>(base_1_p, base_2_p, normal_p));
   using Surfaces = decltype(surfaces);
   using Atmosphere =
@@ -87,7 +84,7 @@ void run_experiment(size_t n_grid_cells,
   //////////////////////////////////////////////////////////////////////
 
   auto source_position = V3{};
-  source_position[0] = 100e3;
+  source_position[0] = 100;
   source_position[1] = 0.0;
   source_position[2] = 0.0;
 
@@ -102,22 +99,23 @@ void run_experiment(size_t n_grid_cells,
   source_offset[2] = 0.0;
 
   auto source =
-      Source(source_offset, 0, 10e3, source_position, source_direction);
+      Source(source_offset, 0, 4000.0, source_position, source_direction);
 
   //////////////////////////////////////////////////////////////////////
   // Domain
   //////////////////////////////////////////////////////////////////////
 
-  float start = 0.0e3;
-  float stop = 100.0e3;
-  auto x = make_linear_vector<Float>(start, stop, n_grid_cells + 1);
-  auto y = make_linear_vector<Float>(start, stop, n_grid_cells + 1);
+  auto x = make_linear_vector<Float>(0.0, 100.0, 20.0);
+  auto y = make_linear_vector<Float>(0.0, 4000.0, 1000.0);
   auto z = make_linear_vector<Float>(-0.5, 0.5, 2);
-  size_t shape[3] = {n_grid_cells + 1, n_grid_cells + 1, 2};
+  size_t shape[3] = {20, 1000, 2};
 
+  Float od = 5.0;
+  Float ssa = 0.8;
   auto grid = Grid{shape, x, y, z};
-  auto absorption_model = llrte::ConstantAbsorption<Float>(0.5e-5);
-  auto scattering_model = ScatteringModel(0.5e-5, 180);
+  auto absorption_model =
+      llrte::ConstantAbsorption<Float>((1.0 - ssa) * od / 100.0);
+  auto scattering_model = ScatteringModel(ssa * od / 100.0, g, 180);
   auto atmosphere =
       Atmosphere{grid, absorption_model, scattering_model, surfaces};
   auto solver = Solver(atmosphere, source);
@@ -126,15 +124,20 @@ void run_experiment(size_t n_grid_cells,
   for (size_t i = 0; i < n_photons; i++) {
     solver.sample_photon();
   }
-  std::cout << "Upwelling intensity:           ";
-  std::cout << Tracer::get_total_leaving_counts(1) / n_photons << std::endl;
-  std::cout << "Total absorbed intensity:      ";
-  std::cout << Tracer::get_total_absorption_counts() / n_photons << std::endl;
-  std::cout << "Intensity absorbed by surface: ";
-  std::cout << atmosphere.get_boundary<0>().get_absorbed_energy() / n_photons << std::endl;
 
+  float upwelling = Tracer::get_total_leaving_counts(1) / n_photons;
+  float absorbed = Tracer::get_total_absorption_counts() / n_photons;
+  float surface =
+      atmosphere.get_boundary<0>().get_absorbed_energy() / n_photons;
+  return std::make_tuple(upwelling, absorbed, surface);
 }
 
 int main(int /*argc*/, const char ** /***argv*/) {
-  run_experiment(100, 100000, "./results_3_a.bin");
+  std::vector<float> g = {-0.9, -0.8, -0.6, -0.4, -0.2, 0.0,
+                          0.2,  0.4,  0.6,  0.8,  0.9};
+  for (size_t i = 0; i < g.size(); ++i) {
+    auto results = run_experiment(100000, g[i]);
+    std::cout << g[i] << " " << std::get<0>(results) << " " << std::get<1>(results);
+    std::cout << " " << std::get<2>(results) << std::endl;
+  }
 }

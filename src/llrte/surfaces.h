@@ -4,10 +4,10 @@
 #include <iostream>
 
 #include "llrte/configurations.h"
-#include "llrte/tracers.h"
 #include "llrte/constants.h"
-#include "llrte/rotations.h"
 #include "llrte/maths/geometry.h"
+#include "llrte/rotations.h"
+#include "llrte/tracers.h"
 
 namespace llrte::surfaces {
 
@@ -46,7 +46,7 @@ class BlackPlane : public Plane<Vector> {
   }
 
   template <typename Generator, typename Photon>
-  void apply(Generator &/*g*/, Photon &p) {
+  void apply(Generator & /*g*/, Photon &p) {
     absorbed_energy_ += p.get_energy();
     p.set_energy(0.0);
   }
@@ -59,7 +59,7 @@ class BlackPlane : public Plane<Vector> {
 
 struct Specular {
   template <typename Generator, typename Vector>
-  static Vector get_outgoing_direction(Generator &/*g*/,
+  static Vector get_outgoing_direction(Generator & /*g*/,
                                        const Vector &d,
                                        const Vector &n) {
     using Float = typename Vector::Float;
@@ -69,15 +69,24 @@ struct Specular {
   }
 };
 
+struct BackwardsDirection {
+  template <typename Generator, typename Vector>
+  static Vector get_outgoing_direction(Generator & /*g*/,
+                                       const Vector &d,
+                                       const Vector & /*n*/) {
+    using Float = typename Vector::Float;
+    return static_cast<Float>(-1.0) * d;
+  }
+};
+
 template <typename ReflectionPlane = maths::geometry::RandomPlane>
 struct Lambertian {
   template <typename Generator, typename Vector>
-  static Vector get_outgoing_direction(Generator &g,
-                                       const Vector &/*d*/,
+  static Vector get_outgoing_direction(Generator &g, const Vector & /*d*/,
                                        const Vector &n) {
     using Float = typename Vector::Float;
     auto ns = ReflectionPlane::get_normal(g, n);
-    auto phi = g.sample_angle_uniform() - Constants<Float>::pi / 2.0 ;
+    auto phi = g.sample_angle_uniform() - Constants<Float>::pi / 2.0;
     auto dn = rotations::rotate(n, ns, phi);
     return dn;
   }
@@ -91,12 +100,12 @@ class ReflectingPlane : public Plane<Vector> {
   using Plane<Vector>::base_;
 
   ReflectingPlane(const Vector &base, const Vector &normal, Float albedo)
-      : Plane<Vector>(base, normal), absorbed_energy_(0.0), albedo_(albedo)  {
+      : Plane<Vector>(base, normal), absorbed_energy_(0.0), albedo_(albedo) {
     // Nothing to do here.
   }
 
   template <typename Generator, typename Photon>
-      void apply(Generator &g, Photon &p) {
+  void apply(Generator &g, Photon &p) {
     auto e = p.get_energy();
     absorbed_energy_ += (1.0 - albedo_) * e;
     p.set_energy(albedo_ * e);
@@ -140,7 +149,7 @@ class PeriodicBoundary {
   }
 
   template <typename Generator, typename Photon>
-  void apply(Generator &/*g*/, Photon &p) {
+  void apply(Generator & /*g*/, Photon &p) {
     using Float = typename Photon::Float;
     auto position = p.get_position();
     decltype(position) db{};

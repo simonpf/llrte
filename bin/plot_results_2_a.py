@@ -51,7 +51,7 @@ for i in range(3):
     dx = 10e3 / n
     handles += ax.plot(x, results_a[i] / dx / n_photons, c= "C{}".format(i))
     #plt.plot(x, results_s[i] / dx, c= "C{}".format(i), ls = "--")
-ax.set_title("(a) Absorbed intensity", loc = "left")
+ax.set_title("(a) Absorbed intensity", loc = "left", y = 1.08)
 
 ax.set_ylim([0, 3e-5])
 ax.set_xlabel("Distance [km]")
@@ -73,7 +73,7 @@ for i in range(2, -1, -1):
 ax.set_ylim([0, 1.5e-4])
 ax.set_xlabel("Distance [km]")
 ax.set_ylabel(r"Scattered intensity [$I_{\nu,0}\ \unit{km}^{-1}$]")
-ax.set_title("(b) Scattered intensity", loc = "left")
+ax.set_title("(b) Scattered intensity", loc = "left", y = 1.05)
 
 
 #
@@ -89,7 +89,7 @@ ax.set_xticks(np.arange(11))
 ax.set_xticklabels([str(i) for i in range(11)])
 ax.set_xlabel("Number of times scattered")
 ax.set_ylabel("Frequency")
-ax.set_title("(c) Number of scattering events", loc = "left")
+ax.set_title("(c) Number of scattering events", loc = "left", y = 1.08)
 
 plt.tight_layout()
 
@@ -137,7 +137,7 @@ for i in range(3):
     x = x[:-1] + 0.5 * np.diff(x)[0]
     dx = 10e3 / n
     handles += ax.plot(x, results_a[i] / dx / n_photons, c= "C{}".format(i))
-ax.set_title("(a) Absorbed intensity", loc = "left")
+ax.set_title("(a) Absorbed intensity", loc = "left", y = 1.08)
 ax.set_ylim([0, 3e-5])
 
 ax.set_xlabel("Distance [km]")
@@ -159,7 +159,7 @@ for i in range(2, -1, -1):
 ax.set_ylim([0, 1.5e-4])
 ax.set_xlabel("Distance [km]")
 ax.set_ylabel(r"Scattered intensity [$I_{\nu,0}\ \unit{km}^{-1}$]")
-ax.set_title("(b) Scattered intensity", loc = "left")
+ax.set_title("(b) Scattered intensity", loc = "left", y = 1.08)
 
 
 #
@@ -176,7 +176,7 @@ ax.set_xticks(np.arange(11))
 ax.set_xticklabels([str(i) for i in range(11)])
 ax.set_xlabel("Number of times scattered")
 ax.set_ylabel("Frequency")
-ax.set_title("(c) Number of scattering events", loc = "left")
+ax.set_title("(c) Number of scattering events", loc = "left", y = 1.08)
 
 
 ax_l = plt.subplot(gs[-1])
@@ -224,7 +224,7 @@ for i in range(3):
     x = x[:-1] + 0.5 * np.diff(x)[0]
     dx = 10e3 / n
     handles += ax.plot(x, results_a[i] / dx / n_photons, c= "C{}".format(i))
-ax.set_title("(a) Absorbed intensity", loc = "left")
+ax.set_title("(a) Absorbed intensity", loc = "left", y = 1.08)
 ax.set_ylim([0, 1e-4])
 
 ax.set_xlabel("Distance [km]")
@@ -246,7 +246,7 @@ for i in range(2, -1, -1):
 ax.set_ylim([0, 5e-4])
 ax.set_xlabel("Distance [km]")
 ax.set_ylabel(r"Scattered intensity [$I_{\nu,0}\ \unit{km}^{-1}$]")
-ax.set_title("(b) Scattered intensity", loc = "left")
+ax.set_title("(b) Scattered intensity", loc = "left", y = 1.08)
 
 
 #
@@ -263,7 +263,7 @@ ax.set_xticks(np.arange(11))
 ax.set_xticklabels([str(i) for i in range(11)])
 ax.set_xlabel("Number of times scattered")
 ax.set_ylabel("Frequency")
-ax.set_title("(c) Number of scattering events", loc = "left")
+ax.set_title("(c) Number of scattering events", loc = "left", y = 1.08)
 
 
 ax_l = plt.subplot(gs[-1])
@@ -313,7 +313,7 @@ for i in range(3):
     x = x[:-1] + 0.5 * np.diff(x)[0]
     dx = 10e3 / n
     handles += ax.plot(x, results_a[i] / dx / n_photons, c= "C{}".format(i))
-ax.set_title("(a) Absorbed intensity", loc = "left")
+ax.set_title("(a) Absorbed intensity", loc = "left", y = 1.08)
 ax.set_ylim([0, 3e-5])
 
 ax.set_xlabel("Distance [km]")
@@ -334,7 +334,7 @@ for i in range(2, -1, -1):
 ax.set_ylim([0, 1.5e-4])
 ax.set_xlabel("Distance [km]")
 ax.set_ylabel(r"Scattered intensity [$I_{\nu,0}\ \unit{km}^{-1}$]")
-ax.set_title("(b) Scattered intensity", loc = "left")
+ax.set_title("(b) Scattered intensity", loc = "left", y = 1.08)
 
 
 #
@@ -351,7 +351,7 @@ ax.set_xticks(np.arange(11))
 ax.set_xticklabels([str(i) for i in range(11)])
 ax.set_xlabel("Number of times scattered")
 ax.set_ylabel("Frequency")
-ax.set_title("(c) Number of scattering events", loc = "left")
+ax.set_title("(c) Number of scattering events", loc = "left", y = 1.08)
 
 
 ax_l = plt.subplot(gs[-1])
@@ -401,7 +401,7 @@ for i in range(3):
     x = x[:-1] + 0.5 * np.diff(x)[0]
     dx = 10e3 / n
     handles += ax.plot(x, results_a[i] / dx / n_photons, c= "C{}".format(i))
-ax.set_title("(a) Absorbed intensity", loc = "left")
+ax.set_title("(a) Absorbed intensity", loc = "left", y = 1.08)
 ax.set_ylim([0, 1e-4])
 
 ax.set_xlabel("Distance [km]")
@@ -422,7 +422,7 @@ for i in range(2, -1, -1):
 ax.set_ylim([0, 1.5e-4])
 ax.set_xlabel("Distance [km]")
 ax.set_ylabel(r"Scattered intensity [$I_{\nu,0}\ \unit{km}^{-1}$]")
-ax.set_title("(b) Scattered intensity", loc = "left")
+ax.set_title("(b) Scattered intensity", loc = "left", y = 1.08)
 
 
 #
@@ -439,7 +439,7 @@ ax.set_xticks(np.arange(11))
 ax.set_xticklabels([str(i) for i in range(11)])
 ax.set_xlabel("Number of times scattered")
 ax.set_ylabel("Frequency")
-ax.set_title("(c) Number of scattering events", loc = "left")
+ax.set_title("(c) Number of scattering events", loc = "left", y = 1.08)
 
 
 ax_l = plt.subplot(gs[-1])

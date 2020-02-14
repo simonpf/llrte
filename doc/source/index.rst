@@ -77,8 +77,10 @@ Exercises
 The solutions to the specific solution exercises can be found below.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     ./exercise_1
     ./exercise_2
-    ./cpp_api
+    ./exercise_3
+    ./exercise_4
+    ./exercise_5
