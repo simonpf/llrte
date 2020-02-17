@@ -2,6 +2,7 @@
 #define _LLRTE_UTILS_ARRAY_H_
 
 #include <array>
+#include <iostream>
 
 namespace llrte::utils::array {
 
@@ -32,7 +33,7 @@ namespace llrte::utils::array {
     };
 
     template <typename Operation, typename T, size_t N>
-    T reduce(std::array<T, N> &array) {
+    T reduce(const std::array<T, N> &array) {
         T acc = Operation::template identity<T>();
       for (size_t i = 0; i < N; ++i) {
           acc = Operation::apply(acc, array[i]);
@@ -40,8 +41,20 @@ namespace llrte::utils::array {
       return acc;
     }
 
+    template <typename T, size_t N>
+    T index(const std::array<T, N> &indices, const std::array<T, N> &sizes) {
+      auto i = static_cast<T>(0);
+      for (size_t i = 0; i < N; ++i) {
+        i += indices[i];
+        if (i < N - 1) {
+            i *= sizes[i];
+        }
+      }
+      return i;
+    }
+
     template <typename Operation, typename T, size_t N>
-    T zip(const std::array<T, N> &as,
+    std::array<T, N> zip(const std::array<T, N> &as,
           const std::array<T, N> &bs) {
       std::array<T, N> cs;
       for (size_t i = 0; i < N; ++i) {
@@ -49,6 +62,17 @@ namespace llrte::utils::array {
       }
       return cs;
     }
+
+}  // namespace llrte::utils::array
+
+template<typename T, size_t rank>
+    std::ostream& operator<<(std::ostream& os, const std::array<T, rank> &array) {
+    os << "[";
+    for (size_t i = 0; i < rank - 1; ++i) {
+        os << array[i] << ", ";
+    }
+    os << array[rank - 1] << "]";
+    return os;
 }
 
 #endif

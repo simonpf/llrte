@@ -84,3 +84,11 @@ The solutions to the specific solution exercises can be found below.
     ./exercise_3
     ./exercise_4
     ./exercise_5
+
+Documentation
+-------------
+
+.. toctree::
+    :maxdepth: 1
+
+    ./cpp_api

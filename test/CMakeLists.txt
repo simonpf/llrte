@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 3.5)
+add_subdirectory(io)
 add_subdirectory(data)
 add_subdirectory(surface)
 add_subdirectory(maths)

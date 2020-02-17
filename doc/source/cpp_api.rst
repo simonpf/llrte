@@ -4,5 +4,7 @@ C++ API
 This documentation provides the source code documentation for the
 :code:`llrte` project.
 
-.. doxygenclass:: llrte::Atmosphere
-   :members:
+.. toctree::
+    :maxdepth: 1
+
+    ./cpp_data_h
