@@ -1,13 +1,16 @@
 #ifndef _LLRTE_IO_NETCDF_H_
 #define _LLRTE_IO_NETCDF_H_
 
+extern "C" {
 #include <netcdf.h>
+}
 
 #include <map>
 #include <sstream>
 #include <string>
 #include <tuple>
 #include <utility>
+#include <iostream>
 
 namespace llrte {
 template <typename T, size_t rank>
@@ -72,6 +75,7 @@ class NetCDFFile {
         throw std::runtime_error(ss.str());
       }
     } else {
+
       int dim_id;
       int retval = nc_def_dim(ncid_, name.c_str(), size, &dim_id);
       if (retval) {
@@ -79,6 +83,7 @@ class NetCDFFile {
             std::string("Error adding dimension: ") + nc_strerror(retval);
         throw std::runtime_error(msg);
       }
+
       dimensions_.emplace(name, std::make_pair(dim_id, size));
     }
   }
@@ -98,41 +103,46 @@ class NetCDFFile {
       } else {
         std::tie(dim_ids[i], sizes[i]) = std::get<1>((*it));
       }
+    }
 
-      if (sizes != t.shape()) {
-        std::stringstream ss{};
-        ss << "Dimensions " << t.shape()
-           << "of tensor do not match "
-              "diemsions "
-           << sizes << "in NetCDF file.";
-        throw std::runtime_error(ss.str());
-      }
+    if (sizes != t.shape()) {
+      std::stringstream ss{};
+      ss << "Dimensions " << t.shape()
+         << "of tensor do not match "
+            "diemsions "
+         << sizes << "in NetCDF file.";
+      throw std::runtime_error(ss.str());
+    }
 
-      // Add the variable.
-      int varid;
-      int retval = nc_def_var(ncid_, name.c_str(), NetCDFType<T>::id, rank,
-                              dim_ids.data(), &varid);
-      if (retval) {
-        std::string msg =
-            std::string("Error adding variable to NetCDF File: ") +
-            nc_strerror(retval);
-        throw std::runtime_error(msg);
-      }
-      retval = nc_enddef(ncid_);
-      if (retval) {
-        std::string msg =
-            std::string("Error adding variable to NetCDF File: ") +
-            nc_strerror(retval);
-        throw std::runtime_error(msg);
-      }
+    // Enter define mode.
+    int retval = nc_redef(ncid_);
+    if ((retval) && (retval != NC_EINDEFINE)) {
+      std::string msg = std::string("Error adding variable to NetCDF File: ") +
+                        nc_strerror(retval);
+      throw std::runtime_error(msg);
+    }
 
-      retval = NetCDFType<T>::put(ncid_, varid, t.get_data_pointer());
-      if (retval) {
-        std::string msg =
-            std::string("Error writing variable to NetCDF File: ") +
-            nc_strerror(retval);
-        throw std::runtime_error(msg);
-      }
+    // Add the variable.
+    int varid;
+    retval = nc_def_var(ncid_, name.c_str(), NetCDFType<T>::id, rank,
+                        dim_ids.data(), &varid);
+    if (retval) {
+      std::string msg = std::string("Error adding variable to NetCDF File: ") +
+                        nc_strerror(retval);
+      throw std::runtime_error(msg);
+    }
+    retval = nc_enddef(ncid_);
+    if (retval) {
+      std::string msg = std::string("Error adding variable to NetCDF File: ") +
+                        nc_strerror(retval);
+      throw std::runtime_error(msg);
+    }
+
+    retval = NetCDFType<T>::put(ncid_, varid, t.get_data_pointer());
+    if (retval) {
+      std::string msg = std::string("Error writing variable to NetCDF File: ") +
+                        nc_strerror(retval);
+      throw std::runtime_error(msg);
     }
   }
 
