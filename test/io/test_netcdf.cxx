@@ -1,5 +1,6 @@
 #include "llrte/io/netcdf.h"
 #include "llrte/data.h"
+#include "catch2/catch.hpp"
 
 int main(int /*argc*/, char **/*argv*/) {
 

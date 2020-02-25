@@ -1,7 +1,10 @@
 cmake_minimum_required (VERSION 3.5)
 
 enable_testing()
-include_directories("${PROJECT_SOURCE_DIR}/src/")
+include_directories(
+  "${PROJECT_SOURCE_DIR}/src/"
+  "${PROJECT_SOURCE_DIR}/ext/"
+  )
 
 find_package(NetCDF)
 if (NetCDF_FOUND)

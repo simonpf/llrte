@@ -11,11 +11,21 @@ extern "C" {
 #include <tuple>
 #include <utility>
 #include <iostream>
+#include <sys/stat.h>
 
 namespace llrte {
 template <typename T, size_t rank>
 class Tensor;
 }
+
+#define __NC_ERROR__(a, b)                                    \
+  ({                                                          \
+    int retval = b;                                           \
+    if (retval) {                                             \
+      std::string msg = std::string(a) + nc_strerror(retval); \
+      throw std::runtime_error(msg);                          \
+    }                                                         \
+  })
 
 namespace llrte::io {
 
@@ -47,22 +57,54 @@ struct NetCDFType<float> {
   }
 };
 
+enum class Mode {read = NC_SHARE, write = NC_WRITE};
+
 //*****************************************************************************
 // NetCDFFile
 //*****************************************************************************
-
+/**
+ * \brief NetCDF 4 file IO
+ *
+ * This class implements an interface for the writing and reading of NetCDF 4
+ * files.
+ *
+ */
 class NetCDFFile {
+
  public:
-  NetCDFFile(const std::string &filename, bool clobber = false) {
-    int retval = nc_create(filename.c_str(), clobber, &ncid_);
-    if (retval) {
-      std::string msg =
-          std::string("Error opening NetCDF File: ") + nc_strerror(retval);
-      throw std::runtime_error(msg);
+
+  /**
+   * \brief Open a NetCDF 4 file.
+   *
+   * Opens and existing file (if clobber is set to false) or creates a
+   * new file with the given name.
+   *
+   * @param filename The name of the file to open.
+   * @param mode The mode (read or write) in which to open the file.
+   * @param clobber If true an existing file will be overwritten. Otherwise
+   *    the file is opened in read mode.
+   */
+  NetCDFFile(const std::string &filename,
+             Mode mode = Moder::read,
+             bool clobber = false) {
+    // Check if file exists.
+    struct stat buffer;
+    bool exists = stat(name.c_str(), &buffer) == 0;
+
+    if (exists && !clobber) {
+        // Open existing file.
+      __NC_ERROR__("Error opening NetCDF File: ",
+                   nc_open(filename.c_str(), mode, &ncid_));
+
+    } else {
+        // Create new file.
+      __NC_ERROR__("Error creating NetCDF File: ",
+                   nc_create(filename.c_str(), clobber, &ncid_));
     }
   }
 
-  void add_dimension(std::string name, size_t size = unlimited) {
+  void add_dimension(std::string name,
+                     size_t size = unlimited) {
     auto it = dimensions_.find(name);
     if (it != dimensions_.end()) {
       int id2;
