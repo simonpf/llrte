@@ -50,12 +50,11 @@ auto make_test_atmosphere(Boundaries &boundaries) {
 
     auto source = Source(source_position, source_direction);
 
-    auto x = make_linear_vector<Float>(0.0, 1.0, 2);
-    auto y = make_linear_vector<Float>(-0.5, 0.5, 2);
-    auto z = make_linear_vector<Float>(-0.5, 0.5, 2);
-    size_t shape[3] = {2, 2, 2};
+    auto x = llrte::Array<Float>::fill_linear(0.0, 1.0, 2);
+    auto y = llrte::Array<Float>::fill_linear(-0.5, 0.5, 2);
+    auto z = llrte::Array<Float>::fill_linear(-0.5, 0.5, 2);
 
-    auto grid = Grid{shape, x, y, z};
+    auto grid = Grid{x, y, z};
     auto absorption_model = llrte::NoAbsorption<Float>();
     auto scattering_model = llrte::NoScattering<Float>();
     auto atmosphere = Atmosphere{grid,

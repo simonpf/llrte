@@ -31,6 +31,15 @@ class Matrix {
     }
   }
 
+  Matrix& operator=(const Matrix &other) {
+      for (size_t i = 0; i < M; ++i) {
+          for (size_t j = 0; j < N; ++j) {
+              (*this)(i, j) = other(i, j);
+          }
+      }
+      return *this;
+  }
+
   Float operator()(size_t i, size_t j) const { return elements_[i * N + j]; }
   Float& operator()(size_t i, size_t j) { return elements_[i * N + j]; }
 

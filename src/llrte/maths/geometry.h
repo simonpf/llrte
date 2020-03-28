@@ -23,7 +23,8 @@ bool is_close(U u, V v) {
   return true;
 }
 
-template<typename Vector>
+
+template <typename Vector>
 Vector perpendicular(const Vector &v) {
   Vector w;
   auto l = v.length();

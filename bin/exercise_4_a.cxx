@@ -4,6 +4,7 @@
 #include <llrte/photons.h>
 #include <llrte/scattering.h>
 #include <llrte/solvers/monte_carlo.h>
+#include <llrte/data.h>
 #include <llrte/sources.h>
 #include <llrte/surfaces.h>
 #include <llrte/tracers.h>
@@ -80,7 +81,7 @@ void run_experiment(size_t n_photons,
   using Surfaces = decltype(surfaces);
   using Atmosphere =
       llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel, Surfaces>;
-  using Solver = llrte::MonteCarloSolver<Atmosphere &, Source &, Tracer>;
+  using Solver = llrte::ForwardSolver<Atmosphere &, Source &, Tracer>;
 
   //////////////////////////////////////////////////////////////////////
   // Source
@@ -108,14 +109,13 @@ void run_experiment(size_t n_photons,
   // Domain
   //////////////////////////////////////////////////////////////////////
 
-  auto x = make_linear_vector<Float>(0.0, 100.0, 20.0);
-  auto y = make_linear_vector<Float>(0.0, 4000.0, 1000.0);
-  auto z = make_linear_vector<Float>(-0.5, 0.5, 2);
-  size_t shape[3] = {20, 1000, 2};
+  auto x = llrte::Array<Float>::fill_linear(0.0, 100.0, 20);
+  auto y = llrte::Array<Float>::fill_linear(0.0, 4000.0, 1000);
+  auto z = llrte::Array<Float>::fill_linear(-0.5, 0.5, 2);
 
   Float od = 5.0;
   Float ssa = 0.8;
-  auto grid = Grid{shape, x, y, z};
+  auto grid = Grid{x, y, z};
   auto absorption_model = llrte::ConstantAbsorption<Float>((1.0 - ssa) * od / 100.0);
   auto scattering_model = ScatteringModel(ssa * od / 100.0, 0.9, 180);
   auto atmosphere =

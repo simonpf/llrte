@@ -1,4 +1,5 @@
 #ifndef _LLRTE_ABSORPTION_H_
+#define _LLRTE_ABSORPTION_H_
 
 namespace llrte {
 

@@ -3,7 +3,7 @@
 
 #include <math.h>
 
-#include <llrte/types/array.h>
+#include <llrte/data.h>
 #include <llrte/maths/geometry.h>
 #include <llrte/constants.h>
 #include <llrte/rotations.h>
@@ -113,9 +113,9 @@ public:
   using PhaseFunction = NumericPhaseFunction<Float, ScatteringPlane>;
   RayleighScattering(Float scattering_coefficient,
                      size_t n_steps)
-  : scattering_coefficient_(scattering_coefficient) {
-    sa_ = Array<Float>(n_steps + 1);
-    p_int_ = Array<Float>(n_steps + 1);
+: scattering_coefficient_(scattering_coefficient),
+  sa_(Array<Float>(n_steps + 1)),
+  p_int_(Array<Float>(n_steps + 1)) {
     Float da = Constants<Float>::pi / n_steps;
     Float x = 0.0;
     Float s = 0.0;
@@ -152,8 +152,8 @@ public:
 
   private:
   Float scattering_coefficient_ = 0.0;
-  Array<Float> sa_ = Array<Float>();
-  Array<Float> p_int_ = Array<Float>();
+  Array<Float> sa_;
+  Array<Float> p_int_;
 };
 
 template<typename Float>
@@ -169,9 +169,10 @@ public:
   HenyeyGreenstein(Float scattering_coefficient,
                    Float g,
                    size_t n_steps)
-  : scattering_coefficient_(scattering_coefficient) {
-    sa_ = Array<Float>(n_steps + 1);
-    p_int_ = Array<Float>(n_steps + 1);
+: scattering_coefficient_(scattering_coefficient),
+  sa_(Array<Float>(n_steps + 1)),
+  p_int_(Array<Float>(n_steps + 1))
+{
     Float da = Constants<Float>::pi / n_steps;
     Float x = 0.0;
     Float s = 0.0;
@@ -208,8 +209,8 @@ public:
 
   private:
   Float scattering_coefficient_ = 0.0;
-  Array<Float> sa_ = Array<Float>();
-  Array<Float> p_int_ = Array<Float>();
+  Array<Float> sa_;
+  Array<Float> p_int_;
 };
 }  // namespace llrte
 #endif

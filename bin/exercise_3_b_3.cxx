@@ -5,24 +5,12 @@
 #include <llrte/scattering.h>
 #include <llrte/solvers/monte_carlo.h>
 #include <llrte/sources.h>
+#include <llrte/data.h>
 #include <llrte/surfaces.h>
 #include <llrte/tracers.h>
 #include <llrte/types/vector.h>
 
 #include <memory>
-
-template <typename F>
-std::shared_ptr<F[]> make_linear_vector(F start, F stop, size_t steps) {
-  std::shared_ptr<F[]> v{new F[steps]};
-
-  F d = (stop - start) / (steps - 1);
-  F x = start;
-  for (size_t i = 0; i < steps; ++i) {
-    v[i] = x;
-    x = x + d;
-  }
-  return v;
-}
 
 std::tuple<float, float, float> run_experiment(size_t n_grid_cells,
                                                size_t n_photons,
@@ -80,7 +68,7 @@ std::tuple<float, float, float> run_experiment(size_t n_grid_cells,
   using Surfaces = decltype(surfaces);
   using Atmosphere =
       llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel, Surfaces>;
-  using Solver = llrte::MonteCarloSolver<Atmosphere &, Source &, Tracer>;
+  using Solver = llrte::ForwardSolver<Atmosphere &, Source &, Tracer>;
 
   //////////////////////////////////////////////////////////////////////
   // Source
@@ -110,12 +98,11 @@ std::tuple<float, float, float> run_experiment(size_t n_grid_cells,
 
   float start = 0.0e3;
   float stop = 100.0e3;
-  auto x = make_linear_vector<Float>(start, stop, n_grid_cells + 1);
-  auto y = make_linear_vector<Float>(start, stop, n_grid_cells + 1);
-  auto z = make_linear_vector<Float>(-0.5, 0.5, 2);
-  size_t shape[3] = {n_grid_cells + 1, n_grid_cells + 1, 2};
+  auto x = llrte::Array<Float>::fill_linear(start, stop, n_grid_cells + 1);
+  auto y = llrte::Array<Float>::fill_linear(start, stop, n_grid_cells + 1);
+  auto z = llrte::Array<Float>::fill_linear(-0.5, 0.5, 2);
+  auto grid = Grid{x, y, z};
 
-  auto grid = Grid{shape, x, y, z};
   auto absorption_model = llrte::ConstantAbsorption<Float>(0.5 * optical_depth * 1e-5);
   auto scattering_model = ScatteringModel(0.5 * optical_depth * 1e-5, 180);
   auto atmosphere =

@@ -20,6 +20,25 @@ class Vector {
     }
   }
 
+  Vector(const std::array<F, 3> &data) {
+      for (size_t i = 0; i < 3; ++i) {
+          elements_[i] = data[i];
+      }
+  }
+
+  Vector (const Vector& other) {
+      for (size_t i = 0; i < 3; ++i) {
+          elements_[i] = other.elements_[i];
+      }
+  }
+
+  Vector& operator=(const Vector &other) {
+      for (size_t i = 0; i < 3; ++i) {
+          elements_[i] = other.elements_[i];
+      }
+      return *this;
+  }
+
   Float operator[](size_t i) const { return elements_[i]; }
   Float& operator[](size_t i) { return elements_[i]; }
 
@@ -87,6 +106,12 @@ Vector<3, Float> cross(Vector<3, Float> u, Vector<3, Float> v) {
   w[1] = u[2] * v[0] - u[0] * v[2];
   w[2] = u[0] * v[1] - u[1] * v[0];
   return w;
+}
+
+template <typename Vector>
+    typename Vector::Float angle(const Vector &v1, const Vector &v2) {
+    auto theta = dot(v1, v2) / v1.length() / v2.length();
+    return acos(theta);
 }
 
 template <size_t N, typename Float>

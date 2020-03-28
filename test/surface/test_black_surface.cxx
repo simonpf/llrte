@@ -21,7 +21,7 @@ int main(int /*args*/, const char **/*argv*/) {
   auto source = std::get<1>(test_setup);
 
   using Solver =
-      llrte::MonteCarloSolver<decltype(atmosphere) &, decltype(source) &>;
+      llrte::ForwardSolver<decltype(atmosphere) &, decltype(source) &>;
   Solver solver(atmosphere, source);
   solver.sample_photon();
   auto &boundary = atmosphere.get_boundary<0>();

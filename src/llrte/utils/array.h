@@ -41,17 +41,29 @@ namespace llrte::utils::array {
       return acc;
     }
 
-    template <typename T, size_t N>
-    T index(const std::array<T, N> &indices, const std::array<T, N> &sizes) {
-      auto i = static_cast<T>(0);
-      for (size_t i = 0; i < N; ++i) {
-        i += indices[i];
-        if (i < N - 1) {
-            i *= sizes[i];
+    template <typename T, size_t N1, size_t N2>
+    T index(const std::array<T, N1> &indices,
+            const std::array<T, N2> &sizes) {
+      auto index = static_cast<T>(0);
+      for (size_t i = 0; i < N2; ++i) {
+        if (i < N1) index += indices[i];
+        if (i < N2 - 1) {
+            index *= sizes[i + 1];
         }
       }
-      return i;
+      return index;
     }
+
+    template<size_t M, typename T, size_t N>
+    std::array<T, N - M> tail(const std::array<T, N> in) {
+        std::array<T, N - M> out{};
+        for (size_t i = M; i < N; ++i) {
+            out[i - M] = in[i];
+        }
+        return out;
+    }
+
+
 
     template <typename Operation, typename T, size_t N>
     std::array<T, N> zip(const std::array<T, N> &as,
@@ -65,6 +77,7 @@ namespace llrte::utils::array {
 
 }  // namespace llrte::utils::array
 
+namespace llrte {
 template<typename T, size_t rank>
     std::ostream& operator<<(std::ostream& os, const std::array<T, rank> &array) {
     os << "[";
@@ -74,5 +87,8 @@ template<typename T, size_t rank>
     os << array[rank - 1] << "]";
     return os;
 }
+
+}
+
 
 #endif

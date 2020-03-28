@@ -5,24 +5,12 @@
 #include <llrte/scattering.h>
 #include <llrte/solvers/monte_carlo.h>
 #include <llrte/sources.h>
+#include <llrte/data.h>
 #include <llrte/surfaces.h>
 #include <llrte/tracers.h>
 #include <llrte/types/vector.h>
 
 #include <memory>
-
-template <typename F>
-std::shared_ptr<F[]> make_linear_vector(F start, F stop, size_t steps) {
-  std::shared_ptr<F[]> v{new F[steps]};
-
-  F d = (stop - start) / (steps - 1);
-  F x = start;
-  for (size_t i = 0; i < steps; ++i) {
-    v[i] = x;
-    x = x + d;
-  }
-  return v;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Heterogeneous scattering
@@ -170,7 +158,7 @@ void run_experiment(size_t n_photons,
   using Surfaces = decltype(surfaces);
   using Atmosphere =
       llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel, Surfaces>;
-  using Solver = llrte::MonteCarloSolver<Atmosphere &, Source &, Tracer>;
+  using Solver = llrte::ForwardSolver<Atmosphere &, Source &, Tracer>;
 
   //////////////////////////////////////////////////////////////////////
   // Source
@@ -198,12 +186,11 @@ void run_experiment(size_t n_photons,
   // Domain
   //////////////////////////////////////////////////////////////////////
 
-  auto x = make_linear_vector<Float>(0.0, 20e3, 200);
-  auto y = make_linear_vector<Float>(0.0, 60e3, 600);
-  auto z = make_linear_vector<Float>(-0.5, 0.5, 2);
-  size_t shape[3] = {200, 600, 2};
+  auto x = llrte::Array<Float>::fill_linear(0.0, 10e3, 200);
+  auto y = llrte::Array<Float>::fill_linear(0.0, 60e3, 600);
+  auto z = llrte::Array<Float>::fill_linear(-0.5, 0.5, 2);
 
-  auto grid = Grid{shape, x, y, z};
+  auto grid = Grid{x, y, z};
   auto absorption_model = AbsorptionModel(0.0, 0.1 * 1e-3, 2e3, 7e3, 20e3, 40e3);
   auto scattering_model = ScatteringModel(0.0025 * 1e-3, 0.9 * 1e-3, 2e3, 7e3, 20e3, 40e3, 0.9);
   auto atmosphere =

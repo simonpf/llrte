@@ -12,13 +12,25 @@ template <typename F>
 class Generator {
  public:
   using Float = F;
+  using C = Constants<Float>;
 
   Generator() {
     // Nothing to do here.
   }
 
-  Float sample_uniform() { return distribution_(generator_); }
-  Float sample_angle_uniform() { return Constants<Float>::pi * distribution_(generator_); }
+  Float sample_uniform() {return distribution_(generator_);}
+  Float sample_uniform(Float a, Float b) {
+      return a  + (b - a) * distribution_(generator_);
+  }
+  Float sample_angle_uniform() { return sample_uniform(-C::pi, C::pi);}
+
+  Float sample_zenith_angle(float a = 0.0,
+                            float b = Constants<Float>::pi){
+      Float a_i = -cos(a);
+      Float b_i = -cos(b);
+      Float r = sample_uniform(a_i, b_i);
+      return acos(-r);
+  }
 
   Float sample_path_length(Float m) {
     auto y = distribution_(generator_);

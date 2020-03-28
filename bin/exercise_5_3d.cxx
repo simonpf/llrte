@@ -1,14 +1,16 @@
+#include <llrte/io/netcdf.h>
 #include <llrte/absorption.h>
 #include <llrte/atmosphere.h>
-#include <llrte/data.h>
 #include <llrte/grids.h>
 #include <llrte/photons.h>
 #include <llrte/scattering.h>
 #include <llrte/solvers/monte_carlo.h>
 #include <llrte/sources.h>
+#include <llrte/data.h>
 #include <llrte/surfaces.h>
-#include <llrte/tracers.h>
+#include <llrte/random.h>
 #include <llrte/types/vector.h>
+#include <llrte/sensor.h>
 
 #include <memory>
 
@@ -20,21 +22,27 @@ template <typename F>
 class HeterogeneousScattering {
 public:
     using Float = F;
-    using ScatteringPlane =
-        llrte::maths::geometry::FixedScatteringPlane<2>;
+    using ScatteringPlane = llrte::maths::geometry::RandomPlane;
     using PhaseFunction = llrte::NumericPhaseFunction<F, ScatteringPlane>;
 
     HeterogeneousScattering(Float sigma_1,
                             Float sigma_2,
                             Float x_0,
                             Float x_1,
+                            Float y_0,
+                            Float y_1,
+                            Float z_0,
+                            Float z_1,
                             Float g)
-        : hg_(sigma_2, g, 180), rayleigh_(sigma_1, 180), x_0_(x_0), x_1_(x_1)
+        : hg_(sigma_2, g, 180), rayleigh_(sigma_1, 180), x_0_(x_0), x_1_(x_1),
+          y_0_(y_0), y_1_(y_1), z_0_(z_0), z_1_(z_1)
         {}
 
     template <typename Grid, typename GridPos>
     Float get_scattering_coefficient(const Grid &g, const GridPos &gp) {
-        if ((gp.x() > x_0_) && (gp.x() <= x_1_)) {
+        if ((gp.x() > x_0_) && (gp.x() <= x_1_)
+            && (gp.y() > y_0_) && (gp.y() <= y_1_)
+            && (gp.z() > z_0_) && (gp.z() <= z_1_)) {
             return hg_.get_scattering_coefficient(g, gp);
         } else {
             return rayleigh_.get_scattering_coefficient(g, gp);
@@ -43,7 +51,9 @@ public:
 
     template <typename Grid, typename GridPos>
     PhaseFunction get_phase_function(const Grid &g, const GridPos &gp) {
-        if ((gp.x() > x_0_) && (gp.x() <= x_1_)) {
+        if ((gp.x() > x_0_) && (gp.x() <= x_1_)
+            && (gp.y() > y_0_) && (gp.y() <= y_1_)
+            && (gp.z() > z_0_) && (gp.z() <= z_1_)) {
             return hg_.get_phase_function(g, gp);
         } else {
             return rayleigh_.get_phase_function(g, gp);
@@ -55,6 +65,10 @@ private:
     llrte::RayleighScattering<Float, ScatteringPlane> rayleigh_;
     Float x_0_;
     Float x_1_;
+    Float y_0_;
+    Float y_1_;
+    Float z_0_;
+    Float z_1_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -68,13 +82,20 @@ public:
     HeterogeneousAbsorption(Float sigma_1,
                             Float sigma_2,
                             Float x_0,
-                            Float x_1)
-        :  sigma_1_(sigma_1), sigma_2_(sigma_2), x_0_(x_0), x_1_(x_1)
+                            Float x_1,
+                            Float y_0,
+                            Float y_1,
+                            Float z_0,
+                            Float z_1)
+        :  sigma_1_(sigma_1), sigma_2_(sigma_2), x_0_(x_0), x_1_(x_1),
+           y_0_(y_0), y_1_(y_1), z_0_(z_0), z_1_(z_1)
         {}
 
     template <typename Grid, typename GridPos>
     constexpr F get_absorption_coefficient(const Grid &/*g*/, const GridPos &gp) {
-        if ((gp.x() > x_0_) && (gp.x() <= x_1_)) {
+        if ((gp.x() > x_0_) && (gp.x() <= x_1_)
+            && (gp.y() > y_0_) && (gp.y() <= y_1_)
+            && (gp.z() > z_0_) && (gp.z() <= z_1_)) {
             return sigma_2_;
         } else {
             return sigma_1_;
@@ -86,23 +107,26 @@ private:
     Float sigma_2_;
     Float x_0_;
     Float x_1_;
+    Float y_0_;
+    Float y_1_;
+    Float z_0_;
+    Float z_1_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // The simulation
 ////////////////////////////////////////////////////////////////////////////////
 
-void run_experiment(size_t n_photons,
-                    std::string filename) {
+void run_experiment() {
   using Float = float;
   using V3 = llrte::Vector<3, Float>;
   using Grid = llrte::RegularGrid<Float>;
   using AbsorptionModel = HeterogeneousAbsorption<Float>;
   using ScatteringModel = HeterogeneousScattering<Float>;
+  using C = llrte::Constants<Float>;
 
-  using Tracer = llrte::AbsorptionTracer<Grid>;
   using Photon = llrte::Photon<V3>;
-  using Source = llrte::RandomOffset<llrte::BeamSource<Photon>>;
+  using Source = llrte::PlanarSource<Photon>;
 
   //////////////////////////////////////////////////////////////////////
   // Surface
@@ -120,20 +144,12 @@ void run_experiment(size_t n_photons,
   normal_b[2] = 0.0;
 
   // Setup periodic boundary.
-  auto base_1_p = V3{};
-  base_1_p[0] = 0.0;
-  base_1_p[1] = 0.0;
-  base_1_p[2] = 0.0;
-
-  auto base_2_p = V3{};
-  base_2_p[0] = 0.0;
-  base_2_p[1] = 60e3;
-  base_2_p[2] = 0.0;
-
-  auto normal_p = V3{};
-  normal_p[0] = 0.0;
-  normal_p[1] = -1.0;
-  normal_p[2] = 0.0;
+  auto base_1_p_y = V3{{0.0, 0.0, 0.0}};
+  auto base_2_p_y = V3{{0.0, 60e3, 0.0}};
+  auto normal_p_y = V3{{0.0, -1.0, 0.0}};
+  auto base_1_p_z = V3{{0.0, 0.0, 0.0}};
+  auto base_2_p_z = V3{{0.0,  0.0, 30e3}};
+  auto normal_p_z = V3{{0.0,  0.0, -1.0}};
 
   using ScatteringPlane =
       llrte::maths::geometry::FixedScatteringPlane<2>;
@@ -144,11 +160,13 @@ void run_experiment(size_t n_photons,
   Float sa = 0.07;
   auto surfaces = std::make_tuple(
       ReflectingSurface(base_b, normal_b, sa),
-      llrte::surfaces::PeriodicBoundary<V3>(base_1_p, base_2_p, normal_p));
+      llrte::surfaces::PeriodicBoundary<V3>(base_1_p_y, base_2_p_y, normal_p_y),
+      llrte::surfaces::PeriodicBoundary<V3>(base_1_p_z, base_2_p_z, normal_p_z)
+      );
   using Surfaces = decltype(surfaces);
   using Atmosphere =
       llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel, Surfaces>;
-  using Solver = llrte::ForwardSolver<Atmosphere &, Source &, Tracer>;
+  using Solver = llrte::BackwardSolver<Atmosphere &, Source &>;
 
   //////////////////////////////////////////////////////////////////////
   // Source
@@ -169,40 +187,52 @@ void run_experiment(size_t n_photons,
   source_offset[1] = 1.0;
   source_offset[2] = 0.0;
 
-  auto source =
-      Source(source_offset, 0, 60e3, source_position, source_direction);
+  auto source_normal = V3{{-1.0, 0.0, 0.0}};
+  auto source = Source(1.0, source_normal, C::pi / 180.0);
+
+  //////////////////////////////////////////////////////////////////////
+  // Sensor
+  //////////////////////////////////////////////////////////////////////
+
+  auto sensor_position = V3{{20e3, 10e3, 15e3}};
+  auto sensor_x = V3{{-1.0, -1.0, 0.0}}.normed();
+  auto sensor_y = V3{{0.0, 0.0, 1.0}};
+  auto sensor_dx = llrte::Array<Float>::fill_linear(-10e3, 10e3, 100);
+  auto sensor_dy = llrte::Array<Float>::fill_linear(-10e3, 10e3, 100);
+  auto sensor_dz = llrte::Array<Float>::fill_linear(0.0, 0.0, 1);
+  auto sensor_da = llrte::Array<Float>::fill_linear(0.0, 0.0, 1);
+
+  llrte::SensorArray<V3> sensor{sensor_position,
+                                sensor_x,
+                                sensor_y,
+                                sensor_dx,
+                                sensor_dy,
+                                sensor_dz,
+                                sensor_da};
+
 
   //////////////////////////////////////////////////////////////////////
   // Domain
   //////////////////////////////////////////////////////////////////////
 
-  auto x = llrte::Array<Float>::fill_linear(0.0, 20e3, 200);
-  auto y = llrte::Array<Float>::fill_linear(0.0, 60e3, 600);
-  auto z = llrte::Array<Float>::fill_linear(-0.5, 0.5, 2);
+  auto x = llrte::Array<Float>::fill_linear(0.0, 20e3, 100);
+  auto y = llrte::Array<Float>::fill_linear(0.0, 60e3, 200);
+  auto z = llrte::Array<Float>::fill_linear(0.0, 30e3, 100);
 
   auto grid = Grid{x, y, z};
-  auto absorption_model = AbsorptionModel(0.0, 0.1 * 1e-3, 2e3, 7e3);
-  auto scattering_model = ScatteringModel(0.0025 * 1e-3, 0.9 * 1e-3, 2e3, 7e3, 0.9);
+  auto absorption_model = AbsorptionModel(0.0, 0.1 * 1e-3, 2e3, 7e3, 20e3, 40e3, 10e3, 20e3);
+  auto scattering_model = ScatteringModel(0.0025 * 1e-3, 0.9 * 1e-3, 2e3, 7e3, 20e3, 40e3, 10e3, 20e3, 0.9);
   auto atmosphere =
       Atmosphere{grid, absorption_model, scattering_model, surfaces};
+
+  llrte::Generator<Float> generator{};
   auto solver = Solver(atmosphere, source);
+  sensor.sample(generator, solver, 200);
 
-  Tracer::initialize(grid);
-  for (size_t i = 0; i < n_photons; i++) {
-    solver.sample_photon();
-  }
-  Tracer::dump(filename);
-
-
-  std::cout << "Upwelling intensity:           ";
-  std::cout << Tracer::get_total_leaving_counts(1) / n_photons << std::endl;
-  std::cout << "Total absorbed intensity:      ";
-  std::cout << Tracer::get_total_absorption_counts() / n_photons << std::endl;
-  std::cout << "Intensity absorbed by surface: ";
-  std::cout << atmosphere.get_boundary<0>().get_absorbed_energy() / n_photons << std::endl;
+  sensor.dump("exercise_5_3d.nc");
 
 }
 
 int main(int /*argc*/, const char ** /***argv*/) {
-  run_experiment(1000000, "./results_5_a.bin");
+  run_experiment();
 }

@@ -24,7 +24,7 @@ int main(int /*args*/, const char **/*argv*/) {
 
 
   using Tracer = llrte::PhotonTracer<typename decltype(source)::Photon>;
-  using Solver = llrte::MonteCarloSolver<decltype(atmosphere) &,
+  using Solver = llrte::ForwardSolver<decltype(atmosphere) &,
                                          decltype(source) &,
                                          Tracer>;
   Solver solver(atmosphere, source);

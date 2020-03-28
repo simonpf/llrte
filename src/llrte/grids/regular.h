@@ -6,6 +6,8 @@
 #include <utility>
 #include <memory>
 
+#include "llrte/data.h"
+
 
 namespace llrte {
 
@@ -46,30 +48,17 @@ class RegularGrid {
 
   using Float = F;
 
-  RegularGrid(size_t shape[3], std::shared_ptr<Float[]> x,
-              std::shared_ptr<Float[]> y, std::shared_ptr<Float[]> z)
+  RegularGrid(const Array<Float> &x,
+              const Array<Float> &y,
+              const Array<Float> &z)
       : x_(x), y_(y), z_(z) {
-    for (size_t i = 0; i < 3; ++i) {
-      shape_[i] = shape[i];
-    }
+      shape_[0] = x.size();
+      shape_[1] = y.size();
+      shape_[2] = z.size();
   }
 
   std::tuple<Index, Index, Index> get_extent() const {
     return std::make_tuple(shape_[0], shape_[1], shape_[2]);
-  }
-
-  template <typename Backend>
-  auto abstract() -> typename Backend::ClassType {
-    auto cl = typename Backend::ClassType("RegularGrid");
-
-    // auto fl = Float<Backend>{4};
-    // auto array_of_float = Array<Float<Backend>, Backend>{fl};
-
-    // cl.add_member(ClassAttribute("x", array_of_float));
-    // cl.add_member(ClassAttribute("y", array_of_float));
-    // cl.add_member(ClassAttribute("z", array_of_float));
-
-    return cl;
   }
 
   template <typename Vector>
@@ -347,9 +336,9 @@ class RegularGrid {
 
  private:
   size_t shape_[3];
-  std::shared_ptr<Float[]> x_;
-  std::shared_ptr<Float[]> y_;
-  std::shared_ptr<Float[]> z_;
+  Array<Float> x_;
+  Array<Float> y_;
+  Array<Float> z_;
 };
 
 }  // namespace llrte

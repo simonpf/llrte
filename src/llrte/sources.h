@@ -4,8 +4,41 @@
 #include <random>
 
 #include "llrte/constants.h"
+#include "llrte/rotations.h"
+#include "llrte/maths/geometry.h"
 
 namespace llrte {
+
+template <typename P>
+    class PlanarSource {
+public:
+    using Photon = P;
+    using Vector = typename Photon::Vector;
+    using Float = typename Vector::Float;
+    using C = Constants<Float>;
+
+PlanarSource(Float intensity,
+              Vector normal,
+             Float dtheta = 2.0 * Constants<Float>::pi / 180)
+        : domega_(2.0 * dtheta / C::pi),
+        dtheta_(dtheta),
+        intensity_(intensity),
+        normal_(normal * -1.0)
+    {}
+
+    Float get_intensity(const Photon &p) {
+        if (angle(p.get_direction(), normal_) < dtheta_) {
+            return 1.0 / domega_;
+        } else {
+         return 0.0;
+        }
+    }
+
+
+private:
+    Float domega_, dtheta_, intensity_;
+    Vector normal_;
+};
 
 /**
  * Isotropic point source
@@ -98,6 +131,37 @@ public:
   Vector direction_;
   Float limit_low_ = 0.0;
   Float limit_high_ = 0.0;
+};
+
+template <typename Source>
+class RandomDirection : public Source {
+public:
+
+    using Float   = typename Source::Float;
+    using Vector = typename Source::Vector;
+    using Photon = typename Source::Photon;
+
+    template <typename ... Ts>
+        RandomDirection(Float theta_max,
+                        Ts ... ts)
+        : Source(ts ...), theta_max_(theta_max)
+    {}
+
+    template <typename Generator>
+        Photon sample_photon(Generator &g) {
+        auto p = Source::sample_photon(g);
+        auto d = p.get_direction();
+        auto n = maths::geometry::RandomPlane::get_normal(g, d);
+        auto theta = theta_max_ * g.sample_uniform();
+        auto dn = rotations::rotate(d, n, theta);
+        p.set_direction(dn);
+
+        return p;
+    }
+
+private:
+    Vector direction_;
+    Float theta_max_ = 0.0;
 };
 
 }  // namespace llrte

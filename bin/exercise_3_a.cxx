@@ -5,28 +5,15 @@
 #include <llrte/scattering.h>
 #include <llrte/solvers/monte_carlo.h>
 #include <llrte/sources.h>
+#include <llrte/data.h>
 #include <llrte/surfaces.h>
 #include <llrte/tracers.h>
 #include <llrte/types/vector.h>
 
 #include <memory>
 
-template <typename F>
-std::shared_ptr<F[]> make_linear_vector(F start, F stop, size_t steps) {
-  std::shared_ptr<F[]> v{new F[steps]};
-
-  F d = (stop - start) / (steps - 1);
-  F x = start;
-  for (size_t i = 0; i < steps; ++i) {
-    v[i] = x;
-    x = x + d;
-  }
-  return v;
-}
-
 void run_experiment(size_t n_grid_cells,
-                    size_t n_photons,
-                    std::string filename) {
+                    size_t n_photons) {
   using V3 = llrte::Vector<3, float>;
   using Float = float;
   using Grid = llrte::RegularGrid<Float>;
@@ -80,7 +67,7 @@ void run_experiment(size_t n_grid_cells,
   using Surfaces = decltype(surfaces);
   using Atmosphere =
       llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel, Surfaces>;
-  using Solver = llrte::MonteCarloSolver<Atmosphere &, Source &, Tracer>;
+  using Solver = llrte::ForwardSolver<Atmosphere &, Source &, Tracer>;
 
   //////////////////////////////////////////////////////////////////////
   // Source
@@ -108,14 +95,13 @@ void run_experiment(size_t n_grid_cells,
   // Domain
   //////////////////////////////////////////////////////////////////////
 
-  float start = 0.0e3;
-  float stop = 100.0e3;
-  auto x = make_linear_vector<Float>(start, stop, n_grid_cells + 1);
-  auto y = make_linear_vector<Float>(start, stop, n_grid_cells + 1);
-  auto z = make_linear_vector<Float>(-0.5, 0.5, 2);
-  size_t shape[3] = {n_grid_cells + 1, n_grid_cells + 1, 2};
+  Float start = 0.0e3;
+  Float stop = 10.0e3;
+  auto x = llrte::Array<Float>::fill_linear(start, stop, n_grid_cells + 1);
+  auto y = llrte::Array<Float>::fill_linear(start, stop, n_grid_cells + 1);
+  auto z = llrte::Array<Float>::fill_linear(-0.5, 0.5, 2);
 
-  auto grid = Grid{shape, x, y, z};
+  auto grid = Grid{x, y, z};
   auto absorption_model = llrte::ConstantAbsorption<Float>(0.5e-5);
   auto scattering_model = ScatteringModel(0.5e-5, 180);
   auto atmosphere =
@@ -136,5 +122,5 @@ void run_experiment(size_t n_grid_cells,
 }
 
 int main(int /*argc*/, const char ** /***argv*/) {
-  run_experiment(100, 100000, "./results_3_a.bin");
+  run_experiment(100,100000);
 }

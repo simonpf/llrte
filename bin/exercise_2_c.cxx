@@ -5,6 +5,7 @@
 #include <llrte/scattering.h>
 #include <llrte/solvers/monte_carlo.h>
 #include <llrte/sources.h>
+#include <llrte/data.h>
 #include <llrte/surfaces.h>
 #include <llrte/tracers.h>
 #include <llrte/types/vector.h>
@@ -23,8 +24,12 @@ std::shared_ptr<F[]> make_linear_vector(F start, F stop, size_t steps) {
   return v;
 }
 
-void run_experiment(size_t n_grid_cells, size_t n_photons, float optical_depth,
-                    float fb_ratio, float ssa, float surface_albedo,
+void run_experiment(size_t n_grid_cells,
+                    size_t n_photons,
+                    float optical_depth,
+                    float fb_ratio,
+                    float ssa,
+                    float surface_albedo,
                     std::string filename) {
   using Float = float;
   using V3 = llrte::Vector<3, Float>;
@@ -58,7 +63,7 @@ void run_experiment(size_t n_grid_cells, size_t n_photons, float optical_depth,
   using Surfaces = decltype(surfaces);
   using Atmosphere =
       llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel, Surfaces>;
-  using Solver = llrte::MonteCarloSolver<Atmosphere &, Source &, Tracer>;
+  using Solver = llrte::ForwardSolver<Atmosphere &, Source &, Tracer>;
 
   auto source_position = V3{};
   source_position[0] = 0.0;
@@ -74,12 +79,11 @@ void run_experiment(size_t n_grid_cells, size_t n_photons, float optical_depth,
 
   Float start = 0.0e3;
   Float stop = 10.0e3;
-  auto x = make_linear_vector<Float>(start, stop, n_grid_cells + 1);
-  auto y = make_linear_vector<Float>(-0.5, 0.5, 2);
-  auto z = make_linear_vector<Float>(-0.5, 0.5, 2);
-  size_t shape[3] = {n_grid_cells + 1, 2, 2};
+  auto x = llrte::Array<Float>::fill_linear(start, stop, n_grid_cells + 1);
+  auto y = llrte::Array<Float>::fill_linear(-0.5, 0.5, 2);
+  auto z = llrte::Array<Float>::fill_linear(-0.5, 0.5, 2);
 
-  auto grid = Grid{shape, x, y, z};
+  auto grid = Grid{x, y, z};
   auto absorption_model =
       llrte::ConstantAbsorption<Float>((1.0 - ssa) * optical_depth / 1e4);
   auto scattering_model = llrte::BidirectionalScattering<Float>(

@@ -37,7 +37,7 @@ int main(int /*argc*/, const char **/***argv*/) {
     using Tracer = llrte::Histogram<Grid>;
     using Photon = llrte::Photon<V3, Tracer>;
     using Source = llrte::BeamSource<Photon>;
-    using Solver = llrte::MonteCarloSolver<Atmosphere, Source>;
+    using Solver = llrte::ForwardSolver<Atmosphere, Source>;
 
     auto source_position = V3{};
     source_position[0] = 0.0;
