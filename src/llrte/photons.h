@@ -2,6 +2,7 @@
 #define _LLRTE_PHOTONS_
 
 #include "llrte/tracers.h"
+#include "math.h"
 
 namespace llrte {
 
@@ -34,8 +35,8 @@ class Photon {
   size_t get_scattering_events() const { return n_scattered_; }
 
   Float get_energy() const { return energy_; }
-  void set_energy(Float e) { energy_ = e; }
-  void scale_energy(Float f) { energy_ *= f; }
+  void set_energy(Float e) {if (!isfinite(e)) std::cout << *this; energy_ = e; }
+  void scale_energy(Float f) { energy_ *= f; if (!isfinite(energy_)) std::cout << *this; }
 
   const Vector& get_position() const { return position_; }
   Vector& get_position() { return position_; }

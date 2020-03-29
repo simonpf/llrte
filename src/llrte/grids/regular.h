@@ -3,335 +3,315 @@
 
 #include <iostream>
 #include <limits>
-#include <utility>
 #include <memory>
+#include <utility>
 
 #include "llrte/data.h"
-
+#include "llrte/maths.h"
 
 namespace llrte {
 
-template <typename Vector, typename Index = size_t>
+//////////////////////////////////////////////////////////////////////////////////////////
+// Grid Position
+//////////////////////////////////////////////////////////////////////////////////////////
+
+/** GridPosition
+ *
+ * The grid position struct represents a position in the grid.
+ * The i, j, k indices point to the next grid boundary that the photon will
+ * traverse given its current moving direction. The x, y, z values hold the
+ * current position holds the indices of the grid cell that the photon is in
+ * using 1-based indexing.
+ *
+ * @tparam Vector The vector type to use to represent positions and directions.
+ * @tparam Index The integer type to use to represent indices.
+ */
+template <
+    typename Vector,
+    typename Index = short unsigned int
+    >
 struct GridPosition {
   using Float = typename Vector::Float;
-  Index i, j, k;
-  Vector *vector;
 
-  GridPosition(Index i_,
-               Index j_,
-               Index k_,
-               Vector& v)
-  : i(i_), j(j_), k(k_), vector(&v) {}
+  /*! 3D Vector representing the current position. */
+  Vector position;
+  /*! 3D Vector representing the current direction. */
+  Vector direction;
+  /*! 1-based index for next grid boundary in x direction. */
+  Index i;
+  /*! 1-based index for next grid boundary in y direction. */
+  Index j;
+  /*! 1-based index for next grid boundary in z direction. */
+  Index k;
 
-    //GridPosition(const GridPosition &other) :
-    //i(other.i), j(other.j), k(other.k), vector(other.vector) {}
-
-    Float & x() {return (*vector)[0];}
-    Float & y() {return (*vector)[1];}
-    Float & z() {return (*vector)[2];}
-    Float x() const {return (*vector)[0];}
-    Float y() const {return (*vector)[1];}
-    Float z() const {return (*vector)[2];}
+  /*! x coordinate of current position*/
+  Float &x() { return position.x; }
+  /*! y coordinate of current position*/
+  Float &y() { return position.y; }
+  /*! z coordinate of current position*/
+  Float &z() { return position.z; }
+  const Float &x() const { return position.x; }
+  const Float &y() const { return position.y; }
+  const Float &z() const { return position.z; }
 };
 
-template <typename Vector>
-std::ostream& operator<<(std::ostream& os, const GridPosition<Vector>& gp) {
-    os << "[" << gp.x() << ", " << gp.y() << ", " << gp.z() << "] :: " << gp.vector << std::endl;
+template <typename Float, typename Index>
+std::ostream &operator<<(std::ostream &os,
+                         const GridPosition<Float, Index> &gp) {
+  os << "[" << gp.x() << ", " << gp.y() << ", " << gp.z() << "] :: ";
   os << "[" << gp.i << ", " << gp.j << ", " << gp.k << "]" << std::endl;
   return os;
 }
 
-template <typename F>
+//////////////////////////////////////////////////////////////////////////////////////////
+// Regular Grid
+//////////////////////////////////////////////////////////////////////////////////////////
+
+/** RegularGrid
+ *
+ * The regular grid class implements a regular, Cartesian grid. It is defined by three
+ * arrays, holding the grid boundaries in each dimension. It provides functionality
+ * to place objects on the grid and let them move across the grid.
+ *
+ * @tparam Float The floating point type to use for real numbers.
+ * @tparam Index The integer type to use for indices.
+ */
+template <
+    typename Float,
+    typename Index = short unsigned int>
 class RegularGrid {
  public:
-  using Index = size_t;
-
-  using Float = F;
-
+  /**
+   * Create a regular grid given arrays containing the edges in x-, y-, and z-
+   * direction.
+   *
+   * @param x Array holding cell boundaries along the x-dimension
+   * @param y Array holding cell boundaries along the y-dimension
+   * @param z Array holding cell boundaries along the z-dimension
+   *
+   */
   RegularGrid(const Array<Float> &x,
               const Array<Float> &y,
               const Array<Float> &z)
-      : x_(x), y_(y), z_(z) {
-      shape_[0] = x.size();
-      shape_[1] = y.size();
-      shape_[2] = z.size();
-  }
+      : x_(x), y_(y), z_(z) {}
 
   std::tuple<Index, Index, Index> get_extent() const {
-    return std::make_tuple(shape_[0], shape_[1], shape_[2]);
+    return std::make_tuple(x_.size(), y_.size(), z_.size());
   }
 
+  /**
+   * Finds index of the grid boundary that a particle placed
+   * at a given position would intersect next.
+   *
+   * If d is zero, movement into left (negative) direction is
+   * assumed.
+   *
+   * @param grid Array holding boundaries
+   * @param p The current position on the grid
+   * @param d The moving direction
+   * @return The 1-based index of the intersected boundary.
+   */
+  Index find_next_index(const Array<Float> &grid,
+                        Float p,
+                        Float d) {
+    Index i = 0;
+    // Find index, which is left of p
+    while ((grid[i] < p) && (i < grid.size())) {
+      ++i;
+    }
+    // If moving to right, increase index.
+    if (d > 0.0) {
+      ++i;
+    }
+    return i;
+  }
+
+  /**
+   * Place an object on the grid by determining the next intersection
+   * points of its given position and direction.
+   *
+   * @tparam Vector The vector type used to encode positions and moving
+   * and moving directions.
+   * @param position The position of the object to place on the grid.
+   * @param direction The direction of the object to place on the grid.
+   * @return GridPosition object representing the object on the grid.
+   */
   template <typename Vector>
-  GridPosition<Vector> get_grid_position(Vector& position) {
-    size_t i = 0;
-    size_t j = 0;
-    size_t k = 0;
-    while ((x_[i] <= position[0]) && (i < shape_[0])) {
-      i++;
-    }
-    while ((y_[j] <= position[1]) && (j < shape_[1])) {
-      j++;
-    }
-    while ((z_[k] <= position[2]) && (k < shape_[2])) {
-      k++;
-    }
-    return GridPosition(i, j, k, position);
+  GridPosition<Vector, Index> place_on_grid(const Vector &position,
+                                            const Vector &direction) {
+    Index i = find_next_index(x_, position.x, direction.x);
+    Index j = find_next_index(y_, position.y, direction.y);
+    Index k = find_next_index(z_, position.z, direction.z);
+
+    return GridPosition<Vector, Index>{position, direction, i, j, k};
   }
 
-  template <typename GridPosition>
-  bool is_inside(GridPosition gp) {
-    bool inside = ((gp.x() > x_[0]) && (gp.x() < x_[shape_[0] - 1]));
-    inside &= ((gp.y() > y_[0]) && (gp.y() < y_[shape_[1] - 1]));
-    inside &= ((gp.z() > z_[0]) && (gp.z() < z_[shape_[2] - 1]));
+  /**
+   * Determine whether given grid position is inside the grid.
+   *
+   * @tparam Vector The vector type to represent positions and directions.
+   * @param gp The grid position representing the object on the grid.
+   * @return Boolean indicating whether the object is on the grid.
+   */
+  template <typename Vector>
+  bool is_inside(GridPosition<Vector, Index> gp) {
+    bool inside = ((gp.x > x_[0]) && (gp.x < x_[x_.size() - 1]));
+    inside &= ((gp.y > y_[0]) && (gp.y < y_[y_.size() - 1]));
+    inside &= ((gp.z > z_[0]) && (gp.z < z_[z_.size() - 1]));
     return inside;
   }
 
-  // template<typename Vector>
-  // GridPosition<FloatType> get_intersection(VectorType pos,
-  //                                         VectorType dir) {
-
-  //}
-
-  template <size_t axis>
-  size_t first() const {
-    if (axis == 0) {
-      return x_[0];
-    } else if (axis == 1) {
-      return y_[1];
-    } else if (axis == 2) {
-      return z_[0];
+  /**
+   * Get relative distance to next intersecting boundary in a given dimension.
+   *
+   * @param grid Array holding cell boundaries for given dimension
+   * @param index The index of the next boundary for given dimension
+   * @param direction Component of the direction vector in this dimension
+   * @return Distance to next intersection given as multiple of direction. -1
+   * if particle is leaving the grid.
+   */
+  Float next_plane(const Array<Float> &grid,
+                   Index index,
+                   Float position,
+                   Float direction) {
+    Float d = std::numeric_limits<Float>::max();
+    if (!maths::small(direction)) {
+      // We're on the left side of domain.
+      if (index == 0) {
+        d = -1.0;
+        // We're on the right side of domain.
+      } else if (index == grid.size() + 1) {
+        d = -1.0;
+        // We're in the middle
+      } else {
+        d = (grid[index - 1] - position) / direction;
+      }
     }
+    return d;
   }
 
-  template <size_t axis>
-  size_t last() const {
-    if (axis == 0) {
-      return x_[shape_[0] - 1];
-    } else if (axis == 1) {
-      return y_[shape_[1] - 1];
-    } else if (axis == 2) {
-      return z_[shape_[2] - 1];
-    }
-  }
-
-  template <size_t axis>
-  size_t first_index() const {
-    return 0;
-  }
-
-  template <size_t axis>
-  size_t last_index() const {
-    if (axis == 0) {
-      return shape_[0] - 1;
-    } else if (axis == 1) {
-      return shape_[1] - 1;
-    } else if (axis == 2) {
-      return shape_[2] - 1;
-    }
-  }
-
-  template <size_t axis, typename GridPosition>
-  size_t get_lower(GridPosition gp) {
-    if (axis == 0) {
-      return std::max<size_t>(gp.i - 1, 0);
-    }
-    if (axis == 1) {
-      return std::max<size_t>(gp.j - 1, 0);
-    }
-    if (axis == 2) {
-      return std::max<size_t>(gp.k - 1, 0);
-    }
-  }
-
-  template <size_t axis, typename GridPosistion>
-  size_t get_higher(const GridPosistion &gp) {
-    if (axis == 0) {
-      return std::min(gp.i, shape_[0] - 1);
-    }
-    if (axis == 1) {
-      return std::min(gp.j, shape_[1] - 1);
-    }
-    if (axis == 2) {
-      return std::min(gp.k, shape_[2] - 1);
-    }
-  }
-
+ /**
+  * Performs a step of a given maximum step length on the grid.
+  * The step will move to the next grid boundary unless this
+  * would exceed the provided step length. In that case the
+  * the particle will move until the maximum length is reached.
+  *
+  * @param gp On entry: The position of the object to be moved.
+  * On exit: The position after a step on the grid.
+  * @param step_length: The maximum length of the step.
+  * @return The actual step length or -1 if the particle is
+  * leaving the grid.
+  */
   template <typename Vector>
-  std::pair<Float, GridPosition<Vector>> get_intersection(GridPosition<Vector> gp,
-                                                          const Vector &dir,
-                                                          Float step_length) {
-    float d = std::numeric_limits<Float>::max();
-    size_t direction = 0;
+  Float step(GridPosition<Vector> &gp,
+             Float step_length) {
+    Vector &direction = gp.direction;
+    Vector &position = gp.position;
+    Float d = std::numeric_limits<Float>::max();
+    ushort di = 0;
 
-    // x-direction
-    float dx = -1.0;
-    size_t i = 0;
-    if (dir[0] < 0.0) {
-      if (gp.i > 0) {
-        i = get_lower<0>(gp);
-        dx = (x_[i] - gp.x()) / dir[0];
-      } else {
-        return std::make_pair(-1.0, gp);
-      }
-    } else if (dir[0] > 0.0) {
-      if (gp.i < shape_[0]) {
-        i = get_higher<0>(gp);
-        dx = (x_[i] - gp.x()) / dir[0];
-        i++;
-      } else {
-        return std::make_pair(-1.0, gp);
-      }
+    Float dx = next_plane(x_, gp.i, position.x, direction.x);
+    Float dy = next_plane(y_, gp.j, position.y, direction.y);
+    Float dz = next_plane(z_, gp.k, position.z, direction.z);
+
+    if (dx < 0.0 || dy < 0.0 || dz < 0.0) {
+      return -1.0;
     }
-    if ((dx >= 0.0) && (dx < d)) {
-      direction = 0;
+
+    if (dx < d) {
+      di = 0;
       d = dx;
     }
-
-    // y-direction
-    Float dy = -1.0;
-    size_t j = 0;
-    if (dir[1] < 0.0) {
-      if (gp.j > 0) {
-        j = get_lower<1>(gp);
-        dy = (y_[j] - gp.y()) / dir[1];
-      } else {
-        return std::make_pair(-1.0, gp);
-      }
-    } else if (dir[1] > 0.0) {
-      if (gp.j < shape_[1]) {
-        j = get_higher<1>(gp);
-        dy = (y_[j] - gp.y()) / dir[1];
-        j++;
-      } else {
-        return std::make_pair(-1.0, gp);
-      }
-    }
-
-    if ((dy >= 0.0) && (dy < d)) {
-      direction = 1;
+    if (dy < d) {
+      di = 1;
       d = dy;
     }
-
-    // z-direction
-    Float dz = -1.0;
-    size_t k = 0;
-    if (dir[2] < 0.0) {
-      if (gp.k > 0) {
-        k = get_lower<2>(gp);
-        dz = (z_[k] - gp.z()) / dir[2];
-      } else {
-        return std::make_pair(-1.0, gp);
-      }
-    } else if (dir[2] > 0.0) {
-      if (gp.k < shape_[2]) {
-        k = get_higher<2>(gp);
-        dz = (z_[k] - gp.z()) / dir[2];
-        k++;
-      } else {
-        return std::make_pair(-1.0, gp);
-      }
-    }
-
-    if ((dz >= 0.0) && (dz < d)) {
-      direction = 2;
+    if (dz < d) {
+      di = 2;
       d = dz;
     }
 
+    Float dl = direction.length();
+    Float l = d * dl;
+
     // Compute new position.
-    GridPosition<Vector> gp_new(gp);
-    Float l = d * dir.length();
     if (l > step_length) {
       l = step_length;
-      d = step_length / dir.length();
-      gp_new.x()= gp.x() + d * dir[0];
-      gp_new.y()= gp.y() + d * dir[1];
-      gp_new.z()= gp.z() + d * dir[2];
+      d = step_length / dl;
+      position.x += d * direction.x;
+      position.y += d * direction.y;
+      position.z += d * direction.z;
     } else {
-      if (direction == 0) {
-        gp_new.i = i;
-        if (dir[0] < 0.0) {
-          gp_new.x()= x_[i];
-        } else {
-          gp_new.x()= x_[i - 1];
-        }
-        gp_new.y()= gp.y() + d * dir[1];
-        gp_new.z()= gp.z() + d * dir[2];
-      }
-      if (direction == 1) {
-        gp_new.j = j;
-        gp_new.x()= gp.x() + d * dir[0];
-        if (dir[1] < 0.0) {
-          gp_new.y()= y_[j];
-        } else {
-          gp_new.y()= y_[j - 1];
-        }
-        gp_new.z()= gp.z() + d * dir[2];
-      }
-      if (direction == 2) {
-        gp_new.k = k;
-        gp_new.x()= gp.x() + d * dir[0];
-        gp_new.y()= gp.y() + d * dir[1];
-        if (dir[2] < 0.0) {
-          gp_new.z()= z_[k];
-        } else {
-          gp_new.z()= z_[k - 1];
-        }
+      position.x += d * direction.x;
+      position.y += d * direction.y;
+      position.z += d * direction.z;
+      if (di == 0) {
+        if (direction.x < 0.0)
+          --gp.i;
+        else
+          ++gp.i;
+      } else if (di == 1) {
+        if (direction.y < 0.0)
+          --gp.j;
+        else
+          ++gp.j;
+      } else if (di == 2) {
+        if (direction.z < 0.0)
+          --gp.k;
+        else
+          ++gp.k;
       }
     }
-    return std::make_pair(l, gp_new);
+
+    if (direction.x < 0.0) {
+      if (maths::small(position.x - x_[gp.i - 1]) && (gp.i > 0)) --gp.i;
+    } else if (direction.x > 0.0) {
+      if (maths::small(position.x - x_[gp.i - 1]) && (gp.i <= x_.size()))
+        ++gp.i;
+    }
+
+    if (direction.y < 0.0) {
+      if (maths::small(position.y - y_[gp.j - 1]) && (gp.j > 0)) --gp.j;
+    } else if (direction.y > 0.0) {
+      if (maths::small(position.y - y_[gp.j - 1]) && (gp.j <= y_.size()))
+        ++gp.j;
+    }
+
+    if (direction.z < 0.0) {
+      if (maths::small(position.z - z_[gp.k - 1]) && (gp.k > 0)) --gp.k;
+    } else if (direction.z > 0.0) {
+      if (maths::small(position.z - z_[gp.k - 1]) && (gp.k <= z_.size()))
+        ++gp.k;
+    }
+    return l;
   }
 
-  template <typename GridPosition>
-  size_t get_boundary_index(GridPosition gp) const {
-    if (gp.x() <= x_[0]) {
+  template <typename Vector>
+ /**
+  * @param gp The grid position of the particle
+  * @return Integer representation of the boundary through
+  * which the particle left the grid.
+  */
+  size_t get_boundary_index(GridPosition<Vector, Index> gp) const {
+    if (gp.x <= x_[0]) {
       return 0;
     }
-    if (gp.x() >= x_[shape_[0]]) {
+    if (gp.x >= x_[shape_[0]]) {
       return 1;
     }
-    if (gp.y() <= y_[0]) {
+    if (gp.y <= y_[0]) {
       return 2;
     }
-    if (gp.y() >= y_[shape_[1]]) {
+    if (gp.y >= y_[shape_[1]]) {
       return 3;
     }
-    if (gp.z() <= z_[0]) {
+    if (gp.z <= z_[0]) {
       return 4;
     }
-    if (gp.z() >= z_[shape_[2]]) {
+    if (gp.z >= z_[shape_[2]]) {
       return 5;
     }
     return 999;
-  }
-
-  void set_x(Float* x, size_t n) {
-    shape_[0] = n;
-    x_ = std::make_shared<Float[]>(n);
-    std::copy(x, x + n, x_.get());
-  }
-
-  std::pair<Float, size_t> get_x() const {
-    return std::make_pair(x_.get(), shape_[0]);
-  }
-
-  void set_y(Float* y, size_t n) {
-    shape_[1] = n;
-    y_ = std::make_shared<Float[]>(n);
-    std::copy(y, y + n, y_.get());
-  }
-
-  std::pair<Float, size_t> get_y() const {
-    return std::make_pair(y_.get(), shape_[1]);
-  }
-
-  void set_z(Float* z, size_t n) {
-    shape_[2] = n;
-    z_ = std::make_shared<Float[]>(n);
-    std::copy(z, z + n, z_.get());
-  }
-
-  std::pair<Float, size_t> get_z() const {
-    return std::make_pair(z_.get(), shape_[2]);
   }
 
  private:

@@ -260,6 +260,11 @@ class Array : public Tensor<FloatType, 1> {
     return result;
   }
 
+  FloatType first() const {return this->operator[](0);}
+  FloatType & first() {return this->operator[](0);}
+  FloatType last() const {return this->operator[](size() - 1);}
+  FloatType & last() {return this->operator[](size() - 1);}
+
   Array diff() const {
     Array output{size() - 1};
     for (size_t i = 0; i < size() - 1; ++i) {

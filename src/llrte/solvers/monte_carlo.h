@@ -115,6 +115,7 @@ class BackwardSolver {
     while (true) {
       auto absorption_xc = atmosphere_.get_absorption_coefficient(position);
       auto scattering_xc = atmosphere_.get_scattering_coefficient(position);
+      std::cout << position << std::endl;
 
       auto l = tau / scattering_xc;
       auto intersection =

@@ -9,127 +9,72 @@ namespace llrte {
 /**
  * 3D Vector
  */
-template <size_t N, typename F>
-class Vector {
- public:
-  using Float = F;
+template <typename F>
+struct Vector3 {
+    using Float = F;
 
-  Vector() {
-    for (size_t i = 0; i < N; ++i) {
-      elements_[i] = 0.0;
+    Float x;
+    Float y;
+    Float z;
+
+  Vector3() {
+      x = 0.0;
+      y = 0.0;
+      z = 0.0;
+  }
+
+  Vector3(Float x_, Float y_, Float z_) : x(x_), y(y_), z(z_) {}
+
+  Vector3 operator+(const Vector3 &other) const {
+      return Vector3{x + other.x, y + other.y, z + other.z};
+  }
+
+    Vector3 operator*(const Vector3 &other) const {
+        return Vector3{x * other.x, y * other.y, z * other.z};
     }
-  }
 
-  Vector(const std::array<F, 3> &data) {
-      for (size_t i = 0; i < 3; ++i) {
-          elements_[i] = data[i];
-      }
-  }
-
-  Vector (const Vector& other) {
-      for (size_t i = 0; i < 3; ++i) {
-          elements_[i] = other.elements_[i];
-      }
-  }
-
-  Vector& operator=(const Vector &other) {
-      for (size_t i = 0; i < 3; ++i) {
-          elements_[i] = other.elements_[i];
-      }
-      return *this;
-  }
-
-  Float operator[](size_t i) const { return elements_[i]; }
-  Float& operator[](size_t i) { return elements_[i]; }
-
-  Vector operator+(const Vector& v) const {
-    Vector w;
-    for (size_t i = 0; i < N; ++i) {
-      w[i] = v[i] + elements_[i];
+    Vector3 operator-(const Vector3 &other) const {
+        return Vector3{x - other.x, y - other.y, z - other.z};
     }
-    return w;
-  }
 
-  Vector operator*(const Float& v) const {
-    Vector w;
-    for (size_t i = 0; i < N; ++i) {
-      w[i] = v * elements_[i];
+    Vector3 operator==(const Vector3 &other)  const {
+        return (x == other.x) && (y == other.y) && (z == other.z);
     }
-    return w;
-  }
 
-  Vector operator-(const Vector& v) const {
-    Vector w;
-    for (size_t i = 0; i < N; ++i) {
-      w[i] = elements_[i] - v[i];
-    }
-    return w;
-  }
-
-  Vector operator==(const Vector& v) const {
-    bool same = false;
-    for (size_t i = 0; i < 3; ++i) {
-      if (v[i] != elements_[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   Float length() const {
-    Float s = 0.0;
-    for (size_t i = 0; i < N; ++i) {
-      s += elements_[i] * elements_[i];
-    }
-    return sqrt(s);
+      return sqrt(x * x + y * y + z * z);
   }
 
-  Vector normed() const { return (*this) * (1.0 / length()); }
+  Vector3 normed() const { return (*this) * (1.0 / length()); }
 
- public:
-  Float elements_[N];
 };
 
-template <size_t N, typename Float>
-Float dot(Vector<N, Float> v, Vector<N, Float> w) {
-  Float d = 0.0;
-  for (size_t i = 0; i < N; ++i) {
-    d += v[i] * w[i];
-  }
-  return d;
+template <typename Float>
+inline Float dot(Vector3<Float> v, Vector3<Float> w) {
+    return v.x * w.x + v.y * w.y + v.z * w.z;
 }
 
 template <typename Float>
-Vector<3, Float> cross(Vector<3, Float> u, Vector<3, Float> v) {
-  Vector<3, Float> w{};
-  w[0] = u[1] * v[2] - u[2] * v[1];
-  w[1] = u[2] * v[0] - u[0] * v[2];
-  w[2] = u[0] * v[1] - u[1] * v[0];
-  return w;
+inline Vector3<Float> cross(Vector3<Float> u, Vector3<Float> v) {
+  return Vector3<Float>{
+          u.y * v.z - u.z * v.y,
+          u.z * v.x - u.x * v.z,
+          u.x * v.y - u.y * v.x,
+  };
 }
 
-template <typename Vector>
-    typename Vector::Float angle(const Vector &v1, const Vector &v2) {
-    auto theta = dot(v1, v2) / v1.length() / v2.length();
-    return acos(theta);
-}
-
-template <size_t N, typename Float>
-Vector<N, Float> operator*(Float c, Vector<N, Float> v) {
-  Vector<N, Float> w{};
-  for (size_t i = 0; i < N; ++i) {
-    w[i] = c * v[i];
-  }
-  return w;
+template <typename Float>
+Vector3<Float> operator*(Float c, Vector3<Float> v) {
+    return Vector3<Float>{c * v.x, c * v.y, c * v.z};
 }
 
 template <size_t N, typename Real>
-std::ostream& operator<<(std::ostream& os, const Vector<N, Real>& v) {
+std::ostream& operator<<(std::ostream& os, const Vector3<Real>& v) {
   os << "[";
-  for (size_t i = 0; i < N - 1; ++i) {
-    os << v[i] << ",";
-  }
-  os << v[N - 1] << "]" << std::endl;
+  os << v.x << ", ";
+  os << v.y << ", ";
+  os << v.z << "]";
   return os;
 }
 

@@ -4,6 +4,7 @@ add_subdirectory(data)
 add_subdirectory(surface)
 add_subdirectory(maths)
 add_subdirectory(random)
+add_subdirectory(grid)
 
 file(GLOB_RECURSE PYTHON_FILES
   RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}

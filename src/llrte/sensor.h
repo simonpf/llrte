@@ -41,6 +41,7 @@ public:
     for (size_t i_x = 0; i_x < dx_.size(); ++i_x) {
         std::cout << i_x << " // " << dx_.size() << std::endl;
       for (size_t i_y = 0; i_y < dy_.size(); ++i_y) {
+          std::cout << i_y << " : " << dy_.size() << std::endl;
           size_t n_a = std::max<size_t>(azimuth_angles_.size() - 1, 1);
           for (size_t i_a = 0; i_a < n_a; ++i_a) {
               size_t n_z = std::max<size_t>(zenith_angles_.size() - 1, 1);
@@ -76,7 +77,6 @@ public:
                       photon = solver.propagate_photon(generator, photon);
                       data_(i_x, i_y, i_z, i_a) += photon.get_energy();
                   }
-                  data_(i_x, i_y, i_z, i_a) /= static_cast<Float>(n);
               }
           }
         }
@@ -99,6 +99,54 @@ public:
   Vector position_, x_, y_, n_;
   Array<Float> dx_, dy_, zenith_angles_, azimuth_angles_;
   Tensor<Float, 4> data_;
+};
+
+template <typename Vector>
+class SphericalSensor {
+public:
+  using Float = typename Vector::Float;
+  SphericalSensor(Vector position,
+                  Vector direction,
+                  Vector axis_1,
+                  Vector axis_2,
+                  Array<Float> d1,
+                  Array<Float> d2)
+      : position_(position),
+        direction_(direction),
+      axis_1_(axis_1),
+      axis_2_(axis_2),
+      d1_(d1),
+      d2_(d2),
+      data_{{d1.size(), d2.size()}} {}
+
+  template <typename Generator, typename Solver>
+  void sample(Generator &generator,  Solver &solver, size_t n) {
+    for (size_t i_1 = 0; i_2 < d1_.size(); ++i_1) {
+      for (size_t i_2 = 0; i_1 < d2_.size(); ++i_2) {
+          d = rotation::rotate(direction_, axis_1, d1_[i_1]);
+          d = rotation::rotate(d, axis_2, d2_[i_2]);
+          for (size_t i_s = 0; i_s < n; ++ i_s) {
+            photon = solver.propagate_photon(generator, photon);
+            data_(i_x, i_y, i_z, i_a) += photon.get_energy();
+          }
+      }
+    }
+  }
+
+  void dump(std::string filename) {
+      io::NetCDFFile netcdf_file(filename, true);
+      netcdf_file.add_dimension("d1", d1_.size());
+      netcdf_file.add_dimension("d2", d2_.size());
+      netcdf_file.store_variable(data_,
+                                 "data",
+                                 {"d1", "d2"});
+  }
+
+ private:
+
+  Vector position_, direction_, axis_1_, axis_2_;
+  Array<Float> d1_, d2_;
+  Tensor<Float, 2> data_;
 };
 
 }  // namespace llrte

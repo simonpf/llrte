@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Monte Carlo methods for radiative transfer
-==========================================
+##########################################
 
 This project is an exploration of Monte Carlo techniques applied
 to solve the radiative transfer equation (RTE).
@@ -85,10 +85,9 @@ The solutions to the specific solution exercises can be found below.
     ./exercise_4
     ./exercise_5
 
-Documentation
--------------
 
 .. toctree::
     :maxdepth: 1
+    :caption: Source code documentation
 
     ./cpp_api
