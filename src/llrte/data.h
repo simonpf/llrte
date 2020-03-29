@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "assert.h"
+#include "common.h"
 
 #include "llrte/utils/array.h"
 
@@ -11,33 +12,57 @@ namespace llrte {
 using utils::array::zip, utils::array::reduce, utils::array::index,
     utils::array::Multiply, utils::array::Add, utils::array::tail;
 
-//******************************************************************************
+////////////////////////////////////////////////////////////////////////////////
 // Array data
-//******************************************************************************
-/**
- * \brief Array data
+////////////////////////////////////////////////////////////////////////////////
+/** Data
  *
  * The Data class provides linear array-type storage for a given
  * data type. It should be used to store "heavy-weight" data.
- * A Data object owns the data it contains and will free all its
- * memory when destroyed.
+ * A Data object in own the data that it allocated itself during construction
+ * but can also be used as a view on existing data.
  *
  * \tparam T The type of the data to store.
  */
 template <typename T>
 class Data {
  public:
-  /** Create new array holding n elements. */
-  Data(size_t n) : data_(new T[n]), size_(n), owner_(true) {
-    }
-  Data(T* ptr, size_t n) : data_(ptr), size_(n), owner_(false) {
-    }
+  /** Create new array holding n elements.
+   *
+   * Create a new array and initializes data to 0. The created array
+   * will own the data it created and destroy it when it is destroyed.
+   *
+   * @param size Size of the array to create.
+   */
+  Data(size_t size) : data_(new T[size]), size_(size), owner_(true) {
+    fill(0.0);
+  }
 
+  /** Create array from existing data.
+   *
+   * When called with this constructor the array will not release memory
+   * when it goes out of scope.
+   *
+   * @param ptr Pointer to the existing array
+   * @param size Size of the array.
+   */
+  Data(T* ptr, size_t size) : data_(ptr), size_(size), owner_(false) {}
+
+  /** Copy constructor
+   *
+   * Performs a deep copy of the data of the other array.
+   * @param other The array to copy.
+   */
   Data(const Data& other)
       : data_(new T[other.size_]), size_(other.size_), owner_(true) {
     std::copy(other.data_, other.data_ + size_, data_);
   }
 
+  /**
+   * Take over memory from other array. No data is copied.
+   *
+   * @param other The array to take over.
+   */
   Data(Data&& other)
       : data_(other.data_), size_(other.size_), owner_(other.owner_) {
     other.data_ = nullptr;
@@ -45,14 +70,20 @@ class Data {
     other.size_ = 0;
   }
 
+  /**
+   * Performs a deep copy of the data.
+   * @param other The array to copy from.
+   */
   Data& operator=(const Data& other) {
-    if (data_ && owner_) delete[] data_;
-    data_ = new T[size_];
-    size_ = other.size_;
-    owner_ = true;
+    assert(other.size_ == size_);
     std::copy(other.data_, other.data_ + size_, data_);
+    return *this;
   }
 
+  /**
+   * Move over data from other array. No data is copied.
+   * @param other The array to move.
+   */
   Data& operator=(Data&& other) {
     if (data_ && owner_) delete[] data_;
     data_ = other.data_;
@@ -63,69 +94,108 @@ class Data {
     other.size_ = 0;
   }
 
-  void copy(const Data &other) {
-      std::copy(other.get_data_pointer(),
-                other.get_data_pointer(),
-                data_);
-  }
-
   /** Destroys array and frees memory. */
   ~Data() {
-      if (owner_ && data_) {
-          delete[] data_;
-          data_=nullptr;
-      }
+    if (owner_ && data_) {
+      delete[] data_;
+      data_ = nullptr;
+    }
   }
-  /** Access element i. */
-  const T& operator[](size_t i) const {return data_[i]; }
-  /** Access element i. */
-  T& operator[](size_t i) {return data_[i]; }
 
+  /** Access element i.*/
+  const T& operator[](size_t i) const { return data_[i]; }
+  /** Access element i. */
+  T& operator[](size_t i) { return data_[i]; }
   /** Get pointer to raw data.*/
   const T* get_data_pointer() const { return data_; }
+  /** Get pointer to raw data.*/
   T* get_data_pointer() { return data_; }
 
-
-////////////////////////////////////////////////////////////////////////////////
-// Basic operators
-////////////////////////////////////////////////////////////////////////////////
-
-  Data& operator*=(const T &t) {
-      for (size_t i = 0; i < size_; ++i) {
-          data_[i] *= t;
-      }
+  /** Scale numeric data in array. */
+  Data& operator*=(const T& t) {
+    for (size_t i = 0; i < size_; ++i) {
+      data_[i] *= t;
+    }
+    return *this;
   }
 
-  Data& operator+=(const T &t) {
+  /** Scale numeric data in array. */
+  Data& operator/=(const T& t) {
+      auto ti = 1.0 / t;
       for (size_t i = 0; i < size_; ++i) {
-          data_[i] += t;
+          data_[i] *= ti;
       }
+      return *this;
   }
 
-  Data& operator-=(const T &t) {
-      for (size_t i = 0; i < size_; ++i) {
-          data_[i] -= t;
-      }
+  /** In-place add to numeric data in array. */
+  Data& operator+=(const T& t) {
+    for (size_t i = 0; i < size_; ++i) {
+      data_[i] += t;
+    }
+    return *this;
   }
 
+  /** In-place subtract to numeric data in array. */
+  Data& operator-=(const T& t) {
+    for (size_t i = 0; i < size_; ++i) {
+      data_[i] -= t;
+    }
+    return *this;
+  }
+
+  /** Map function over data. */
   template <typename F>
-  void map(F f){
-      for (size_t i = 0; i < size_; ++i) {
-          data_[i] = f();
-      }
+  void map(F f) {
+    for (size_t i = 0; i < size_; ++i) {
+      data_[i] = f();
+    }
   }
+
+  /**
+   *Fill array with value
+   * @param t Value to fill array with.
+   */
+  void fill(T t) {
+    for (size_t i = 0; i < size_; ++i) {
+        data_[i] = t;
+    }
+  }
+
+  #ifdef __CUDA__
+  void device() {
+      if (device_data) {
+          cudaFree(reinterpret_cast<void*>(device_data_));
+      }
+      cudaMalloc(reinterpret_cast<void**>(&device_data_), size_ * sizeof(T));
+      cudaMemcpy(device_data_, data_, size_, cudaMemcpyHostToDevice);
+  }
+  #endif
+
+  #ifdef __CUDACC__
+  __device__ const T& operator[](size_t i) const { return data_[i]; }
+  __device__ T& operator[](size_t i) { return data_[i]; }
+  /** Scale numeric data in array. */
+  __device__ Data& operator*=(const T& t) {
+      for (size_t i = 0; i < size_; ++i) {
+          device_data_[i] *= t;
+      }
+      return *this;
+  }
+  #endif 
 
  private:
   T* data_;
+  T* device_data_ = nullptr;
   size_t size_;
   bool owner_;
 };
 
-//******************************************************************************
+////////////////////////////////////////////////////////////////////////////////
 // Tensors
-//******************************************************************************
+////////////////////////////////////////////////////////////////////////////////
 /**
- * \brief Multi-dimensional data
+ * Rank-k tensor.
  *
  * The Tensor class provides functionality for storing and manipulating
  * multidimensional, gridded data.
@@ -136,18 +206,40 @@ class Data {
 template <typename T, size_t rank>
 class Tensor {
  public:
+    /**
+     * Create a tensor with a given shape. When called with this constructor the
+     * tensor will allocate and take care of all required memory.
+     * @param shape Array with rank elements specifying the number of elements along
+     * each rank.
+     */
   Tensor(std::array<size_t, rank> shape)
-      : shape_{shape}, data_{reduce<Multiply>(shape)} {
-    // Nothing to do here.
-  }
+      : shape_{shape}, data_{reduce<Multiply>(shape)} {}
+
+    /**
+     * Create a tensor with a given shape from existing data.
+     * When created with this constructor the tensor does not take ownership
+     * of the data.
+     * @param ptr Pointer to the data holding the elements of the tensor.
+     * @param shape Array with rank elements specifying the number of elements along
+     * each rank.
+     */
   Tensor(T* ptr, std::array<size_t, rank> shape)
       : shape_{shape}, data_{ptr, reduce<Multiply>(shape)} {}
 
+    /** @return Array containing the shape of the tensor. */
   const std::array<size_t, rank>& shape() const { return shape_; }
 
+  /**
+   * Return element or sub-tensor. If the length of the provided index sequence
+   * is less than the rank of the tensor a sub-tensor view is returned. Other-
+   * wise a double is returned.
+   * @param Ts Sequence of indices of the elements to extract along each tank.
+   * @return Depending on length of input sequence, reference to element of
+   * view on sub-tensor.
+   */
   template <typename... Ts>
   auto operator()(Ts... indices)
-      -> std::conditional<sizeof...(indices) < rank,
+      -> typename std::conditional<sizeof...(indices) < rank,
                           Tensor<T, rank - sizeof...(indices)>, T&>::type {
     constexpr size_t n = sizeof...(indices);
     std::array<size_t, n> index_array{indices...};
@@ -159,40 +251,55 @@ class Tensor {
     }
   }
 
+  /**
+   * Return element from tensor
+   * @param Ts Sequence of indices of the elements to extract along each tank.
+   */
   template <typename... Ts>
   const T& operator()(Ts... indices) const {
     std::array<size_t, sizeof...(indices)> index_array{indices...};
     return data_[index(index_array, shape_)];
   }
 
+  /**
+   * Fill tensor.
+   * @param t Element to fill tensor with.
+   */
   void fill(const T& t) {
-    for (size_t i = 0; i < reduce<Multiply>(shape_); ++i) {
-      data_[i] = t;
-    }
+      data_.fill(t);
   }
 
-  void copy(const Tensor &other) {
-      data_.copy(other.get_data());
-  }
-
+  /**
+   * Return pointers to tensor data. Data is stored following C conventions,
+   * i.e. with the last rank being continuous in memory.
+   * @return Pointer to first element of tensor.
+   */
   const T* get_data_pointer() const { return data_.get_data_pointer(); }
   T* get_data_pointer() { return data_.get_data_pointer(); }
 
+  /**
+   * Return data as array.
+   * @return Data object holding the tensor data.
+   */
   const Data<T> & get_data() const {return data_;}
   Data<T> & get_data() {return data_;}
 
+  /** In-place scaling of tensor elements. */
   Tensor& operator*=(const T &t) {
       data_ *= t;
   }
 
+  /** In-place addition to tensor elements. */
   Tensor& operator+=(const T &t) {
       data_ += t;
   }
 
+  /** In-place subtraction from elements. */
   Tensor& operator-=(const T &t) {
       data_ -= t;
   }
 
+  /** Map function over elements. */
   template <typename F>
   void map(F f) {
       data_.template map(f);
@@ -232,6 +339,10 @@ class Tensor {
   Data<T> data_;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// Tensors
+////////////////////////////////////////////////////////////////////////////////
+
 template <typename FloatType>
 class Array : public Tensor<FloatType, 1> {
  public:
@@ -252,7 +363,6 @@ class Array : public Tensor<FloatType, 1> {
                             FloatType c = static_cast<FloatType>(0.0)) const {
     assert(dx.size() == size());
     Array result(size() + 1);
-    FloatType integral = c;
     result[0] = c;
     for (size_t i = 0; i < size(); ++i) {
         result[i + 1] = result[i] + this->operator[](i)* dx[i];
