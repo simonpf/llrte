@@ -17,7 +17,7 @@ TEMPLATE_TEST_CASE("Generator",
     #pragma omp parallel for
     for (size_t i = 0; i < 8; ++i) {
         for (size_t j = 0; j < n; ++j) {
-            data(i, j) = generator.sample_tau();
+            data(j, i) = generator.sample_tau();
         }
     }
 
@@ -29,10 +29,10 @@ TEMPLATE_TEST_CASE("Generator",
     file.add_dimension("y", 8);
     file.store_variable(data, "data", {"x", "y"});
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for (size_t i = 0; i < 8; ++i) {
         for (size_t j = 0; j < n; ++j) {
-            data(i, j) = generator.sample_angle_uniform();
+            data(j, i) = generator.sample_angle_uniform();
         }
     }
 
@@ -47,7 +47,7 @@ TEMPLATE_TEST_CASE("Generator",
 #pragma omp parallel for
     for (size_t i = 0; i < 8; ++i) {
         for (size_t j = 0; j < n; ++j) {
-            data(i, j) = generator.sample_zenith_angle();
+            data(j, i) = generator.sample_zenith_angle();
         }
     }
 

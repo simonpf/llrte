@@ -8,16 +8,16 @@ find_package(OpenMP)
 find_package(NetCDF)
 if (NetCDF_FOUND)
 
-  add_executable(test_random test_random.cxx)
-  target_link_libraries(test_random ${NetCDF_}"netcdf" "curl")
-  target_include_directories(test_random PUBLIC ${NetCDF_INCLUDE_DIRS})
-
   if (OpenMP_FOUND)
-  add_executable(random random.cxx)
-  target_link_libraries(random ${NetCDF_}"netcdf" "curl")
+  add_executable(test_random random.cxx)
+  target_link_libraries(test_random "netcdf" "curl")
   SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   endif (OpenMP_FOUND)
 
-  cuda_executable(random_cuda random.cu TRUE)
+  cuda_executable(
+    NAME test_random_cuda
+    FILE random.cu
+    INCLUDES ${NetCDF_INCLUDE_DIRS}
+    LIBRARIES -lnetcdf -lcurl)
 
 endif(NetCDF_FOUND)

@@ -36,13 +36,15 @@ class Generator {
   }
 
   ~Generator() {
+    #ifdef CUDA
     if (curand_state_) {
         delete curand_state_;
         curand_state_=nullptr;
     }
+    #endif
   }
 
-  /** Intialize random number generator.
+  /** Initialize random number generator.
    *
    * This needs to be called before any random number is generated.
    */
@@ -111,7 +113,7 @@ class Generator {
   __device__ void initialize() {
       curand_state_ = new curandState;
       int idx = threadIdx.x + blockIdx.x * blockDim.x;
-      CURAND_CALL(curand_init(seed_, idx, 0, curand_state_));
+      curand_init(seed_, idx, 0, curand_state_);
   }
   __device__ Float sample_uniform() {return curand_uniform(curand_state_);}
   #endif
@@ -120,7 +122,9 @@ class Generator {
   unsigned seed_;
   std::default_random_engine generator_{};
   std::uniform_real_distribution<Float> distribution_{0.0, 1.0};
+  #ifdef CUDA
   curandState_t *curand_state_ = nullptr;
+  #endif
 
 };
 

@@ -184,10 +184,9 @@ __device__ Data(const Data& other)
   }
   void device() {
       if (device_data_) {
-          cudaFree(reinterpret_cast<void*>(device_data_));
+          CUDA_CALL(cudaFree(reinterpret_cast<void*>(device_data_)));
+          CUDA_CALL(cudaDeviceSynchronize());
       }
-      int count;
-      cudaGetDeviceCount(&count);
       CUDA_CALL(cudaMalloc(&device_data_, size_ * sizeof(T)));
       CUDA_CALL(cudaMemcpy(device_data_,
                            data_,
@@ -196,18 +195,18 @@ __device__ Data(const Data& other)
   }
   void host() {
       if (device_data_) {
-          cudaMemcpy(data_,
-                     device_data_,
-                     size_ * sizeof(T),
-                     cudaMemcpyDeviceToHost);
+          CUDA_CALL(cudaMemcpy(data_,
+                               device_data_,
+                               size_ * sizeof(T),
+                               cudaMemcpyDeviceToHost));
       }
-      cudaDeviceSynchronize();
+      CUDA_CALL(cudaDeviceSynchronize());
   }
   #endif
 
 
-  T* data_;
-  T* device_data_;
+  T* data_ = nullptr;
+  T* device_data_ = nullptr;
   size_t size_;
   bool owner_;
 };
@@ -325,6 +324,11 @@ class Tensor {
   void map(F f) {
       data_.template map(f);
   }
+
+    #ifdef __CUDA__
+    void device() {data_.device();}
+    void host() {data_.host();}
+    #endif
 
   friend std::ostream& operator<<(std::ostream& os, const Tensor& tensor) {
     if (rank > 2) {
