@@ -9,7 +9,7 @@
 #include <llrte/photons.h>
 #include <llrte/tracers.h>
 #include <llrte/scattering.h>
-#include <llrte/solvers/monte_carlo.h>
+#include <llrte/solvers/forward.h>
 #include <llrte/types/vector.h>
 
 template<typename F>

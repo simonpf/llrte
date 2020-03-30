@@ -1,4 +1,4 @@
-#include <llrte/solvers/monte_carlo.h>
+#include <llrte/solvers/forward.h>
 #include <llrte/grids.h>
 #include <llrte/absorption.h>
 #include <llrte/atmosphere.h>

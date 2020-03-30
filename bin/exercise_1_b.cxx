@@ -6,7 +6,7 @@
 #include <llrte/sources.h>
 #include <llrte/photons.h>
 #include <llrte/scattering.h>
-#include <llrte/solvers/monte_carlo.h>
+#include <llrte/solvers/foward.h>
 #include <llrte/types/vector.h>
 #include <memory>
 
