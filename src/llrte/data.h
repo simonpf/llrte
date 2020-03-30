@@ -205,7 +205,6 @@ __device__ Data(const Data& other)
   #endif
 
 
- private:
   T* data_;
   T* device_data_;
   size_t size_;
