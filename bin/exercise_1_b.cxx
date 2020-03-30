@@ -6,7 +6,7 @@
 #include <llrte/sources.h>
 #include <llrte/photons.h>
 #include <llrte/scattering.h>
-#include <llrte/solvers/foward.h>
+#include <llrte/solvers/forward.h>
 #include <llrte/types/vector.h>
 #include <memory>
 

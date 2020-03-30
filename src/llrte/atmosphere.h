@@ -140,11 +140,9 @@ class Atmosphere {
    * @return Pair containing the length of the performed step
    * and the new position.
    */
-  template <typename Vector, typename GridPosition, typename Float>
-  std::pair<Float, GridPosition> get_intersection(GridPosition gp,
-                                                  const Vector &direction,
-                                                  Float step_length) {
-    return grid_.get_intersection(gp, direction, step_length);
+  template <typename Photon>
+  Float step(Photon photon, Float step_length) {
+      return grid_.step(photon, step_length);
   }
 
   template <typename GridPosition>
@@ -163,6 +161,12 @@ class Atmosphere {
   auto get_boundary() -> typename std::tuple_element<i, Boundaries>::type & {
     return std::get<i>(boundaries_);
   }
+
+ template <typename Vector>
+ auto place_on_grid(Vector position,
+                    Vector direction) {
+     return grid_.place_on_grid(position, direction);
+ }
 
  private:
   Grid grid_;

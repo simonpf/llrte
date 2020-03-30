@@ -69,7 +69,7 @@ Vector3<Float> operator*(Float c, Vector3<Float> v) {
     return Vector3<Float>{c * v.x, c * v.y, c * v.z};
 }
 
-template <size_t N, typename Real>
+template <typename Real>
 std::ostream& operator<<(std::ostream& os, const Vector3<Real>& v) {
   os << "[";
   os << v.x << ", ";

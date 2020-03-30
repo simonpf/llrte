@@ -55,6 +55,14 @@ struct NetCDFType<float> {
   }
 };
 
+template <>
+    struct NetCDFType<int> {
+    constexpr static int id = NC_INT;
+    static int put(int ncid, int varid, const float *ptr) {
+        return nc_put_var_float(ncid, varid, ptr);
+    }
+};
+
 enum class Mode {read = NC_SHARE, write = NC_WRITE};
 
 //*****************************************************************************

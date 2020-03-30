@@ -1,6 +1,6 @@
 add_subdirectory(source)
 
-#find_package(Sphinx)
+find_package(Sphinx)
 
 set(SPHINX_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/source)
 set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/build)

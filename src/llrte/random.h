@@ -71,6 +71,7 @@ class Generator {
    * @return A uniform sample from the range [-PI, +PI]
    */
   __DEV__ Float sample_angle_uniform() { return sample_uniform(-C::pi, C::pi);}
+  __DEV__ Float sample_uniform_angle() { return sample_uniform(-C::pi, C::pi);}
 
   /**
    * Sample zenith angle so that points are uniformly distributed on sphere.

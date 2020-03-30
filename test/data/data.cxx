@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
-#include "llrte/grids/regular.h"
-
 #include "catch.hpp"
+
+#include "llrte/grids/regular.h"
 #include "llrte/data.h"
 #include "llrte/maths.h"
 

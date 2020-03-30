@@ -4,21 +4,28 @@
 #include <math.h>
 
 #include <llrte/data.h>
-#include <llrte/maths/geometry.h>
+#include <llrte/geometry.h>
 #include <llrte/constants.h>
 #include <llrte/rotations.h>
 
 namespace llrte {
 
+/**
+ * The simplest scattering class: No scattering at all. This class basically
+ * does nothing, but implementing the interface to the Monte Carlo solver with
+ * NOOPs.
+ */
 template <typename F>
 class NoScattering {
  public:
+
   struct PhaseFunction {
     PhaseFunction() {}
     template <typename G, typename P>
     constexpr void scatter(G& /*g*/, const P& /*t*/) const {}
   };
 
+  /** I got 99 problems but scattering ain't one.*/
   NoScattering() {}
 
   template <typename... Ts>
@@ -69,7 +76,7 @@ class BidirectionalScattering {
   F fb_ratio_;
 };
 
-template <typename F, typename ScatteringPlane = maths::geometry::RandomPlane>
+template <typename F, typename ScatteringPlane = geometry::RandomPlane>
 class NumericPhaseFunction {
  public:
   NumericPhaseFunction(const Array<F> &sa,
@@ -106,7 +113,7 @@ class NumericPhaseFunction {
   const Array<F> &sa_;
 };
 
-template <typename F, typename ScatteringPlane = maths::geometry::RandomPlane>
+template <typename F, typename ScatteringPlane = geometry::RandomPlane>
 class RayleighScattering {
 public:
   using Float = F;
@@ -161,7 +168,7 @@ Float henyey_greenstein(Float g, Float theta) {
     return (static_cast<Float>(1.0) - g * g) / pow(1.0 +  g * g - g * cos(theta) * 2.0, 1.5);
 }
 
-template <typename F, typename ScatteringPlane = maths::geometry::RandomPlane>
+template <typename F, typename ScatteringPlane = geometry::RandomPlane>
 class HenyeyGreenstein {
 public:
   using Float = F;

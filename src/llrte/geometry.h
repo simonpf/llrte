@@ -4,7 +4,7 @@
 #include "llrte/configurations.h"
 #include "llrte/rotations.h"
 
-namespace llrte::maths::geometry {
+namespace llrte::geometry {
 
 template <typename Vector, size_t d>
 Vector unit_vector() {
@@ -93,7 +93,7 @@ struct FixedScatteringPlane {
   static Vector get_normal(Generator &g, const Vector &/*v*/) {
     using Float = typename Vector::Float;
     auto r = g.sample_uniform();
-    Vector d = maths::geometry::unit_vector<Vector, i>();
+    Vector d = geometry::unit_vector<Vector, i>();
     if (r > 0.5) {
       d = static_cast<Float>(-1.0) * d;
     }
@@ -104,7 +104,7 @@ struct FixedScatteringPlane {
 struct RandomPlane {
   template<typename Generator, typename Vector>
   static Vector get_normal(Generator &g, const Vector &d) {
-    auto n = maths::geometry::perpendicular(d);
+    auto n = geometry::perpendicular(d);
     auto phi = g.sample_angle_uniform();
     n = rotations::rotate(n, d, phi);
     return n;
@@ -112,6 +112,6 @@ struct RandomPlane {
 };
 
 
-}  // namespace llrte::maths::geometry
+}  // namespace llrte::geometry
 
 #endif

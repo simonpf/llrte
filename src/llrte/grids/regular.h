@@ -77,10 +77,12 @@ std::ostream &operator<<(std::ostream &os,
  * @tparam Index The integer type to use for indices.
  */
 template <
-    typename Float,
-    typename Index = short unsigned int>
+    typename F,
+    typename I = short unsigned int>
 class RegularGrid {
  public:
+ using Index = I;
+ using Float = F;
   /**
    * Create a regular grid given arrays containing the edges in x-, y-, and z-
    * direction.
@@ -95,8 +97,10 @@ class RegularGrid {
               const Array<Float> &z)
       : x_(x), y_(y), z_(z) {}
 
-  std::tuple<Index, Index, Index> get_extent() const {
-    return std::make_tuple(x_.size(), y_.size(), z_.size());
+ std::array<Index, 3> get_extent() const {
+     return std::array{static_cast<Index>(x_.size()),
+             static_cast<Index>(y_.size()),
+             static_cast<Index>(z_.size())};
   }
 
   /**
