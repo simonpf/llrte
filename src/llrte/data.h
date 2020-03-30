@@ -53,10 +53,9 @@ class Data {
    * Performs a deep copy of the data of the other array.
    * @param other The array to copy.
    */
-  Data(const Data& other)
-      : data_(new T[other.size_]), size_(other.size_), owner_(true) {
-    std::copy(other.data_, other.data_ + size_, data_);
-  }
+
+    Data(const Data& other)
+        : data_(other.data_), device_data_(other.device_data_), size_(other.size_), owner_(false) {}
 
   /**
    * Take over memory from other array. No data is copied.
@@ -80,6 +79,7 @@ class Data {
     return *this;
   }
 
+
   /**
    * Move over data from other array. No data is copied.
    * @param other The array to move.
@@ -100,6 +100,12 @@ class Data {
       delete[] data_;
       data_ = nullptr;
     }
+    #ifdef __CUDA__
+    if (owner_ && device_data_){
+        cudaFree(reinterpret_cast<void*>(device_data_));
+        device_data_=nullptr;
+    }
+    #endif
   }
 
   /** Access element i.*/
@@ -107,9 +113,12 @@ class Data {
   /** Access element i. */
   T& operator[](size_t i) { return data_[i]; }
   /** Get pointer to raw data.*/
+
   const T* get_data_pointer() const { return data_; }
   /** Get pointer to raw data.*/
   T* get_data_pointer() { return data_; }
+
+  size_t size() { return size_; }
 
   /** Scale numeric data in array. */
   Data& operator*=(const T& t) {
@@ -162,31 +171,43 @@ class Data {
     }
   }
 
+  #ifdef __CUDACC__
+  __device__ const T& operator[](size_t i) const { return device_data_[i]; }
+  __device__ T& operator[](size_t i) { return device_data_[i]; }
+  __device__ size_t size() { return size_; }
+  __device__ T* get_ptr() { return data_; }
+  #endif 
   #ifdef __CUDA__
+__device__ Data(const Data& other)
+    : data_(other.data_), device_data_(other.device_data_), size_(other.size_), owner_(false) {
+  }
   void device() {
-      if (device_data) {
+      if (device_data_) {
           cudaFree(reinterpret_cast<void*>(device_data_));
       }
-      cudaMalloc(reinterpret_cast<void**>(&device_data_), size_ * sizeof(T));
-      cudaMemcpy(device_data_, data_, size_, cudaMemcpyHostToDevice);
+      int count;
+      cudaGetDeviceCount(&count);
+      CUDAERROR(cudaMalloc(&device_data_, size_ * sizeof(T)));
+      CUDAERROR(cudaMemcpy(device_data_,
+                           data_,
+                           (int) size_ * sizeof(T),
+                           cudaMemcpyHostToDevice));
+  }
+  void host() {
+      if (device_data_) {
+          cudaMemcpy(data_,
+                     device_data_,
+                     size_ * sizeof(T),
+                     cudaMemcpyDeviceToHost);
+      }
+      cudaDeviceSynchronize();
   }
   #endif
 
-  #ifdef __CUDACC__
-  __device__ const T& operator[](size_t i) const { return data_[i]; }
-  __device__ T& operator[](size_t i) { return data_[i]; }
-  /** Scale numeric data in array. */
-  __device__ Data& operator*=(const T& t) {
-      for (size_t i = 0; i < size_; ++i) {
-          device_data_[i] *= t;
-      }
-      return *this;
-  }
-  #endif 
 
  private:
   T* data_;
-  T* device_data_ = nullptr;
+  T* device_data_;
   size_t size_;
   bool owner_;
 };

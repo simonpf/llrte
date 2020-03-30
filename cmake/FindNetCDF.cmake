@@ -24,7 +24,6 @@ if (NCCONFIG)
   set(NetCDF_LINKER_FLAGS ${_netcdf_link})
 
   find_library(NetCDF_LIBRARY netcdf PATHS ${_netcdf_lib})
-  message(WARNING "Netcdf: ${NetCDF_LIBRARY}")
 
   unset(_netcdf_lib)
   unset(_netcdf_include)
@@ -35,7 +34,6 @@ if (NCCONFIG)
   unset(_netcdf_version_patch)
   unset(_netcdf_version_note)
 
-  message(WARNING ${NetCDF_VERSION})
 endif (NCCONFIG)
 
 include(FindPackageHandleStandardArgs)

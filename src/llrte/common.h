@@ -4,6 +4,9 @@
 #ifdef __CUDA__
 #include <cuda_runtime_api.h>
 #include <cuda.h>
+
+#define CUDAERROR(X) if (X != cudaSuccess) { std::cout << "CUDA ERROR: " << cudaGetErrorString(X);}
+
 #endif
 
 #endif

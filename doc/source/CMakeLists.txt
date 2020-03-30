@@ -1,4 +1,3 @@
-cmake_minimum_required (VERSION 3.5)
 add_subdirectory(doxygen)
 
 set(DOXYGEN_XML_PATH ${CMAKE_CURRENT_BINARY_DIR}/../build/doxygen/xml)
