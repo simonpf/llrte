@@ -263,7 +263,7 @@ class NetCDFFile {
                    nc_inq_vardimid(ncid_, varid, dimids.data()));
 
       std::array<size_t, rank> shape;
-      for (size_t i = 0; i < ndims; ++i) {
+      for (size_t i = 0; i < static_cast<size_t>(ndims); ++i) {
           __NC_ERROR__("Error retrieving dimensions of variable.",
                        nc_inq_dim(ncid_, dimids[i], nullptr, shape.data() + i)) ;
       }

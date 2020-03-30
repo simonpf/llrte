@@ -21,8 +21,8 @@ TEMPLATE_TEST_CASE("Generator",
         }
     }
 
-    REQUIRE(data(0,0) != 0);
-    REQUIRE(data(0, 0) != data(0, 1));
+    REQUIRE(data(0u, 0u) != 0u);
+    REQUIRE(data(0u, 0u) != data(0u, 1u));
 
     llrte::io::NetCDFFile file("data_exp.nc", true);
     file.add_dimension("x", n);
@@ -36,8 +36,8 @@ TEMPLATE_TEST_CASE("Generator",
         }
     }
 
-    REQUIRE(data(0,0) != 0);
-    REQUIRE(data(0, 0) != data(0, 1));
+    REQUIRE(data(0u,0u) != 0);
+    REQUIRE(data(0u, 0u) != data(0u, 1u));
 
     file = llrte::io::NetCDFFile("data_phi.nc", true);
     file.add_dimension("x", n);
@@ -51,8 +51,8 @@ TEMPLATE_TEST_CASE("Generator",
         }
     }
 
-    REQUIRE(data(0,0) != 0);
-    REQUIRE(data(0, 0) != data(0, 1));
+    REQUIRE(data(0u, 0u) != 0);
+    REQUIRE(data(0u, 0u) != data(0u, 1u));
 
     file = llrte::io::NetCDFFile("data_theta.nc", true);
     file.add_dimension("x", n);

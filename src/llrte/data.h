@@ -5,6 +5,7 @@
 #include "assert.h"
 #include "common.h"
 
+#include "llrte/common.h"
 #include "llrte/utils/array.h"
 
 namespace llrte {
@@ -187,8 +188,8 @@ __device__ Data(const Data& other)
       }
       int count;
       cudaGetDeviceCount(&count);
-      CUDAERROR(cudaMalloc(&device_data_, size_ * sizeof(T)));
-      CUDAERROR(cudaMemcpy(device_data_,
+      CUDA_CALL(cudaMalloc(&device_data_, size_ * sizeof(T)));
+      CUDA_CALL(cudaMemcpy(device_data_,
                            data_,
                            (int) size_ * sizeof(T),
                            cudaMemcpyHostToDevice));
@@ -258,7 +259,7 @@ class Tensor {
    * view on sub-tensor.
    */
   template <typename... Ts>
-  auto operator()(Ts... indices)
+  __DEV__ auto operator()(Ts... indices)
       -> typename std::conditional<sizeof...(indices) < rank,
                           Tensor<T, rank - sizeof...(indices)>, T&>::type {
     constexpr size_t n = sizeof...(indices);
@@ -276,7 +277,7 @@ class Tensor {
    * @param Ts Sequence of indices of the elements to extract along each tank.
    */
   template <typename... Ts>
-  const T& operator()(Ts... indices) const {
+  __DEV__ const T& operator()(Ts... indices) const {
     std::array<size_t, sizeof...(indices)> index_array{indices...};
     return data_[index(index_array, shape_)];
   }

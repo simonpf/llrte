@@ -6,6 +6,7 @@
 #include "llrte/maths.h"
 #include "llrte/common.h"
 
+
 template<typename T>
 __global__ void scale_array(T t) {
     for (size_t i = 0; i < t.size(); ++i) {

@@ -35,6 +35,13 @@ class Generator {
       seed_ = std::chrono::microseconds(sec).count();
   }
 
+  ~Generator() {
+    if (curand_state_) {
+        delete curand_state_;
+        curand_state_=nullptr;
+    }
+  }
+
   /** Intialize random number generator.
    *
    * This needs to be called before any random number is generated.
@@ -92,7 +99,7 @@ class Generator {
    * @return Sample from exponential distribution with path length 1.
    */
   __DEV__ Float sample_tau() {
-      auto y = distribution_(generator_);
+      auto y = sample_uniform();
       return -log(y);
   }
 
@@ -101,28 +108,19 @@ class Generator {
   //
 
   #ifdef __CUDACC__
-  void initialize() {
+  __device__ void initialize() {
       curand_state_ = new curandState;
       int idx = threadIdx.x + blockIdx.x * blockDim.x;
-      CUDAERROR(curand_init(seed, idx, 0, curand_state_);)
-          }
-  __device__ Float sample_uniform() {return curand_uniform(curand_state_);}
-
-  __device__ ~Generator() {
-      if (curand_state_) {
-          delete curand_state_;
-          curand_state_=nullptr;
-      }
+      CURAND_CALL(curand_init(seed_, idx, 0, curand_state_));
   }
+  __device__ Float sample_uniform() {return curand_uniform(curand_state_);}
   #endif
 
  private:
   unsigned seed_;
   std::default_random_engine generator_{};
   std::uniform_real_distribution<Float> distribution_{0.0, 1.0};
-  #ifdef __CUDA__
-  curand_state_ = nullptr;
-  #endif
+  curandState_t *curand_state_ = nullptr;
 
 };
 

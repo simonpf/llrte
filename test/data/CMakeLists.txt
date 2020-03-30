@@ -6,4 +6,4 @@ add_executable(test_data test_data.cxx)
 add_executable(data data.cxx)
 
 # CUDA test
-cuda_executable(data_cuda data.cu)
+cuda_executable(data_cuda data.cu FALSE)

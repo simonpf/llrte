@@ -42,7 +42,7 @@ namespace llrte::utils::array {
     }
 
     template <typename T, size_t N1, size_t N2>
-    T index(const std::array<T, N1> &indices,
+    __DEV__ inline T index(const std::array<T, N1> &indices,
             const std::array<T, N2> &sizes) {
       auto index = static_cast<T>(0);
       for (size_t i = 0; i < N2; ++i) {
