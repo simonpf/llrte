@@ -52,10 +52,10 @@ void run_experiment(size_t n_grid_cells,
 }
 
 int main(int /*argc*/, const char **/***argv*/) {
-    run_experiment(10, 10000, "./results_1_a_1.bin");
-    run_experiment(100, 10000, "./results_1_a_2.bin");
-    run_experiment(1000, 10000, "./results_1_a_3.bin");
-    run_experiment(100, 100, "./results_1_a_4.bin");
-    run_experiment(100, 10000, "./results_1_a_5.bin");
-    run_experiment(100, 1000000, "./results_1_a_6.bin");
+    run_experiment(10, 10000, "./results_1_a_1.nc");
+    run_experiment(100, 10000, "./results_1_a_2.nc");
+    run_experiment(1000, 10000, "./results_1_a_3.nc");
+    run_experiment(100, 100, "./results_1_a_4.nc");
+    run_experiment(100, 10000, "./results_1_a_5.nc");
+    run_experiment(100, 1000000, "./results_1_a_6.nc");
 }

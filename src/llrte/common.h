@@ -9,9 +9,9 @@
 #include <curand_kernel.h>
 #include <iostream>
 
-//
-// Handle CUDA error.
-//
+////////////////////////////////////////////////////////////////////////////////
+// CUDA
+////////////////////////////////////////////////////////////////////////////////
 
 #define CUDA_CALL(x) print_cuda_error(x, __FILE__, __LINE__, false);
 inline void print_cuda_error(cudaError_t code,
@@ -41,6 +41,25 @@ inline void print_curand_error(int code,
 
 #define __DEV__
 #define __HOST__
+#define __global__
 
 #endif
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+// OpenMP
+////////////////////////////////////////////////////////////////////////////////
+
+#ifdef _OPENMP
+
+#define OPENMP_ATOMIC(x) \
+    #pragma omp atomic   \
+    x
+#define OPENMP_TID openmp_get_thread_num()
+
+#else
+
+#define OPENMP_ATOMIC(x) x
+#define OPENMP_TID 0
+
 #endif

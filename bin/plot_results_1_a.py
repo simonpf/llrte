@@ -2,13 +2,14 @@ import numpy as np
 import os
 import subprocess
 import scipy as sp
+import xarray
 from scipy.integrate import cumtrapz
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
-#
+################################################################################
 # 1a
-#
+################################################################################
 
 # Run MC
 print("Running Monte Carlo simulation for Exercise 1 a.")
@@ -21,7 +22,9 @@ plt.style.use(os.path.join(path, "..", "misc", "matplotlib_style.rc"))
 
 results = []
 for i in range(3):
-    results += [np.fromfile("results_1_a_{}.bin".format(i + 1), dtype = np.float32)]
+    data = xarray.open_dataset("results_1_a_{}.nc".format(i + 1))
+    results += [np.array(data.irradiance)]
+
 
 # Results of Beer-Lambert law
 x = np.linspace(0, 10e3, 1001)
@@ -37,10 +40,11 @@ handles += ax.plot(x[1:] / 1e3, np.exp(-tau), ls = "--", c = "k", label = "Beer-
 
 # Plot data
 n_photons = 10000
-for d, n in zip(results[::-1], [10, 100, 1000][::-1]):
-    x = np.linspace(0, 10e3, n + 1)[:-1]
+for d in results[::-1]:
+    n = d.shape[0]
+    x = np.linspace(0, 10e3, n - 1)[:-2]
     handles += [ax.scatter(x / 1e3,
-                           d / n_photons,
+                           d[2:-1, 1, 1] / n_photons,
                            label = r"$n_\text{{grid}}$ = {}".format(n),
                            marker = "x")]
 
@@ -58,13 +62,14 @@ filename = "results_1_a_1.png"
 print("Saving results to {}".format(filename))
 f.savefig(filename, bbox_inches = "tight", dpi = 300)
 
-#
+################################################################################
 # 1b
-#
+################################################################################
 
 results = []
 for i in range(3):
-    results += [np.fromfile("results_1_a_{}.bin".format(i + 4), dtype = np.float32)]
+    data = xarray.open_dataset("results_1_a_{}.nc".format(i + 4))
+    results += [np.array(data.irradiance)]
 
 # Results of Beer-Lambert law
 x = np.linspace(0, 10e3, 1001)
@@ -80,9 +85,9 @@ handles += ax.plot(x[1:] / 1e3, np.exp(-tau), ls = "--", c = "k", label = "Beer-
 
 # Plot data
 for d, n in zip(results, [100, 10000, 1000000]):
-    x = np.linspace(0, 10e3, 101)[:-1]
+    x = np.linspace(0, 10e3, 101)[:-2]
     handles += [ax.scatter(x / 1e3,
-                           d / n,
+                           d[2:-1, 1, 1] / n,
                            marker = "x",
                            label = r"$n_\text{{photons}}$ = {}".format(n))]
 

@@ -74,7 +74,7 @@ BeamSource(Vector position, Vector direction) : position_(position), direction_(
    * @param atmosphere The atmosphere into which to place the photon.
    */
   template<typename Generator, typename Atmosphere>
-      Photon sample_photon(Generator /*&generator*/,
+      __DEV__ Photon sample_photon(Generator /*&generator*/,
                            Atmosphere &atmosphere) {
       return Photon(atmosphere.place_on_grid(position_, direction_));
   }

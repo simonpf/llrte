@@ -20,7 +20,7 @@ struct tuple_size<std::tuple<>> {
 template <typename F, class Tuple, size_t i>
 struct MapImpl {
   template <typename... Args>
-  static void apply(F &f, Tuple &t, Args & ...args) {
+__DEV__  static void apply(F &f, Tuple &t, Args & ...args) {
     constexpr size_t ind =
         std::tuple_size<std::remove_reference_t<Tuple>>::value - i;
     auto& tt = std::get<ind>(t);
@@ -31,12 +31,12 @@ struct MapImpl {
 template <typename F, class Tuple>
 struct MapImpl<F, Tuple, 0> {
   template <typename... Args>
-  static void apply(F &, Tuple &, Args & ...) {}
+  __DEV__ static void apply(F &, Tuple &, Args & ...) {}
 };
 template <typename F, class Tuple, size_t i>
 struct LoopImpl {
   template <typename... Args>
-  static void apply(Tuple t, F f, Args... args) {
+  __DEV__ static void apply(Tuple t, F f, Args... args) {
     constexpr size_t ind = std::tuple_size<Tuple>::value - i;
     auto tt = std::get<ind>(t);
     F::apply(tt, f, i, args...);
@@ -46,13 +46,13 @@ struct LoopImpl {
 template <typename F, class Tuple>
 struct LoopImpl<F, Tuple, 0> {
   template <typename... Args>
-  static void apply(Tuple t, F f, Args...) {}
+  __DEV__ static void apply(Tuple t, F f, Args...) {}
 };
 
 }  // namespace detail
 
 template <typename F, typename Tuple, typename... Args>
-void map(F &f, Tuple &t, Args & ...args) {
+__DEV__ void map(F &f, Tuple &t, Args & ...args) {
   constexpr size_t tuple_size =
       detail::tuple_size<std::remove_reference_t<Tuple>>::value;
   detail::MapImpl<F, Tuple, tuple_size>::apply(f, t, args...);

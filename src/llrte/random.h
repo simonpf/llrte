@@ -35,7 +35,7 @@ class Generator {
       seed_ = std::chrono::microseconds(sec).count();
   }
 
-  ~Generator() {
+  __DEV__ ~Generator() {
     #ifdef CUDA
     if (curand_state_) {
         delete curand_state_;

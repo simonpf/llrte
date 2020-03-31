@@ -20,7 +20,7 @@ class NoScattering {
  public:
 
   struct PhaseFunction {
-    PhaseFunction() {}
+    __DEV__ PhaseFunction() {}
     template <typename G, typename P>
     constexpr void scatter(G& /*g*/, const P& /*t*/) const {}
   };
@@ -29,12 +29,12 @@ class NoScattering {
   NoScattering() {}
 
   template <typename... Ts>
-  constexpr F get_scattering_coefficient(Ts...) {
+  __DEV__ constexpr F get_scattering_coefficient(Ts && ...) {
     return 0.0;
   }
 
   template <typename... Ts>
-  constexpr PhaseFunction get_phase_function(Ts...) {
+  constexpr PhaseFunction get_phase_function(Ts && ...) {
     return PhaseFunction();
   }
 };

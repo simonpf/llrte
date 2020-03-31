@@ -64,8 +64,10 @@ class Data {
    * @param other The array to take over.
    */
   Data(Data&& other)
-      : data_(other.data_), size_(other.size_), owner_(other.owner_) {
+      : data_(other.data_), device_data_(other.device_data_),
+        size_(other.size_), owner_(other.owner_) {
     other.data_ = nullptr;
+    other.device_data_ = nullptr;
     other.owner_ = false;
     other.size_ = 0;
   }
@@ -75,7 +77,9 @@ class Data {
    * @param other The array to copy from.
    */
   Data& operator=(const Data& other) {
-    assert(other.size_ == size_);
+    if (data_ && owner_) delete[] data_;
+    size_ = other.size_;
+    data_ = new T[other.size_];
     std::copy(other.data_, other.data_ + size_, data_);
     return *this;
   }
@@ -88,11 +92,14 @@ class Data {
   Data& operator=(Data&& other) {
     if (data_ && owner_) delete[] data_;
     data_ = other.data_;
+    device_data_ = other.device_data_;
     size_ = other.size_;
     owner_ = other.owner_;
     other.data_ = nullptr;
+
     other.owner_ = false;
     other.size_ = 0;
+    return *this;
   }
 
   /** Destroys array and frees memory. */
@@ -103,6 +110,7 @@ class Data {
     }
     #ifdef __CUDA__
     if (owner_ && device_data_){
+        printf("Freeing device mem: %p" , device_data_);
         cudaFree(reinterpret_cast<void*>(device_data_));
         device_data_=nullptr;
     }
@@ -172,7 +180,12 @@ class Data {
     }
   }
 
+  void atomic_add(size_t i, T t) {
+      OPENMP_ATOMIC(data_[i] = data_[i] + t;)
+  }
+
   #ifdef __CUDACC__
+  __device__ void atomic_add(size_t i, T t) {atomicAdd(device_data_ + i, t);}
   __device__ const T& operator[](size_t i) const { return device_data_[i]; }
   __device__ T& operator[](size_t i) { return device_data_[i]; }
   __device__ size_t size() { return size_; }
@@ -248,6 +261,11 @@ class Tensor {
 
     /** @return Array containing the shape of the tensor. */
   const std::array<size_t, rank>& shape() const { return shape_; }
+
+  Tensor(const Tensor &) = default;
+  Tensor(Tensor &&) = default;
+  Tensor& operator =(const Tensor &) = default;
+  Tensor& operator =(Tensor &&) = default;
 
   /**
    * Return element or sub-tensor. If the length of the provided index sequence
@@ -325,6 +343,12 @@ class Tensor {
       data_.template map(f);
   }
 
+  template <typename... Ts>
+      __DEV__ void atomic_add(T t, Ts... indices) {
+      std::array<size_t, sizeof...(indices)> index_array{indices...};
+      data_.atomic_add(index(index_array, shape_), t);
+  }
+
     #ifdef __CUDA__
     void device() {data_.device();}
     void host() {data_.host();}
@@ -359,7 +383,7 @@ class Tensor {
     return os;
   }
 
- protected:
+ public:
   std::array<size_t, rank> shape_;
   Data<T> data_;
 };
@@ -381,8 +405,8 @@ class Array : public Tensor<FloatType, 1> {
   Array& operator=(const Array& other) = default;
   Array& operator=(Array&& other) = default;
 
-  FloatType& operator[](size_t i) { return this->operator()(i); }
-  FloatType operator[](size_t i) const { return this->operator()(i); }
+  __DEV__ FloatType& operator[](size_t i) { return this->operator()(i); }
+  __DEV__ FloatType operator[](size_t i) const { return this->operator()(i); }
 
   Array cumulative_integral(const Array dx,
                             FloatType c = static_cast<FloatType>(0.0)) const {
@@ -416,7 +440,7 @@ class Array : public Tensor<FloatType, 1> {
       return output;
   }
 
-  size_t size() const { return shape_[0]; }
+  __DEV__ size_t size() const { return shape_[0]; }
 
   static Array fill_linear(FloatType start, FloatType stop, size_t n_elements) {
     Array<FloatType> result{n_elements};

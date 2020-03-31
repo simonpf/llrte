@@ -6,6 +6,7 @@
 #include <memory>
 #include <utility>
 
+#include "llrte/common.h"
 #include "llrte/data.h"
 #include "llrte/maths.h"
 
@@ -115,7 +116,7 @@ class RegularGrid {
    * @param d The moving direction
    * @return The 1-based index of the intersected boundary.
    */
-  Index find_next_index(const Array<Float> &grid,
+  __DEV__ Index find_next_index(const Array<Float> &grid,
                         Float p,
                         Float d) {
     Index i = 0;
@@ -141,7 +142,7 @@ class RegularGrid {
    * @return GridPosition object representing the object on the grid.
    */
   template <typename Vector>
-  GridPosition<Vector, Index> place_on_grid(const Vector &position,
+  __DEV__ GridPosition<Vector, Index> place_on_grid(const Vector &position,
                                             const Vector &direction) {
     Index i = find_next_index(x_, position.x, direction.x);
     Index j = find_next_index(y_, position.y, direction.y);
@@ -174,10 +175,10 @@ class RegularGrid {
    * @return Distance to next intersection given as multiple of direction. -1
    * if particle is leaving the grid.
    */
-  Float next_plane(const Array<Float> &grid,
-                   Index index,
-                   Float position,
-                   Float direction) {
+  __DEV__ Float next_plane(const Array<Float> &grid,
+                           Index index,
+                           Float position,
+                           Float direction) {
     Float d = std::numeric_limits<Float>::max();
     if (!maths::small(direction)) {
       // We're on the left side of domain.
@@ -207,8 +208,8 @@ class RegularGrid {
   * leaving the grid.
   */
   template <typename Vector>
-  Float step(GridPosition<Vector> &gp,
-             Float step_length) {
+  __DEV__ Float step(GridPosition<Vector> &gp,
+                     Float step_length) {
     Vector &direction = gp.direction;
     Vector &position = gp.position;
     Float d = std::numeric_limits<Float>::max();
@@ -296,30 +297,43 @@ class RegularGrid {
   * @return Integer representation of the boundary through
   * which the particle left the grid.
   */
-  size_t get_boundary_index(GridPosition<Vector, Index> gp) const {
-    if (gp.x <= x_[0]) {
+  __DEV__ size_t get_boundary_index(GridPosition<Vector, Index> gp) const {
+    if (gp.x() <= x_[0]) {
       return 0;
     }
-    if (gp.x >= x_[shape_[0]]) {
+    if (gp.x() >= x_[x_.size()]) {
       return 1;
     }
-    if (gp.y <= y_[0]) {
+    if (gp.y() <= y_[0]) {
       return 2;
     }
-    if (gp.y >= y_[shape_[1]]) {
+    if (gp.y() >= y_[y_.size()]) {
       return 3;
     }
-    if (gp.z <= z_[0]) {
+    if (gp.z() <= z_[0]) {
       return 4;
     }
-    if (gp.z >= z_[shape_[2]]) {
+    if (gp.z() >= z_[z_.size()]) {
       return 5;
     }
     return 999;
   }
 
+#ifdef CUDA
+void device() {
+    x_.device();
+    y_.device();
+    z_.device();
+}
+void host() {
+    x_.host();
+    y_.host();
+    z_.host();
+}
+
+#endif
+
  private:
-  size_t shape_[3];
   Array<Float> x_;
   Array<Float> y_;
   Array<Float> z_;

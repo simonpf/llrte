@@ -15,7 +15,7 @@ function(CUDA_EXECUTABLE)
   list(APPEND CUDA_LIBRARIES "-lcudart")
 
   # Architectures
-  set(ARCHS "--cuda-gpu-arch=sm_60")
+  set(ARCHS "--cuda-gpu-arch=sm_61")
 
   set(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${CUDA_NAME}")
 

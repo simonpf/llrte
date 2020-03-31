@@ -22,15 +22,16 @@ public:
   using GridPosition = GP<V>;
   using Float = typename V::Float;
 
-Photon(GridPosition grid_position)
+__DEV__ Photon(GridPosition grid_position)
     : GridPosition(grid_position),
       n_scattered_(0),
       energy_(1.0) {
     // Nothing to do here.
   }
 
-  Photon & operator=(GridPosition gp) {
+  __DEV__ Photon & operator=(GridPosition gp) {
       GridPosition::operator=(gp);
+      return *this;
   }
 
   /**
@@ -40,7 +41,7 @@ Photon(GridPosition grid_position)
    * properties.
    */
   template <typename Generator, typename PhaseFunction>
-  void scatter(Generator& generator, const PhaseFunction& p) {
+  __DEV__ void scatter(Generator& generator, const PhaseFunction& p) {
     p.scatter(generator, *this);
     n_scattered_++;
   }
@@ -51,15 +52,15 @@ Photon(GridPosition grid_position)
   /** Return current photon energy.
    * @return The energy of the photon.
    **/
-  Float get_energy() const { return energy_; }
+  __DEV__ Float get_energy() const { return energy_; }
   /** Set photon energy.
    * @param e Energy to set photon energy to
    */
-  void set_energy(Float e) {if (!isfinite(e)) std::cout << *this; energy_ = e; }
+  void set_energy(Float e) {energy_ = e; }
   /** Scale the photon energy
    * @param f The scaling factor.
    **/
-  void scale_energy(Float f) { energy_ *= f; if (!isfinite(energy_)) std::cout << *this; }
+  __DEV__ void scale_energy(Float f) { energy_ *= f;}
 
  private:
   size_t n_scattered_ = 0;

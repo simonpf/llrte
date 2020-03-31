@@ -4,12 +4,22 @@ link_libraries(stdc++fs)
 
 find_package(NetCDF)
 if (NetCDF_FOUND)
+  #
+  # Exercise 1
+  #
   add_executable(exercise_1_a exercise_1_a.cxx)
   target_link_libraries(exercise_1_a "netcdf" "curl")
   target_include_directories(exercise_1_a PUBLIC ${NetCDF_INCLUDE_DIRS})
+  add_executable(exercise_1_b exercise_1_b.cxx)
+  target_link_libraries(exercise_1_b "netcdf" "curl")
+  target_include_directories(exercise_1_b PUBLIC ${NetCDF_INCLUDE_DIRS})
+  cuda_executable(
+    NAME exercise_1_a_cuda
+    FILE exercise_1_a.cu
+    INCLUDES ${NetCDF_INCLUDE_DIRS}
+    LIBRARIES -lnetcdf -lcurl)
 endif(NetCDF_FOUND)
 
-add_executable(exercise_1_b exercise_1_b.cxx)
 add_executable(exercise_2_a exercise_2_a.cxx)
 add_executable(exercise_2_b exercise_2_b.cxx)
 add_executable(exercise_2_c exercise_2_c.cxx)
@@ -24,6 +34,7 @@ add_executable(exercise_5_a exercise_5_a.cxx)
 add_executable(exercise_5_b exercise_5_b.cxx)
 
 configure_file(plot_results_1_a.py plot_results_1_a.py COPYONLY)
+configure_file(plot_results_1_a_cuda.py plot_results_1_a_cuda.py COPYONLY)
 configure_file(plot_results_1_b.py plot_results_1_b.py COPYONLY)
 configure_file(plot_results_2_a.py plot_results_2_a.py COPYONLY)
 configure_file(plot_results_2_b.py plot_results_2_b.py COPYONLY)

@@ -16,7 +16,7 @@ class NoAbsorption {
    * This is the interface function to the Monte Carlo solver.
    */
   template <typename... Ts>
-  constexpr Float get_absorption_coefficient(Ts...) {
+  __DEV__ constexpr Float get_absorption_coefficient(Ts &&...) {
     return 0.0;
   }
 };
@@ -41,7 +41,7 @@ class ConstantAbsorption {
   * Returns the constant absorption coefficient.
   */
   template <typename... Ts>
-  Float get_absorption_coefficient(Ts...) {
+  __DEV__ Float get_absorption_coefficient(Ts && ...) {
     return absorption_coefficient_;
   }
 

@@ -1,7 +1,8 @@
 #ifndef _LLRTE_ATMOSPHERE_H_
 #define _LLRTE_ATMOSPHERE_H_
 
-#include <llrte/utils/tuple.h>
+#include "llrte/common.h"
+#include "llrte/utils/tuple.h"
 
 namespace llrte {
 
@@ -62,7 +63,7 @@ class Atmosphere {
    * @return the absorption coefficient at gp
    */
   template <typename GridPosition>
-  Float get_absorption_coefficient(GridPosition gp) {
+  __DEV__ Float get_absorption_coefficient(GridPosition gp) {
     return absorption_model_.get_absorption_coefficient(grid_, gp);
   }
 
@@ -77,7 +78,7 @@ class Atmosphere {
    * @return the scatttering coefficient at gp
    */
   template <typename GridPosition>
-  Float get_scattering_coefficient(GridPosition gp) {
+  __DEV__ Float get_scattering_coefficient(GridPosition gp) {
     return scattering_model_.get_scattering_coefficient(grid_, gp);
   }
 
@@ -92,7 +93,7 @@ class Atmosphere {
    * @return the phase function at gp
    */
   template <typename GridPosition>
-  PhaseFunction get_phase_function(GridPosition gp) {
+  __DEV__ PhaseFunction get_phase_function(GridPosition gp) {
     return scattering_model_.get_phase_function(grid_, gp);
   }
 
@@ -107,7 +108,7 @@ class Atmosphere {
    * grid.
    */
   template <typename Vector>
-  auto get_grid_position(Vector &position) {
+  __DEV__ auto get_grid_position(Vector &position) {
     return grid_.get_grid_position(position);
   }
 
@@ -120,7 +121,7 @@ class Atmosphere {
    * in the grid.
    */
   template <typename GridPosition>
-  auto is_inside(GridPosition position) {
+  __DEV__ auto is_inside(GridPosition position) {
     return grid_.is_inside(position);
   }
 
@@ -141,32 +142,41 @@ class Atmosphere {
    * and the new position.
    */
   template <typename Photon>
-  Float step(Photon photon, Float step_length) {
+  __DEV__ Float step(Photon &photon, Float step_length) {
       return grid_.step(photon, step_length);
   }
 
   template <typename GridPosition>
-  size_t get_boundary_index(GridPosition gp) {
+  __DEV__ size_t get_boundary_index(GridPosition gp) const {
     return grid_.get_boundary_index(gp);
   }
 
   template <typename Generator, typename Photon>
-  bool apply_boundaries(Generator &g, Photon &p) {
+  __DEV__ bool apply_boundaries(Generator &g, Photon &p) {
     detail::BoundaryApplier ba{};
     tuple::map(ba, boundaries_, g, p);
     return ba.hit;
   }
 
   template <size_t i>
-  auto get_boundary() -> typename std::tuple_element<i, Boundaries>::type & {
+  __DEV__ auto get_boundary() -> typename std::tuple_element<i, Boundaries>::type & {
     return std::get<i>(boundaries_);
   }
 
  template <typename Vector>
- auto place_on_grid(Vector position,
-                    Vector direction) {
+ __DEV__ auto place_on_grid(Vector position,
+                            Vector direction) {
      return grid_.place_on_grid(position, direction);
  }
+
+ #ifdef CUDA
+ void device() {
+     grid_.device();
+ }
+ void host() {
+     grid_.host();
+ }
+ #endif
 
  private:
   Grid grid_;

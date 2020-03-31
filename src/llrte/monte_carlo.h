@@ -1,5 +1,5 @@
-#ifndef _LLRTE_SOLVERS_MONTE_CARLO_H_
-#define _LLRTE_SOLVERS_MONTE_CARLO_H_
+#ifndef _LLRTE_MONTE_CARLO_H_
+#define _LLRTE_MONTE_CARLO_H_
 
 #include <fstream>
 #include <iostream>
@@ -10,9 +10,24 @@
 #include <llrte/constants.h>
 #include <llrte/random.h>
 #include <llrte/tracers.h>
+#include <llrte/common.h>
 #include <math.h>
 
 namespace llrte {
+
+#ifdef CUDA
+namespace gpu {
+template<typename Solver, typename Source>
+    __global__ void run_monte_carlo(Solver solver,
+                                    Source source,
+                                    size_t n) {
+    solver.generator_.initialize();
+    for (size_t i = 0; i < n; ++i) {
+        solver.forward(source);
+    }
+}
+}
+#endif
 
 /** MonteCarlo
  *
@@ -57,7 +72,7 @@ class MonteCarlo {
   * @tparam Photon The photon type used.
   */
  template <typename Photon>
-  Photon propagate_photon(Photon photon) {
+  __DEV__ Photon propagate_photon(Photon photon) {
 
 
     auto tau = generator_.sample_tau();
@@ -72,7 +87,7 @@ class MonteCarlo {
 
       // Check if left atmosphere.
       if (d <= -1.0) {
-        tracer_.left_atmosphere(photon);
+        tracer_.left_atmosphere(photon, atmosphere_);
         break;
       }
 
@@ -113,11 +128,24 @@ class MonteCarlo {
   * @tparam Source The Source type.
   */
  template<typename Source>
- void forward(Source &source) {
+__DEV__ void forward(Source &source) {
     auto photon = source.sample_photon(generator_, atmosphere_);
     tracer_.created(photon);
     propagate_photon(photon);
   }
+
+#ifdef CUDA
+ template<size_t N, typename Source>
+ void forward_gpu(Source &source,
+                  size_t n) {
+     tracer_.device();
+     atmosphere_.device();
+     gpu::run_monte_carlo<<<1, N>>>(*this, source, n);
+     CUDA_CALL(cudaDeviceSynchronize());
+     tracer_.host();
+ }
+#endif
+
  /**
   * Run backward solver for single photon.
   *
@@ -142,7 +170,7 @@ class MonteCarlo {
      return photon;
  }
 
- private:
+ public:
 
   Atmosphere atmosphere_;
   Tracer tracer_;
