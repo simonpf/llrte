@@ -4,7 +4,7 @@
 #include "utils.h"
 
 int main(int /*args*/, const char **/*argv*/) {
-  using V3 = llrte::Vector<3, float>;
+  using V3 = llrte::Vector3<float>;
 
   auto surface_base = V3{};
   surface_base[0] = 1.0;

@@ -53,7 +53,7 @@ class MonteCarlo {
 
  MonteCarlo(Atmosphere atmosphere,
             Generator generator = Generator{},
-            Tracer tracer = Tracer{})
+            Tracer && tracer = Tracer{})
  : atmosphere_(atmosphere), tracer_(tracer), generator_(generator) {
      // Nothing to do here.
   }
@@ -84,6 +84,7 @@ class MonteCarlo {
       auto l = tau / scattering_xc;
       auto d = atmosphere_.step(photon, l);
       tau -= d * scattering_xc;
+
 
       // Check if left atmosphere.
       if (d <= -1.0) {
@@ -160,15 +161,19 @@ __DEV__ void forward(Source &source) {
  template<typename Photon,
           typename Vector,
           typename Source>
- void backward(Vector position,
+ Photon backward(Vector position,
                Vector direction,
                Source &source) {
      Photon photon(atmosphere_.place_on_grid(position, direction));
      tracer_.created(photon);
-     photon = propagate_photon(generator_, photon);
-     photon.scale_energy(source.get_energy(photon));
+     photon = propagate_photon(photon);
+     photon.scale_energy(source.get_intensity(photon));
      return photon;
  }
+
+ Atmosphere & atmosphere() {return atmosphere_;}
+ Generator & generator () {return generator_;}
+ Tracer & tracer () {return tracer_;}
 
  public:
 

@@ -45,6 +45,31 @@ struct GridPosition {
   /*! 1-based index for next grid boundary in z direction. */
   Index k;
 
+  void change_direction(Vector d) {
+      if ((d.x * direction.x) < 0) {
+          if (d.x < 0.0) {
+              --i;
+          } else if (d.x > 0.0) {
+              ++i;
+          }
+      }
+      if ((d.y * direction.y) < 0) {
+          if (d.y < 0.0) {
+              --j;
+          } else if (d.y > 0.0) {
+              ++j;
+          }
+      }
+      if ((d.z * direction.z) < 0) {
+          if (d.z < 0.0) {
+              --k;
+          } else if (d.z > 0.0) {
+              ++k;
+          }
+      }
+      direction = d;
+  }
+
   /*! x coordinate of current position*/
   Float &x() { return position.x; }
   /*! y coordinate of current position*/
@@ -210,6 +235,9 @@ class RegularGrid {
   template <typename Vector>
   __DEV__ Float step(GridPosition<Vector> &gp,
                      Float step_length) {
+
+      std::cout << "in" << std::endl;
+      std::cout << gp << std::endl;
     Vector &direction = gp.direction;
     Vector &position = gp.position;
     Float d = std::numeric_limits<Float>::max();
@@ -236,9 +264,11 @@ class RegularGrid {
       d = dz;
     }
 
+
     Float dl = direction.length();
     Float l = d * dl;
 
+    std::cout << "di: " << di << " / " << d << " / " << l << std::endl;
     // Compute new position.
     if (l > step_length) {
       l = step_length;
@@ -288,6 +318,7 @@ class RegularGrid {
       if (maths::small(position.z - z_[gp.k - 1]) && (gp.k <= z_.size()))
         ++gp.k;
     }
+    std::cout << gp << std::endl;
     return l;
   }
 

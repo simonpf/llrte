@@ -4,6 +4,8 @@
 #include <array>
 #include <iostream>
 
+#include "llrte/common.h"
+
 namespace llrte::utils::array {
 
     struct Multiply {

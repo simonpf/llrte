@@ -180,6 +180,18 @@ class Data {
     }
   }
 
+  /**
+   *Fill array with value
+   * @param t Value to fill array with.
+   */
+  T sum() {
+      T t = static_cast<T>(0.0);
+      for (size_t i = 0; i < size_; ++i) {
+          t += data_[i];
+      }
+      return t;
+  }
+
   void atomic_add(size_t i, T t) {
       OPENMP_ATOMIC(data_[i] = data_[i] + t;)
   }
@@ -341,6 +353,10 @@ class Tensor {
   template <typename F>
   void map(F f) {
       data_.template map(f);
+  }
+
+  T sum() {
+      return data_.sum();
   }
 
   template <typename... Ts>

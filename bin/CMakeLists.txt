@@ -1,6 +1,5 @@
 include_directories("${PROJECT_SOURCE_DIR}/src/")
 link_libraries(stdc++fs)
-#add_executable(test_module compile_module.cxx)
 
 find_package(NetCDF)
 if (NetCDF_FOUND)
@@ -18,11 +17,17 @@ if (NetCDF_FOUND)
     FILE exercise_1_a.cu
     INCLUDES ${NetCDF_INCLUDE_DIRS}
     LIBRARIES -lnetcdf -lcurl)
+  #
+  # Exercise 2
+  #
+  add_executable(exercise_2_a exercise_2_a.cxx)
+  target_link_libraries(exercise_2_a "netcdf" "curl")
+  add_executable(exercise_2_b exercise_2_b.cxx)
+  target_link_libraries(exercise_2_b "netcdf" "curl")
+  add_executable(exercise_2_c exercise_2_c.cxx)
+  target_link_libraries(exercise_2_c "netcdf" "curl")
 endif(NetCDF_FOUND)
 
-add_executable(exercise_2_a exercise_2_a.cxx)
-add_executable(exercise_2_b exercise_2_b.cxx)
-add_executable(exercise_2_c exercise_2_c.cxx)
 add_executable(exercise_3_a exercise_3_a.cxx)
 add_executable(exercise_3_b_1 exercise_3_b_1.cxx)
 add_executable(exercise_3_b_2 exercise_3_b_2.cxx)

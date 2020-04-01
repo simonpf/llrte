@@ -11,7 +11,8 @@ import xarray
 ################################################################################
 
 data = xarray.open_dataset("exercise_5_3d.nc")
+x = np.array(data.x)
+y = np.array(data.y)
 data = np.array(data.data[:, :, 0, 0])
-x = np.linspace(-10, 10, data.shape[0] + 1)
-y = np.linspace(-10, 10, data.shape[0] + 1)
 plt.pcolormesh(x, y, data)
+plt.show()

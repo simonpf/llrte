@@ -4,39 +4,24 @@
 #include "utils.h"
 
 int main(int /*args*/, const char **/*argv*/) {
-  using V3 = llrte::Vector<3, float>;
+    using Float = float;
+  using V3 = llrte::Vector3<float>;
 
-  auto surface_base = V3{};
-  surface_base[0] = 1.0;
-  surface_base[1] = 0.0;
-  surface_base[2] = 0.0;
+  size_t n = 1;
+  auto surface_base = V3{1.0, 0.0, 0.0};
+  auto surface_normal = V3{-1.0, -1.0, 0.0};
 
-  auto surface_normal = V3{};
-  surface_normal[0] = -1.0;
-  surface_normal[1] = -1.0;
-  surface_normal[2] = 0.0;
-
-  using Surface =
-      llrte::surfaces::ReflectingPlane<V3, llrte::surfaces::Specular>;
+  using Tracer = llrte::tracers::PhotonTracer<Float>;
+  using Surface = llrte::surfaces::ReflectingPlane<V3, llrte::surfaces::Lambertian<>>;
   auto surface = std::make_tuple(Surface(surface_base, surface_normal, 0.5));
-  auto test_setup = make_test_atmosphere(surface);
-  auto atmosphere = std::get<0>(test_setup);
+
+  Tracer tracer{n};
+  auto test_setup = make_test_atmosphere(surface, tracer);
+  auto solver = std::get<0>(test_setup);
   auto source = std::get<1>(test_setup);
 
-
-  using Tracer = llrte::PhotonTracer<typename decltype(source)::Photon>;
-  using Solver = llrte::ForwardSolver<decltype(atmosphere) &,
-                                         decltype(source) &,
-                                         Tracer>;
-  Solver solver(atmosphere, source);
-  solver.sample_photon();
-  auto &boundary = atmosphere.get_boundary<0>();
-
-  std::cout << Tracer::get_photons()[0] << std::endl;
-
-  if (boundary.get_absorbed_energy() == 1.0) {
-    return 0;
-  } else {
-    return 1;
+  for (size_t i = 0; i < n; ++i) {
+      solver.forward(source);
   }
+  solver.tracer().save("surface_lambertian.nc");
 }

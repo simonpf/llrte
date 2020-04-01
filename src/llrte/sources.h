@@ -230,7 +230,7 @@ class PlanarSource {
    * @param p The outgoing photon.
    */
   Float get_intensity(const Photon &p) {
-    if (angle(p.get_direction(), normal_) < dtheta_) {
+      if (geometry::angle(p.direction, normal_) < dtheta_) {
       return 1.0 / domega_;
     } else {
       return 0.0;

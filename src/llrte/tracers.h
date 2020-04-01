@@ -23,8 +23,8 @@ struct NoTrace {
    * Photon creation. This function is called when a photon is created.
    * @param Reference to the photon
    */
-  template <typename Photon, typename Float>
-  __DEV__ void created(const Photon & /*photon*/, Float /*energy*/) {}
+  template <typename Photon>
+  __DEV__ void created(const Photon & /*photon*/) {}
   /**
    * Trace absorption. This method is called for every step of the MC algorithm
    * and can be used to trace photon position as well as absorbed energy.
@@ -149,7 +149,7 @@ class AbsorptionTracer : public NoTrace {
     absorbed_energy_ = std::move(Tensor<Float, 3>{extent});
     scattered_energy_ = std::move(Tensor<Float, 3>{extent});
 
-    leaving_photons_ = std::move(Array<int>(6));
+    leaving_photons_ = std::move(Array<Float>(6));
     scattering_frequencies_ = std::move(Array<int>(11));
   }
 
@@ -177,6 +177,9 @@ class AbsorptionTracer : public NoTrace {
   template <typename Photon>
   void scattering(const Photon &photon) {
     scattered_energy_(i_, j_, k_) += photon.get_energy();
+    i_ = photon.i;
+    j_ = photon.j;
+    k_ = photon.k;
   }
 
   /**
@@ -201,7 +204,7 @@ class AbsorptionTracer : public NoTrace {
   template <typename Photon, typename Atmosphere>
   __DEV__ void left_atmosphere(const Photon &photon, const Atmosphere &atmosphere) {
     auto i = atmosphere.get_boundary_index(photon);
-    ++leaving_photons_[i];
+    leaving_photons_[i] += photon.get_energy();
   }
 
   void save(std::string filename) {
@@ -242,7 +245,7 @@ class AbsorptionTracer : public NoTrace {
     Tensor<Float, 3> absorbed_energy_{{1, 1, 1}};
     Tensor<Float, 3> scattered_energy_{{1, 1, 1}};
     Array<int> scattering_frequencies_{1};
-    Array<int> leaving_photons_{1};
+    Array<Float> leaving_photons_{1};
   };
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -250,24 +253,79 @@ class AbsorptionTracer : public NoTrace {
   ////////////////////////////////////////////////////////////////////////////////
 
   /** Photon Tracer
-   * Stores all leaving photons in a vector.
+   * Stores positions and direction of all photons that enter or leave the
+   * domain.
    */
-  template <typename Photon>
+  template<typename Float>
   class PhotonTracer : public NoTrace {
-   public:
-    void out_of_energy(const Photon &photon) { photons_.push_back(photon); }
 
-    template <typename Atmosphere>
-    __DEV__ void left_atmosphere(const Photon &photon,
-                                 const Atmosphere /*&atmosphere*/) {
-      photons_.push_back(photon);
+   public:
+
+  /** Create PhotonTracer for given number of photons
+   *@param n: The number of photons
+   */
+    PhotonTracer(size_t n)
+        : n_(n),
+          i_(0),
+          incoming_positions_{{n, 3}},
+          incoming_directions_{{n, 3}},
+          outgoing_positions_{{n, 3}},
+              outgoing_directions_{{n, 3}} {}
+
+    template <typename Photon>
+    void created(const Photon &photon) {
+      incoming_positions_(i_, 0) = photon.position.x;
+      incoming_positions_(i_, 1) = photon.position.y;
+      incoming_positions_(i_, 2) = photon.position.z;
+      incoming_directions_(i_, 0) = photon.direction.x;
+      incoming_directions_(i_, 1) = photon.direction.y;
+      incoming_directions_(i_, 2) = photon.direction.z;
     }
 
-    static std::vector<Photon> &get_photons() { return photons_; }
+    template <typename Photon>
+    void out_of_energy(const Photon &photon) {
+      outgoing_positions_(i_, 0) = photon.position.x;
+      outgoing_positions_(i_, 1) = photon.position.y;
+      outgoing_positions_(i_, 2) = photon.position.z;
+      outgoing_directions_(i_, 0) = photon.direction.x;
+      outgoing_directions_(i_, 1) = photon.direction.y;
+      outgoing_directions_(i_, 2) = photon.direction.z;
+      i_ = (i_ + 1) % n_;
+    }
+
+    template <typename Photon, typename Atmosphere>
+    void left_atmosphere(const Photon &photon,
+                         const Atmosphere &) {
+      outgoing_positions_(i_, 0) = photon.position.x;
+      outgoing_positions_(i_, 1) = photon.position.y;
+      outgoing_positions_(i_, 2) = photon.position.z;
+      outgoing_directions_(i_, 0) = photon.direction.x;
+      outgoing_directions_(i_, 1) = photon.direction.y;
+      outgoing_directions_(i_, 2) = photon.direction.z;
+      i_ = (i_ + 1) % n_;
+    }
+
+    void save(std::string filename) {
+      llrte::io::NetCDFFile file(filename, true);
+      file.add_dimension("photons", n_);
+      file.add_dimension("coordinates", 3);
+      file.store_variable(incoming_positions_, "incoming_positions",
+                          {"photons", "coordinates"});
+      file.store_variable(incoming_directions_, "incoming_directions",
+                          {"photons", "coordinates"});
+      file.store_variable(outgoing_positions_, "outgoing_positions",
+                          {"photons", "coordinates"});
+      file.store_variable(outgoing_directions_, "outgoing_directions",
+                          {"photons", "coordinates"});
+    }
 
    private:
-    static std::vector<Photon> photons_;
+    size_t n_, i_;
+    Tensor<Float, 2> incoming_positions_;
+    Tensor<Float, 2> incoming_directions_;
+    Tensor<Float, 2> outgoing_positions_;
+    Tensor<Float, 2> outgoing_directions_;
   };
 
-}  // namespace llrte::tracers
+  }  // namespace llrte::tracers
 #endif

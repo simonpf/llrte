@@ -39,6 +39,15 @@ class NoScattering {
   }
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// Bi-directional scattering
+////////////////////////////////////////////////////////////////////////////////
+
+/** Bidirectional scattering
+ *
+ * This class provides scattering in only the forward or backward
+ * direcitons.
+ */
 template <typename F>
 class BidirectionalScattering {
  public:
@@ -48,24 +57,37 @@ class BidirectionalScattering {
     template <typename G, typename P>
     void scatter(G& g, P& p) const {
       auto x = g.sample_uniform();
-      auto d = p.get_direction();
+      auto d = p.direction;
       if (x > fb_ratio) {
-        p.set_direction(static_cast<Float>(-1.0) * d);
+          p.change_direction(static_cast<Float>(-1.0) * d);
       }
     }
     Float fb_ratio;
   };
 
-  BidirectionalScattering(Float scattering_coefficient, Float fb_ratio)
+  /**
+   * Create bi-directional scattering model with given scattering cross-section
+   * and foward-to-backward scattering ratio.
+   * @param scattering_coefficient The scattering cross-section
+   * @param fb_ratio The forward-to-backscattering ratio
+   */
+  BidirectionalScattering(Float scattering_coefficient,
+                          Float fb_ratio)
       : scattering_coefficient_(scattering_coefficient), fb_ratio_(fb_ratio) {
     // Nothing to do here.
   }
 
+  /**
+   * Monte Calor interface.
+   */
   template <typename... Ts>
   constexpr F get_scattering_coefficient(Ts...) {
     return scattering_coefficient_;
   }
 
+  /**
+   * Monte Calor interface.
+   */
   template <typename... Ts>
   constexpr PhaseFunction get_phase_function(Ts...) {
     return PhaseFunction{fb_ratio_};
@@ -101,11 +123,11 @@ class NumericPhaseFunction {
     auto sa = sa_[i];
 
     // Determine normal to scattering plane.
-    auto d = p.get_direction();
+    auto d = p.direction;
     auto n = ScatteringPlane::get_normal(g, d);
     auto nd = rotations::rotate(d, n, sa);
 
-    p.set_direction(nd);
+    p.change_direction(nd);
   }
 
   private:

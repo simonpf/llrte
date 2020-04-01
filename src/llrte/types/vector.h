@@ -57,6 +57,15 @@ struct Vector3 {
     }
 
     /**
+     * Multiply two vectors
+     * @param other The vector to multiply with this
+     * @return Vector representing the product of the two.
+     */
+    __DEV__ Vector3 operator*(Float c) const {
+        return Vector3{x * c, y * c, z * c};
+    }
+
+    /**
      * Subtract vector
      * @param other The vector to subtract
      * @return Vector representing the difference.
@@ -86,7 +95,7 @@ struct Vector3 {
      * Norm vector
      * @return Vector pointing in same direction but with unit length.
      */
-  __DEV__ Vector3 normed() const { return (*this) * (1.0 / length()); }
+  __DEV__ Vector3 normed() const { return (*this) * (static_cast<Float>(1.0) / length()); }
 
 };
 

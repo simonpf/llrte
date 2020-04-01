@@ -9,10 +9,14 @@
 
 namespace llrte {
 
-template <typename Vector>
+template <
+    typename Photon
+    >
 class SensorArray {
 public:
-  using Float = typename Vector::Float;
+
+    using Vector = typename Photon::Vector;
+    using Float = typename Vector::Float;
   SensorArray(Vector position,
               Vector x,
               Vector y,
@@ -36,12 +40,17 @@ public:
       data_.fill(0.0);
   }
 
-  template <typename Generator, typename Solver>
-  void sample(Generator &generator,  Solver &solver, size_t n) {
+  template <
+      typename Solver,
+      typename Source
+      >
+  void sample(Solver &solver,
+              Source &source,
+              size_t n) {
+    auto generator = solver.generator();
     for (size_t i_x = 0; i_x < dx_.size(); ++i_x) {
         std::cout << i_x << " // " << dx_.size() << std::endl;
-      for (size_t i_y = 0; i_y < dy_.size(); ++i_y) {
-          std::cout << i_y << " : " << dy_.size() << std::endl;
+        for (size_t i_y = 0; i_y < dy_.size(); ++i_y) {
           size_t n_a = std::max<size_t>(azimuth_angles_.size() - 1, 1);
           for (size_t i_a = 0; i_a < n_a; ++i_a) {
               size_t n_z = std::max<size_t>(zenith_angles_.size() - 1, 1);
@@ -51,7 +60,7 @@ public:
 
                       if (azimuth_angles_.size() > 1) {
                           phi = generator.sample_uniform(azimuth_angles_[i_a],
-                                                         azimuth_angles_[i_a + 1]);
+                                                                  azimuth_angles_[i_a + 1]);
                           if (zenith_angles_.size() > 1) {
                               theta = generator.sample_zenith_angle(zenith_angles_[i_z],
                                                                     zenith_angles_[i_z + 1]);
@@ -73,8 +82,7 @@ public:
                       auto d = rotations::rotate(n_, y, theta);
                       auto p = position_ + dx_[i_x] * x_ + dy_[i_y] * y_;
 
-                      Photon<Vector> photon{p, d};
-                      photon = solver.propagate_photon(generator, photon);
+                      Photon photon = solver.template backward<Photon>(p, d, source);
                       data_(i_x, i_y, i_z, i_a) += photon.get_energy();
                   }
               }
@@ -119,15 +127,21 @@ public:
       d2_(d2),
       data_{{d1.size(), d2.size()}} {}
 
-  template <typename Generator, typename Solver>
-  void sample(Generator &generator,  Solver &solver, size_t n) {
-    for (size_t i_1 = 0; i_2 < d1_.size(); ++i_1) {
-      for (size_t i_2 = 0; i_1 < d2_.size(); ++i_2) {
-          d = rotation::rotate(direction_, axis_1, d1_[i_1]);
-          d = rotation::rotate(d, axis_2, d2_[i_2]);
+      template <
+          typename Solver,
+          typename Source
+          >
+          void sample(Solver &solver,
+                      Source &source,
+                      size_t n) {
+              auto generator = solver.generator();
+    for (size_t i_1 = 0; i_1 < d1_.size(); ++i_1) {
+      for (size_t i_2 = 0; i_2 < d2_.size(); ++i_2) {
+          auto d = rotations::rotate(direction_, axis_1_, d1_[i_1]);
+          d = rotations::rotate(d, axis_2_, d2_[i_2]);
           for (size_t i_s = 0; i_s < n; ++ i_s) {
-            photon = solver.propagate_photon(generator, photon);
-            data_(i_x, i_y, i_z, i_a) += photon.get_energy();
+            Photon photon = solver.template backward<Photon>(position_, d, source);
+            data_(i_1, i_2, i_s) += photon.get_energy();
           }
       }
     }

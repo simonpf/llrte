@@ -3,65 +3,89 @@
 
 #include <iostream>
 
+#include "llrte/common.h"
 #include "llrte/configurations.h"
 #include "llrte/constants.h"
-#include "llrte/maths/geometry.h"
+#include "llrte/geometry.h"
 #include "llrte/rotations.h"
 #include "llrte/tracers.h"
 
 namespace llrte::surfaces {
 
-template <typename Vector>
-class Plane {
- protected:
-  Plane(const Vector &base, const Vector &normal)
-      : base_(base), normal_(normal.normed()) {
-    // Nothing to do here.
-  }
+/**ReflectingPlane
+ *
+ * Provides a base class for reflecting planes. A reflecting plane reflects a
+ * photon in a given direction and may absorb parts of its energy.
+ *
+ * The Reflecting surface keeps track of the total energy it absorbs.
+ *
+ * @tparam Vector The vector type used to represent the position of the plane.
+ * @tparam Type Type trait defining the reflection type.
+ */
+template <typename Vector, typename Type>
+    class ReflectingPlane : public geometry::Plane<Vector> {
+public:
+    using Float = typename Vector::Float;
+    using geometry::Plane<Vector>::has_crossed;
+    using geometry::Plane<Vector>::normal_;
+    using geometry::Plane<Vector>::base_;
 
- public:
-  template <typename Photon>
-  bool has_crossed(const Photon &p) {
-    using Float = typename Photon::Float;
-    auto dir = p.get_direction();
-    if (dot(dir, normal_) > 0.0) {
-      return false;
+    /**
+     * Determine whether a photon has crossed the surface.
+     */
+    template <typename Photon>
+        bool has_crossed(const Photon &photon) {
+        std::cout << "has crossed " << photon << std::endl;
+        return has_crossed(photon.position, photon.direction);
     }
-    Vector dv = p.get_position() - base_;
-    return dot(dv, normal_) <= Limits<Float>::eps;
-  }
 
- protected:
-  Vector base_;
-  Vector normal_;
+    /**
+    * Create reflecting plane with a given albedo.
+    * @param base Base vector describing the position of any one point in the plane
+    * @param normal The normal vector describing the direction of the plane
+    * @param albedo The fraction of incoming radiative energy that is reflected.
+    */
+    ReflectingPlane(const Vector &base,
+                    const Vector &normal,
+                    Float albedo)
+        : geometry::Plane<Vector>(base, normal), absorbed_energy_(0.0), albedo_(albedo) {
+            // Nothing to do here.
+        }
+
+    /**
+     * Apply reflection to photon.
+     * @param generator Random number generator to use.
+     * @param photon The photon being reflected.
+     */
+    template <typename Generator, typename Photon>
+        void apply(Generator &generator, Photon &photon) {
+        auto e = photon.get_energy();
+        absorbed_energy_ += (1.0 - albedo_) * e;
+        photon.set_energy(albedo_ * e);
+
+        auto d = Type::get_outgoing_direction(generator, photon.direction, normal_);
+        photon.change_direction(d);
+    }
+
+    /** Get total energy absorbed by surface.
+     * @return The absorbed energy.
+     */
+    Float get_absorbed_energy() const {return absorbed_energy_; }
+
+private:
+    Float absorbed_energy_ = 0.0;
+    Float albedo_ = 0.0;
 };
 
-template <typename Vector>
-class BlackPlane : public Plane<Vector> {
- public:
-  using Float = typename Vector::Float;
-  BlackPlane(const Vector &base, const Vector &normal)
-      : Plane<Vector>(base, normal) {
-    // Nothing to do here.
-  }
-
-  template <typename Generator, typename Photon>
-  void apply(Generator & /*g*/, Photon &p) {
-    absorbed_energy_ += p.get_energy();
-    p.set_energy(0.0);
-  }
-
-  Float get_absorbed_energy() const { return absorbed_energy_; }
-
- private:
-  Float absorbed_energy_ = 0.0;
-};
-
+/**
+ * Type trait representing specular reflection.
+ */
 struct Specular {
   template <typename Generator, typename Vector>
   static Vector get_outgoing_direction(Generator & /*g*/,
                                        const Vector &d,
                                        const Vector &n) {
+      std::cout << "dumb " << std::endl;
     using Float = typename Vector::Float;
     auto ns = n * dot(n, d);
     auto dn = n * dot(n, d) - d;
@@ -69,21 +93,31 @@ struct Specular {
   }
 };
 
+/**
+ * Reflection in the backwards direction.
+ */
 struct BackwardsDirection {
   template <typename Generator, typename Vector>
   static Vector get_outgoing_direction(Generator & /*g*/,
                                        const Vector &d,
                                        const Vector & /*n*/) {
+      std::cout << "wtf" << std::endl;
     using Float = typename Vector::Float;
     return static_cast<Float>(-1.0) * d;
   }
 };
 
-template <typename ReflectionPlane = maths::geometry::RandomPlane>
+/**
+ * Type trait representing lambertian reflection.
+ * @tparam ReflectionPlane Type trait defining the plane in which reflection will
+ * take place.
+ */
+template <typename ReflectionPlane = geometry::RandomPlane>
 struct Lambertian {
   template <typename Generator, typename Vector>
   static Vector get_outgoing_direction(Generator &g, const Vector & /*d*/,
                                        const Vector &n) {
+      std::cout << "lamb" << std::endl;
     using Float = typename Vector::Float;
     auto ns = ReflectionPlane::get_normal(g, n);
     auto phi = g.sample_angle_uniform() - Constants<Float>::pi / 2.0;
@@ -92,35 +126,6 @@ struct Lambertian {
   }
 };
 
-template <typename Vector, typename Type>
-class ReflectingPlane : public Plane<Vector> {
- public:
-  using Float = typename Vector::Float;
-  using Plane<Vector>::normal_;
-  using Plane<Vector>::base_;
-
-  ReflectingPlane(const Vector &base, const Vector &normal, Float albedo)
-      : Plane<Vector>(base, normal), absorbed_energy_(0.0), albedo_(albedo) {
-    // Nothing to do here.
-  }
-
-  template <typename Generator, typename Photon>
-  void apply(Generator &g, Photon &p) {
-    auto e = p.get_energy();
-    absorbed_energy_ += (1.0 - albedo_) * e;
-    p.set_energy(albedo_ * e);
-
-    auto d = Type::get_outgoing_direction(g, p.get_direction(), normal_);
-
-    p.set_direction(d);
-  }
-
-  Float get_absorbed_energy() const { return absorbed_energy_; }
-
- private:
-  Float absorbed_energy_ = 0.0;
-  Float albedo_ = 0.0;
-};
 
 template <typename Vector>
 class PeriodicBoundary {
@@ -138,7 +143,7 @@ class PeriodicBoundary {
 
   template <typename Photon>
   bool has_crossed(const Photon &p) {
-    auto pos = p.get_position();
+    auto pos = p.position;
     if (dot(pos - base_1_, normal_) <= 0.0) {
       return true;
     }
@@ -151,16 +156,14 @@ class PeriodicBoundary {
   template <typename Generator, typename Photon>
   void apply(Generator & /*g*/, Photon &p) {
     using Float = typename Photon::Float;
-    auto position = p.get_position();
+    auto position = p.position;
     decltype(position) db{};
     if (dot(position - base_1_, normal_) <= 0.0) {
       db = base_2_ - base_1_;
     } else if (dot(position - base_2_, normal_) >= 0.0) {
       db = base_1_ - base_2_;
     }
-    p.set_position(position +
-                   static_cast<Float>((1.0 - 1e-6) / normal_.length()) *
-                       dot(normal_, db) * normal_);
+    p.position = position + static_cast<Float>((1.0 - 1e-6) / normal_.length()) * dot(normal_, db) * normal_;
   }
 
  private:

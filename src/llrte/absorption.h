@@ -1,6 +1,8 @@
 #ifndef _LLRTE_ABSORPTION_H_
 #define _LLRTE_ABSORPTION_H_
 
+#include "llrte/common.h"
+
 namespace llrte {
 
 /**

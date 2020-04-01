@@ -32,9 +32,9 @@ namespace llrte::rotations {
     auto v = Vector{};
     auto ct = cos(theta);
     auto st = sin(theta);
-    v[0] = ct * u[0] + st * u[2];
-    v[1] = u[1];
-    v[2] = -st * u[0] + ct * u[2];
+    v.x = ct * u.x + st * u.z;
+    v.y = u.y;
+    v.z = -st * u.x + ct * u.z;
     return v;
   }
 
@@ -56,17 +56,17 @@ namespace llrte::rotations {
     auto st = sin(theta);
     Matrix r{};
 
-    r(0, 0) = ct + v[0] * v[0] * (1.0 - ct);
-    r(0, 1) = v[0] * v[1] * (1.0 - ct) - v[2] * st;
-    r(0, 2) = v[0] * v[2] * (1.0 - ct) + v[1] * st;
+    r(0, 0) = ct + v.x * v.x * (1.0 - ct);
+    r(0, 1) = v.x * v.y * (1.0 - ct) - v.z * st;
+    r(0, 2) = v.x * v.z * (1.0 - ct) + v.y * st;
 
-    r(1, 0) = v[1] * v[2] * (1.0 - ct) + v[2] * st;
-    r(1, 1) = ct + v[1] * v[1] * (1.0 - ct);
-    r(1, 2) = v[1] * v[2] * (1.0 - ct) - v[0] * st;
+    r(1, 0) = v.y * v.z * (1.0 - ct) + v.z * st;
+    r(1, 1) = ct + v.y * v.y * (1.0 - ct);
+    r(1, 2) = v.y * v.z * (1.0 - ct) - v.x * st;
 
-    r(2, 0) = v[2] * v[1] * (1 - ct) - v[1] * st;
-    r(2, 1) = v[2] * v[1] * (1 - ct) + v[0] * st;
-    r(2, 2) = ct + v[2] * v[2] * (1 - ct);
+    r(2, 0) = v.z * v.y * (1 - ct) - v.y * st;
+    r(2, 1) = v.z * v.y * (1 - ct) + v.x * st;
+    r(2, 2) = ct + v.z * v.z * (1 - ct);
 
     return r;
   }
@@ -84,9 +84,9 @@ namespace llrte::rotations {
     auto v = Vector{};
     auto ct = cos(theta);
     auto st = sin(theta);
-    v[0] = ct * u[0] - st * u[1];
-    v[1] = st * u[0] + ct * u[1];
-    v[2] = u[2];
+    v.x = ct * u.x - st * u.y;
+    v.y = st * u.x + ct * u.y;
+    v.z = u.z;
     return v;
   }
 

@@ -89,20 +89,18 @@ class Matrix {
     return c;
   }
 
-  template <template <size_t, typename> typename Vector>
-  Vector<N, F> operator*(const Vector<N, F>& b) const {
-    Vector<N, F> v{};
-    for (size_t i = 0; i < M; ++i) {
-      for (size_t j = 0; j < N; ++j) {
-        v[i] += (*this)(i, j) * b[j];
-      }
-    }
-    return v;
-  }
 
  private:
   Float elements_[M * N];
 };
+
+template <typename F,
+    template <typename> typename Vector>
+Vector<F> operator*(const Matrix<3, 3, F> mat, const Vector<F>& b) {
+    return Vector<F>{mat(0, 0) * b.x + mat(0, 1) * b.y + mat(0, 2) * b.z,
+                     mat(1, 0) * b.x + mat(1, 1) * b.y + mat(1, 2) * b.z,
+                     mat(2, 0) * b.x + mat(2, 1) * b.y + mat(2, 2) * b.z};
+}
 
 template <size_t M, size_t N, typename Float>
 Matrix<M, N, Float> operator*(Float c, const Matrix<M, N, Float>& a) {

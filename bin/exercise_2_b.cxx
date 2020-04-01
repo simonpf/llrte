@@ -6,26 +6,9 @@
 #include <llrte/sources.h>
 #include <llrte/photons.h>
 #include <llrte/scattering.h>
-#include <llrte/solvers/forward.h>
+#include <llrte/monte_carlo.h>
 #include <llrte/types/vector.h>
 #include <memory>
-
-template<typename F>
-std::shared_ptr<F[]> make_linear_vector(F start,
-                                        F stop,
-                                        size_t steps) {
-
-
-    std::shared_ptr<F[]> v{new F[steps]};
-
-    F d = (stop - start) / (steps - 1);
-    F x = start;
-    for (size_t i = 0; i < steps;  ++i) {
-        v[i] = x;
-        x = x + d;
-    }
-    return v;
-}
 
 template <typename Float>
 class HeterogeneousAbsorption {
@@ -43,7 +26,7 @@ public:
 
     template <typename Grid, typename Position>
     Float get_absorption_coefficient(Grid /*grid*/, Position position) {
-        if (position.x() < boundary_) {
+        if (position.x < boundary_) {
             return abs_1_;
         } else {
             return abs_2_;
@@ -81,7 +64,7 @@ public:
 
     template <typename Grid, typename Position>
     Float get_scattering_coefficient(Grid /*grid*/, Position position) {
-        if (position.x() < boundary_) {
+        if (position.x < boundary_) {
             return sigma_s_1_;
         } else {
             return sigma_s_2_;
@@ -90,7 +73,7 @@ public:
 
     template <typename Grid, typename Position>
     PhaseFunction get_phase_function(Grid /*grid*/, Position position) {
-        if (position.x() < boundary_) {
+        if (position.x < boundary_) {
             return PhaseFunction{fb_ratio_1_};
         } else {
             return PhaseFunction{fb_ratio_2_};
@@ -109,29 +92,22 @@ int main(int /*argc*/, const char **/***argv*/) {
 
     size_t n_grid_cells = 100;
     size_t n_photons = 10000;
-    std::string filename{"results_2_b.bin"};
+    std::string filename{"results_2_b.nc"};
 
     using Float = float;
-    using V3 = llrte::Vector<3, Float>;
+    using V3 = llrte::Vector3<Float>;
     using Grid = llrte::RegularGrid<Float>;
     using AbsorptionModel = HeterogeneousAbsorption<Float>;
     using ScatteringModel = HeterogeneousScattering<Float>;
     using Atmosphere = llrte::Atmosphere<Grid, AbsorptionModel, ScatteringModel>;
-    using Tracer = llrte::AbsorptionTracer<Grid>;
-    using Photon = llrte::Photon<V3>;
+    using Tracer = llrte::tracers::AbsorptionTracer<Grid>;
+    using Photon = llrte::Photon<V3, llrte::GridPosition>;
     using Source = llrte::BeamSource<Photon>;
-    using Solver = llrte::ForwardSolver<Atmosphere, Source, Tracer>;
+    using Generator = llrte::Generator<Float>;
+    using Solver = llrte::MonteCarlo<Atmosphere, Generator, Tracer>;
 
-    auto source_position = V3{};
-    source_position[0] = 0.0;
-    source_position[1] = 0.0;
-    source_position[2] = 0.0;
-
-    auto source_direction = V3{};
-    source_direction[0] = 1.0;
-    source_direction[1] = 0.0;
-    source_direction[2] = 0.0;
-
+    auto source_position = V3{0.0, 0.0, 0.0};
+    auto source_direction = V3{1.0, 0.0, 0.0};
     auto source = Source(source_position, source_direction);
 
     Float start = 0.0e3;
@@ -145,11 +121,13 @@ int main(int /*argc*/, const char **/***argv*/) {
     auto scattering_model = HeterogeneousScattering<Float>(0.8e-4, 0.8e-4, 0.8, 0.2, 5e3);
     auto atmosphere = Atmosphere{grid, absorption_model, scattering_model};
 
-    auto solver = Solver(atmosphere, source);
+    Tracer tracer{grid};
+    Generator generator{};
+    auto solver = Solver(atmosphere, generator, tracer);
 
-    Tracer::initialize(grid);
+    solver.initialize();
     for (size_t i = 0; i < n_photons; i++) {
-        solver.sample_photon();
+        solver.forward(source);
     }
-    Tracer::dump(filename);
+    tracer.save(filename);
 }
