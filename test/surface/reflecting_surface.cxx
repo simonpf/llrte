@@ -3,26 +3,55 @@
 
 #include "utils.h"
 
-int main(int /*args*/, const char **/*argv*/) {
+void lambertian() {
     using Float = float;
-  using V3 = llrte::Vector3<float>;
+    using V3 = llrte::Vector3<float>;
 
-  size_t n = 10000;
-  auto surface_base = V3{1.0, 0.0, 0.0};
-  auto surface_normal = V3{-1.0, 0.0, 0.0};
+    size_t n = 10000;
+    auto surface_base = V3{1.0, 0.0, 0.0};
+    auto surface_normal = V3{-1.0, 0.0, 0.0};
 
-  using ScatteringPlane = llrte::geometry::FixedScatteringPlane<2>;
-  using Tracer = llrte::tracers::PhotonTracer<Float>;
-  using Surface = llrte::surfaces::ReflectingPlane<V3, llrte::surfaces::Lambertian<>>;
-  auto surface = std::make_tuple(Surface(surface_base, surface_normal, 0.5));
+    using ScatteringPlane = llrte::geometry::FixedScatteringPlane<2>;
+    using Tracer = llrte::tracers::PhotonTracer<Float>;
+    using Surface = llrte::surfaces::ReflectingPlane<V3, llrte::surfaces::Lambertian<>>;
+    auto surface = std::make_tuple(Surface(surface_base, surface_normal, 0.5));
 
-  Tracer tracer{n};
-  auto test_setup = make_test_atmosphere(surface, tracer);
-  auto solver = std::get<0>(test_setup);
-  auto source = std::get<1>(test_setup);
+    Tracer tracer{n};
+    auto test_setup = make_test_atmosphere(surface, tracer);
+    auto solver = std::get<0>(test_setup);
+    auto source = std::get<1>(test_setup);
 
-  for (size_t i = 0; i < n; ++i) {
-      solver.forward(source);
-  }
-  solver.tracer().save("surface_lambertian.nc");
+    for (size_t i = 0; i < n; ++i) {
+        solver.forward(source);
+    }
+    solver.tracer().save("surface_lambertian.nc");
+}
+
+void specular() {
+    using Float = float;
+    using V3 = llrte::Vector3<float>;
+
+    size_t n = 10000;
+    auto surface_base = V3{1.0, 0.0, 0.0};
+    auto surface_normal = V3{-1.0, -1.0, 0.0};
+
+    using ScatteringPlane = llrte::geometry::FixedScatteringPlane<2>;
+    using Tracer = llrte::tracers::PhotonTracer<Float>;
+    using Surface = llrte::surfaces::ReflectingPlane<V3, llrte::surfaces::Specular>;
+    auto surface = std::make_tuple(Surface(surface_base, surface_normal, 0.5));
+
+    Tracer tracer{n};
+    auto test_setup = make_test_atmosphere(surface, tracer);
+    auto solver = std::get<0>(test_setup);
+    auto source = std::get<1>(test_setup);
+
+    for (size_t i = 0; i < n; ++i) {
+        solver.forward(source);
+    }
+    solver.tracer().save("surface_specular.nc");
+}
+
+int main(int /*args*/, const char **/*argv*/) {
+    lambertian();
+    specular();
 }
