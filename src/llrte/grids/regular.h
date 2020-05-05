@@ -118,10 +118,10 @@ class RegularGrid {
    * @param z Array holding cell boundaries along the z-dimension
    *
    */
-  RegularGrid(const Array<Float> &x,
-              const Array<Float> &y,
-              const Array<Float> &z)
-      : x_(x), y_(y), z_(z) {}
+  RegularGrid(Array<Float> &&x,
+              Array<Float> &&y,
+              Array<Float> &&z)
+ : x_(x), y_(y), z_(z) {}
 
  std::array<Index, 3> get_extent() const {
      return std::array{static_cast<Index>(x_.size()),
@@ -236,8 +236,6 @@ class RegularGrid {
   __DEV__ Float step(GridPosition<Vector> &gp,
                      Float step_length) {
 
-      std::cout << "in" << std::endl;
-      std::cout << gp << std::endl;
     Vector &direction = gp.direction;
     Vector &position = gp.position;
     Float d = std::numeric_limits<Float>::max();
@@ -264,11 +262,9 @@ class RegularGrid {
       d = dz;
     }
 
-
     Float dl = direction.length();
     Float l = d * dl;
 
-    std::cout << "di: " << di << " / " << d << " / " << l << std::endl;
     // Compute new position.
     if (l > step_length) {
       l = step_length;
@@ -318,7 +314,6 @@ class RegularGrid {
       if (maths::small(position.z - z_[gp.k - 1]) && (gp.k <= z_.size()))
         ++gp.k;
     }
-    std::cout << gp << std::endl;
     return l;
   }
 

@@ -18,15 +18,15 @@ namespace llrte::geometry {
  */
 template <typename Vector, size_t d>
 Vector unit_vector() {
-    if (d == 0) {
-            return Vector{1.0, 0.0, 0.0};
-        }
-    if (d == 1) {
-            return Vector{1.0, 0.0, 0.0};
-        }
-    if (d == 2) {
-            return Vector{1.0, 0.0, 0.0};
-        }
+  if (d == 0) {
+    return Vector{1.0, 0.0, 0.0};
+  }
+  if (d == 1) {
+    return Vector{0.0, 1.0, 0.0};
+  }
+  if (d == 2) {
+    return Vector{0.0, 0.0, 1.0};
+  }
 }
 
 /**
@@ -64,7 +64,7 @@ Vector perpendicular(const Vector &v) {
   } else {
     l = sqrt(vy * vy + vz * vz);
     w.y = vz / l;
-    w.z = - vy / l;
+    w.z = -vy / l;
   }
   return w;
 }
@@ -75,9 +75,9 @@ Vector perpendicular(const Vector &v) {
  * @param v2 The other vector
  */
 template <typename Vector>
-    typename Vector::Float angle(const Vector &v1, const Vector &v2) {
-    auto theta = dot(v1, v2) / v1.length() / v2.length();
-    return acos(theta);
+typename Vector::Float angle(const Vector &v1, const Vector &v2) {
+  auto theta = dot(v1, v2) / v1.length() / v2.length();
+  return acos(theta);
 }
 
 /**
@@ -87,7 +87,6 @@ template <typename Vector>
  */
 template <typename Matrix, typename Vector>
 Matrix orthonormal_basis(const Vector &v) {
-
   Matrix b{};
 
   auto l = v.length();
@@ -101,9 +100,9 @@ Matrix orthonormal_basis(const Vector &v) {
   if (abs(vz) > abs(vmax)) vmax = vz;
 
   if (vmax < 0.0) {
-      vx *= -1.0;
-      vy *= -1.0;
-      vz *= -1.0;
+    vx *= -1.0;
+    vy *= -1.0;
+    vz *= -1.0;
   }
 
   b(0, 0) = vx;
@@ -117,7 +116,7 @@ Matrix orthonormal_basis(const Vector &v) {
   } else {
     l = sqrt(vy * vy + vz * vz);
     b(1, 1) = vz / l;
-    b(2, 1) = - vy / l;
+    b(2, 1) = -vy / l;
   }
 
   b(0, 2) = b(1, 0) * b(2, 1) - b(2, 0) * b(1, 1);
@@ -139,53 +138,49 @@ Matrix orthonormal_basis(const Vector &v) {
  * @tparam Vector The vector type to use to represent the plane.
  */
 template <typename Vector>
-    class Plane {
-
+class Plane {
  public:
-     using Float = Vector::Float;
-/** Create a plane.
- * @base The base vector of the plane
- * @base The normal vector of the plane.
- */
-Plane(const Vector &base,
-      const Vector &normal)
-    : base_(base), normal_(normal.normed()) {
-        // Nothing to do here.
+  using Float = Vector::Float;
+  /** Create a plane.
+   * @base The base vector of the plane
+   * @base The normal vector of the plane.
+   */
+  Plane(const Vector &base, const Vector &normal)
+      : base_(base), normal_(normal.normed()) {
+    // Nothing to do here.
+  }
+
+  /**
+   * Determine which side of the plane a position lies.
+   * @return The returned float will be 1.0 if the position lies on the
+   * front side of the plane and -1.0 otherwise.
+   */
+  Float get_side(const Vector &position) {
+    Vector d = position - base_;
+    if (dot(d, normal_) > 0.0) {
+      return 1.0;
     }
+    return -1.0;
+  }
 
-     /**
-      * Determine which side of the plane a position lies.
-      * @return The returned float will be 1.0 if the position lies on the
-      * front side of the plane and -1.0 otherwise.
-      */
-     Float get_side(const Vector &position) {
-         Vector d = position - base_;
-         if (dot(d, normal_) > 0.0) {
-             return 1.0;
-         }
-         return -1.0;
-     }
-
-     /**
-      * Determine whether an object has crossed a boundary. An object
-      * is considered to have crossed the plane when it is on or behind
-      * the plane and moving in the opposite direction of the normal vector.
-      *
-      * @position position Current-position vector of the object.
-      * @position direction Direction of the objectk
-      */
-     bool has_crossed(const Vector &position,
-                      const Vector &direction) {
-
-        if (dot(direction, normal_) >= 0.0) {
-            return false;
-        }
-        return get_side(position) < 0.0;
+  /**
+   * Determine whether an object has crossed a boundary. An object
+   * is considered to have crossed the plane when it is on or behind
+   * the plane and moving in the opposite direction of the normal vector.
+   *
+   * @position position Current-position vector of the object.
+   * @position direction Direction of the objectk
+   */
+  bool has_crossed(const Vector &position, const Vector &direction) {
+    if (dot(direction, normal_) >= 0.0) {
+      return false;
     }
+    return get_side(position) < 0.0;
+  }
 
-protected:
-    Vector base_;
-    Vector normal_;
+ protected:
+  Vector base_;
+  Vector normal_;
 };
 
 /** Random scattering plane
@@ -193,13 +188,13 @@ protected:
  * models to extend scattering into a third dimension.
  */
 struct RandomPlane {
-    /**
-     * Returns normal vector of a random scattering plane which includes
-     * the vector d.
-     * @param g Random number generator to use.
-     * @param d Orientation of the reference frame, which the scattering plane
-     * should include.
-     */
+  /**
+   * Returns normal vector of a random scattering plane which includes
+   * the vector d.
+   * @param g Random number generator to use.
+   * @param d Orientation of the reference frame, which the scattering plane
+   * should include.
+   */
   template <typename Generator, typename Vector>
   static Vector get_normal(Generator &g, const Vector &d) {
     auto n = geometry::perpendicular(d);
@@ -212,7 +207,8 @@ struct RandomPlane {
 /** Fixed scattering plane
  *
  * Restrict scattering plane to a given coordinate plane.
- * @tparam size_t Index of the coordinate axis taken as normal to the scattering plane
+ * @tparam size_t Index of the coordinate axis taken as normal to the scattering
+ * plane
  */
 template <size_t i>
 struct FixedScatteringPlane {

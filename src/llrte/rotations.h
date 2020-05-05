@@ -60,11 +60,11 @@ namespace llrte::rotations {
     r(0, 1) = v.x * v.y * (1.0 - ct) - v.z * st;
     r(0, 2) = v.x * v.z * (1.0 - ct) + v.y * st;
 
-    r(1, 0) = v.y * v.z * (1.0 - ct) + v.z * st;
+    r(1, 0) = v.y * v.x * (1.0 - ct) + v.z * st;
     r(1, 1) = ct + v.y * v.y * (1.0 - ct);
     r(1, 2) = v.y * v.z * (1.0 - ct) - v.x * st;
 
-    r(2, 0) = v.z * v.y * (1 - ct) - v.y * st;
+    r(2, 0) = v.z * v.x * (1 - ct) - v.y * st;
     r(2, 1) = v.z * v.y * (1 - ct) + v.x * st;
     r(2, 2) = ct + v.z * v.z * (1 - ct);
 

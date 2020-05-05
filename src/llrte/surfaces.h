@@ -35,7 +35,6 @@ public:
      */
     template <typename Photon>
         bool has_crossed(const Photon &photon) {
-        std::cout << "has crossed " << photon << std::endl;
         return has_crossed(photon.position, photon.direction);
     }
 
@@ -85,7 +84,6 @@ struct Specular {
   static Vector get_outgoing_direction(Generator & /*g*/,
                                        const Vector &d,
                                        const Vector &n) {
-      std::cout << "dumb " << std::endl;
     using Float = typename Vector::Float;
     auto ns = n * dot(n, d);
     auto dn = n * dot(n, d) - d;
@@ -101,7 +99,6 @@ struct BackwardsDirection {
   static Vector get_outgoing_direction(Generator & /*g*/,
                                        const Vector &d,
                                        const Vector & /*n*/) {
-      std::cout << "wtf" << std::endl;
     using Float = typename Vector::Float;
     return static_cast<Float>(-1.0) * d;
   }
@@ -117,10 +114,10 @@ struct Lambertian {
   template <typename Generator, typename Vector>
   static Vector get_outgoing_direction(Generator &g, const Vector & /*d*/,
                                        const Vector &n) {
-      std::cout << "lamb" << std::endl;
     using Float = typename Vector::Float;
+    using C = Constants<Float>;
     auto ns = ReflectionPlane::get_normal(g, n);
-    auto phi = g.sample_angle_uniform() - Constants<Float>::pi / 2.0;
+    auto phi = g.sample_uniform(0.0, 0.5 * C::pi);
     auto dn = rotations::rotate(n, ns, phi);
     return dn;
   }

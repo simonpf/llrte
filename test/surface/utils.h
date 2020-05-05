@@ -35,17 +35,19 @@ auto make_test_atmosphere(Boundaries &boundaries,
     auto y = llrte::Array<Float>::fill_linear(-0.5, 0.5, 2);
     auto z = llrte::Array<Float>::fill_linear(-0.5, 0.5, 2);
 
-    auto grid = Grid{x, y, z};
+    auto grid = Grid{std::move(x),
+                     std::move(y),
+                     std::move(z)};
     auto absorption_model = llrte::NoAbsorption<Float>();
     auto scattering_model = llrte::NoScattering<Float>();
-    auto atmosphere = Atmosphere{grid,
+    auto atmosphere = Atmosphere{std::move(grid),
                                  absorption_model,
                                  scattering_model,
                                  boundaries};
     Generator generator{};
-    auto solver = Solver(atmosphere, generator, std::move(tracer));
+    auto solver = Solver(std::move(atmosphere), generator, std::move(tracer));
 
-    return std::make_pair(solver, source);
+    return std::make_tuple(std::move(solver), source, grid);
 }
 
 

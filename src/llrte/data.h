@@ -13,6 +13,11 @@ namespace llrte {
 using utils::array::zip, utils::array::reduce, utils::array::index,
     utils::array::Multiply, utils::array::Add, utils::array::tail;
 
+template <typename Float>
+    std::shared_ptr<Float[]> make_shared(size_t n) {
+    return std::shared_ptr<Float[]>{new Float[n], [](Float *p){if (p) delete [] p;}};
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Array data
 ////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +40,7 @@ class Data {
    *
    * @param size Size of the array to create.
    */
-  Data(size_t size) : data_(new T[size]), size_(size), owner_(true) {
+Data(size_t size) : data_(make_shared<T>(size)), offset_(0), size_(size) {
     fill(0.0);
   }
 
@@ -47,69 +52,39 @@ class Data {
    * @param ptr Pointer to the existing array
    * @param size Size of the array.
    */
-  Data(T* ptr, size_t size) : data_(ptr), size_(size), owner_(false) {}
+Data(std::weak_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(offset), size_(size) {}
 
   /** Copy constructor
    *
    * Performs a deep copy of the data of the other array.
    * @param other The array to copy.
    */
-
-    Data(const Data& other)
-        : data_(other.data_), device_data_(other.device_data_), size_(other.size_), owner_(false) {}
+    Data(const Data& other) = default;
 
   /**
    * Take over memory from other array. No data is copied.
    *
    * @param other The array to take over.
    */
-  Data(Data&& other)
-      : data_(other.data_), device_data_(other.device_data_),
-        size_(other.size_), owner_(other.owner_) {
-    other.data_ = nullptr;
-    other.device_data_ = nullptr;
-    other.owner_ = false;
-    other.size_ = 0;
-  }
+    Data(Data&& other) = default;
 
   /**
    * Performs a deep copy of the data.
    * @param other The array to copy from.
    */
-  Data& operator=(const Data& other) {
-    if (data_ && owner_) delete[] data_;
-    size_ = other.size_;
-    data_ = new T[other.size_];
-    std::copy(other.data_, other.data_ + size_, data_);
-    return *this;
-  }
+    Data& operator=(const Data& other) = default;
 
 
   /**
    * Move over data from other array. No data is copied.
    * @param other The array to move.
    */
-  Data& operator=(Data&& other) {
-    if (data_ && owner_) delete[] data_;
-    data_ = other.data_;
-    device_data_ = other.device_data_;
-    size_ = other.size_;
-    owner_ = other.owner_;
-    other.data_ = nullptr;
-
-    other.owner_ = false;
-    other.size_ = 0;
-    return *this;
-  }
+    Data& operator=(Data&& other) = default;
 
   /** Destroys array and frees memory. */
   ~Data() {
-    if (owner_ && data_) {
-      delete[] data_;
-      data_ = nullptr;
-    }
     #ifdef __CUDA__
-    if (owner_ && device_data_){
+    if (device_data_){
         printf("Freeing device mem: %p" , device_data_);
         cudaFree(reinterpret_cast<void*>(device_data_));
         device_data_=nullptr;
@@ -123,9 +98,9 @@ class Data {
   T& operator[](size_t i) { return data_[i]; }
   /** Get pointer to raw data.*/
 
-  const T* get_data_pointer() const { return data_; }
+  const T* get_data_pointer() const { return data_.get(); }
   /** Get pointer to raw data.*/
-  T* get_data_pointer() { return data_; }
+  T* get_data_pointer() { return data_.get(); }
 
   size_t size() { return size_; }
 
@@ -204,9 +179,7 @@ class Data {
   __device__ T* get_ptr() { return data_; }
   #endif 
   #ifdef __CUDA__
-__device__ Data(const Data& other)
-    : data_(other.data_), device_data_(other.device_data_), size_(other.size_), owner_(false) {
-  }
+  __device__ Data(const Data& other) = default;
   void device() {
       if (device_data_) {
           CUDA_CALL(cudaFree(reinterpret_cast<void*>(device_data_)));
@@ -230,10 +203,9 @@ __device__ Data(const Data& other)
   #endif
 
 
-  T* data_ = nullptr;
+  std::shared_ptr<T[]> data_ = nullptr;
   T* device_data_ = nullptr;
-  size_t size_;
-  bool owner_;
+  size_t offset_, size_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

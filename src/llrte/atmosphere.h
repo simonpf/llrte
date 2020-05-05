@@ -43,10 +43,11 @@ class Atmosphere {
   /** The class representing the phase function. */
   using PhaseFunction = typename ScatteringModel::PhaseFunction;
 
-  Atmosphere(Grid grid, AbsorptionModel absorption_model,
+  Atmosphere(Grid &&grid,
+             AbsorptionModel absorption_model,
              ScatteringModel scattering_model,
              Boundaries boundaries = Boundaries{})
-      : grid_(grid),
+ : grid_(std::forward<Grid>(grid)),
         absorption_model_(absorption_model),
         scattering_model_(scattering_model),
         boundaries_(boundaries) {
