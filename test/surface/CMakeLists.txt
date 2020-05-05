@@ -7,8 +7,7 @@ add_test(black_surface black_surface)
 add_executable(reflecting_surface reflecting_surface.cxx)
 add_executable(periodic_boundary periodic_boundary.cxx)
 add_test(periodic_boundary periodic_boundary)
-configure_file(plot_results_lambertian.py plot_results_lambertian.py COPYONLY)
-
+configure_file(plot_results_reflecting.py plot_results_reflecting.py COPYONLY)
 
 find_package(NetCDF)
 if (NetCDF_FOUND)
