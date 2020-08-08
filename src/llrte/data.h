@@ -15,7 +15,11 @@ using utils::array::zip, utils::array::reduce, utils::array::index,
 
 template <typename Float>
     std::shared_ptr<Float[]> make_shared(size_t n) {
-    return std::shared_ptr<Float[]>{new Float[n], [](Float *p){if (p) delete [] p;}};
+    return std::shared_ptr<Float[]>{new Float[n], [](Float *p)
+        {
+            if (p) delete [] p;
+        }
+    };
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,6 +37,7 @@ template <typename Float>
 template <typename T>
 class Data {
  public:
+  Data() : size_(0), offset_(0) {};
   /** Create new array holding n elements.
    *
    * Create a new array and initializes data to 0. The created array
@@ -52,14 +57,17 @@ Data(size_t size) : data_(make_shared<T>(size)), offset_(0), size_(size) {
    * @param ptr Pointer to the existing array
    * @param size Size of the array.
    */
-Data(std::weak_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(offset), size_(size) {}
+  Data(std::shared_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(offset), size_(size) {}
 
   /** Copy constructor
    *
    * Performs a deep copy of the data of the other array.
    * @param other The array to copy.
    */
-    Data(const Data& other) = default;
+  Data(const Data& other) :
+    data_(make_shared<T>(other.get_size())), offset_(0), size_(other.get_size()) {
+        copy(other);
+    }
 
   /**
    * Take over memory from other array. No data is copied.
@@ -72,13 +80,12 @@ Data(std::weak_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(o
    * Performs a deep copy of the data.
    * @param other The array to copy from.
    */
-    Data& operator=(const Data& other) = default;
+    Data& operator=(const Data& other) { copy(other); }
 
-
-  /**
-   * Move over data from other array. No data is copied.
-   * @param other The array to move.
-   */
+    /**
+     * Move over data from other array. No data is copied.
+     * @param other The array to move.
+     */
     Data& operator=(Data&& other) = default;
 
   /** Destroys array and frees memory. */
@@ -93,30 +100,45 @@ Data(std::weak_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(o
   }
 
   /** Access element i.*/
-  const T& operator[](size_t i) const { return data_[i]; }
+  const T& operator[](size_t i) const { return data_[i + offset_]; }
   /** Access element i. */
-  T& operator[](size_t i) { return data_[i]; }
+  T& operator[](size_t i) { return data_[i + offset_]; }
   /** Get pointer to raw data.*/
+  const T* get_data_pointer() const { return data_.get() + offset_; }
+  /** Get pointer to raw data.*/
+  T* get_data_pointer() { return data_.get() + offset_; }
+  /** Get shared pointer to holding the data.*/
+  std::shared_ptr<T[]> get_shared_pointer() const { return data_; }
 
-  const T* get_data_pointer() const { return data_.get(); }
-  /** Get pointer to raw data.*/
-  T* get_data_pointer() { return data_.get(); }
+  /** Get size of data array. */
+  size_t get_size() const {return size_;}
 
   size_t size() { return size_; }
 
   /** Scale numeric data in array. */
   Data& operator*=(const T& t) {
     for (size_t i = 0; i < size_; ++i) {
-      data_[i] *= t;
+      data_[i + offset_] *= t;
     }
     return *this;
+  }
+
+  /** Element-wise sum. */
+  Data& operator+=(const Data &d) {
+      if (size_ != d.get_size()) {
+          throw std::runtime_error("Can't add arrays of different sizes.");
+      }
+      for (size_t i = 0; i < size_; ++i) {
+          data_[i + offset_] += d[i];
+      }
+      return *this;
   }
 
   /** Scale numeric data in array. */
   Data& operator/=(const T& t) {
       auto ti = 1.0 / t;
       for (size_t i = 0; i < size_; ++i) {
-          data_[i] *= ti;
+          data_[i + offset_] *= ti;
       }
       return *this;
   }
@@ -124,7 +146,7 @@ Data(std::weak_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(o
   /** In-place add to numeric data in array. */
   Data& operator+=(const T& t) {
     for (size_t i = 0; i < size_; ++i) {
-      data_[i] += t;
+      data_[i + offset_] += t;
     }
     return *this;
   }
@@ -132,7 +154,7 @@ Data(std::weak_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(o
   /** In-place subtract to numeric data in array. */
   Data& operator-=(const T& t) {
     for (size_t i = 0; i < size_; ++i) {
-      data_[i] -= t;
+      data_[i + offset_] -= t;
     }
     return *this;
   }
@@ -141,7 +163,7 @@ Data(std::weak_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(o
   template <typename F>
   void map(F f) {
     for (size_t i = 0; i < size_; ++i) {
-      data_[i] = f();
+      data_[i + offset_] = f();
     }
   }
 
@@ -151,8 +173,19 @@ Data(std::weak_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(o
    */
   void fill(T t) {
     for (size_t i = 0; i < size_; ++i) {
-        data_[i] = t;
+        data_[i + offset_] = t;
     }
+  }
+
+  /**
+   * Copy data from other array.
+   * @param other Array to copy data from.
+   */
+  void copy(const Data &other) {
+    if (size_ != other.get_size()) {
+      throw std::runtime_error("Sizes of array to copy don't match.");
+    }
+    std::copy(other.get_data_pointer(), other.get_data_pointer() + size_, get_data_pointer());
   }
 
   /**
@@ -162,25 +195,28 @@ Data(std::weak_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(o
   T sum() {
       T t = static_cast<T>(0.0);
       for (size_t i = 0; i < size_; ++i) {
-          t += data_[i];
+          t += data_[i + offset_];
       }
       return t;
   }
 
   void atomic_add(size_t i, T t) {
-      OPENMP_ATOMIC(data_[i] = data_[i] + t;)
+      OPENMP_ATOMIC(data_[i + offset_] = data_[i + offset_] + t;)
   }
 
   #ifdef __CUDACC__
-  __device__ void atomic_add(size_t i, T t) {atomicAdd(device_data_ + i, t);}
-  __device__ const T& operator[](size_t i) const { return device_data_[i]; }
-  __device__ T& operator[](size_t i) { return device_data_[i]; }
+  __device__ void atomic_add(size_t i, T t) {atomicAdd(device_data_ + offset_ + i, t);}
+  __device__ const T& operator[](size_t i) const { return device_data_[i + offset_]; }
+  __device__ T& operator[](size_t i) { return device_data_[i + offest_]; }
   __device__ size_t size() { return size_; }
-  __device__ T* get_ptr() { return data_; }
+  __device__ T* get_ptr() { return device_data_ + offset_; }
   #endif 
   #ifdef __CUDA__
   __device__ Data(const Data& other) = default;
   void device() {
+      if (offset_ > 0) {
+          throw std::runtime_error("Sub-tensors cannot be copied to any device.");
+      }
       if (device_data_) {
           CUDA_CALL(cudaFree(reinterpret_cast<void*>(device_data_)));
           CUDA_CALL(cudaDeviceSynchronize());
@@ -194,7 +230,7 @@ Data(std::weak_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(o
   void host() {
       if (device_data_) {
           CUDA_CALL(cudaMemcpy(data_,
-                               device_data_,
+                               device_data_ + offset_,
                                size_ * sizeof(T),
                                cudaMemcpyDeviceToHost));
       }
@@ -202,6 +238,52 @@ Data(std::weak_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(o
   }
   #endif
 
+  friend Data operator*(T t, Data u) {
+      Data results(u.size_);
+      for (size_t i = 0; i < u.size_; ++i) {
+          results[i] = t * u[i];
+      }
+      return results;
+  }
+
+  friend Data operator/(Data u, T t) {
+      Data results(u.size_);
+      for (size_t i = 0; i < u.size_; ++i) {
+          results[i] = u[i] / t;
+      }
+      return results;
+  }
+
+  friend Data operator+(T t, Data u) {
+      Data results(u.size_);
+      for (size_t i = 0; i < u.size_; ++i) {
+          results[i] = u[i] + t;
+      }
+  }
+
+  friend Data operator+(Data u, T t) {
+      Data results(u.size_);
+      for (size_t i = 0; i < u.size_; ++i) {
+          results[i] = u[i] + t;
+      }
+  }
+
+  friend Data operator-(T t, Data u) {
+      Data results(u.size_);
+      for (size_t i = 0; i < u.size_; ++i) {
+          results[i] = t - u[i];
+      }
+  }
+
+  friend Data operator-(Data u, T t) {
+      Data results(u.size_);
+      for (size_t i = 0; i < u.size_; ++i) {
+          results[i] = u[i] - t;
+      }
+  }
+
+
+protected:
 
   std::shared_ptr<T[]> data_ = nullptr;
   T* device_data_ = nullptr;
@@ -223,6 +305,7 @@ Data(std::weak_ptr<T[]> ptr, size_t offset, size_t size) : data_(ptr), offset_(o
 template <typename T, size_t rank>
 class Tensor {
  public:
+    Tensor() {}
     /**
      * Create a tensor with a given shape. When called with this constructor the
      * tensor will allocate and take care of all required memory.
@@ -240,8 +323,8 @@ class Tensor {
      * @param shape Array with rank elements specifying the number of elements along
      * each rank.
      */
-  Tensor(T* ptr, std::array<size_t, rank> shape)
-      : shape_{shape}, data_{ptr, reduce<Multiply>(shape)} {}
+    Tensor(std::shared_ptr<T[]> ptr, size_t offset, std::array<size_t, rank> shape)
+      : shape_{shape}, data_{ptr, offset, reduce<Multiply>(shape)} {}
 
     /** @return Array containing the shape of the tensor. */
   const std::array<size_t, rank>& shape() const { return shape_; }
@@ -267,7 +350,7 @@ class Tensor {
     std::array<size_t, n> index_array{indices...};
     if constexpr (n < rank) {
       return Tensor<T, rank - n>(
-          get_data_pointer() + index(index_array, shape_), tail<n>(shape_));
+          get_shared_pointer(), index(index_array, shape_), tail<n>(shape_));
     } else {
       return data_[index(index_array, shape_)];
     }
@@ -278,9 +361,17 @@ class Tensor {
    * @param Ts Sequence of indices of the elements to extract along each tank.
    */
   template <typename... Ts>
-  __DEV__ const T& operator()(Ts... indices) const {
-    std::array<size_t, sizeof...(indices)> index_array{indices...};
-    return data_[index(index_array, shape_)];
+      __DEV__ auto operator()(Ts... indices) const
+      -> typename std::conditional<sizeof...(indices) < rank,
+      const Tensor<T, rank - sizeof...(indices)>, T>::type {
+      constexpr size_t n = sizeof...(indices);
+      std::array<size_t, n> index_array{indices...};
+      if constexpr (n < rank) {
+              return Tensor<T, rank - n>(
+                  get_shared_pointer(), index(index_array, shape_), tail<n>(shape_));
+          } else {
+          return data_[index(index_array, shape_)];
+      }
   }
 
   /**
@@ -292,6 +383,20 @@ class Tensor {
   }
 
   /**
+   * Copy data from other tensor..
+   * @param t Tensor to copy data from.
+   */
+  void copy(const Tensor& t) {
+      data_.copy(t.get_data());
+  }
+
+  Tensor copy() const {
+      Tensor tensor(shape_);
+      tensor.copy(*this);
+      return tensor;
+  }
+
+  /**
    * Return pointers to tensor data. Data is stored following C conventions,
    * i.e. with the last rank being continuous in memory.
    * @return Pointer to first element of tensor.
@@ -299,6 +404,7 @@ class Tensor {
   const T* get_data_pointer() const { return data_.get_data_pointer(); }
   T* get_data_pointer() { return data_.get_data_pointer(); }
 
+  std::shared_ptr<T[]> get_shared_pointer() const { return data_.get_shared_pointer(); }
   /**
    * Return data as array.
    * @return Data object holding the tensor data.
@@ -309,16 +415,25 @@ class Tensor {
   /** In-place scaling of tensor elements. */
   Tensor& operator*=(const T &t) {
       data_ *= t;
+      return *this;
   }
 
   /** In-place addition to tensor elements. */
   Tensor& operator+=(const T &t) {
       data_ += t;
+      return *this;
+  }
+
+  /** Element-wise addition to tensor elements. */
+  Tensor& operator+=(const Tensor &t) {
+      data_ += t.data_;
+      return *this;
   }
 
   /** In-place subtraction from elements. */
   Tensor& operator-=(const T &t) {
       data_ -= t;
+      return *this;
   }
 
   /** Map function over elements. */
@@ -371,13 +486,49 @@ class Tensor {
     return os;
   }
 
- public:
+  friend Tensor operator*(T t, Tensor u) {
+    Tensor results(u.shape_);
+    results.data_ = t * u.data_;
+    return results;
+  }
+
+  friend Tensor operator/(Tensor t, T u) {
+    Tensor results(t.shape_);
+    results.data_ = u.data_ / u.data_;
+    return results;
+  }
+
+  friend Tensor operator+(T t, Tensor u) {
+    Tensor results(u.shape_);
+    results.data_ = t + u.data_;
+    return results;
+  }
+
+  friend Tensor operator+(Tensor u, T t) {
+      Tensor results(u.shape_);
+      results.data_ = t + u.data_;
+      return results;
+  }
+
+  friend Tensor operator-(T t, Tensor u) {
+      Tensor results(u.shape_);
+      results.data_ = t - u.data_;
+      return results;
+  }
+
+  friend Tensor operator-(Tensor u, T t) {
+      Tensor results(u.shape_);
+      results.data_ = u.data_ - t;
+      return results;
+  }
+
+ protected:
   std::array<size_t, rank> shape_;
   Data<T> data_;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// Tensors
+// Arrays
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename FloatType>

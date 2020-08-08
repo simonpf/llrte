@@ -2,6 +2,7 @@
 #define _LLRTE_GRID_REGULAR_H_
 
 #include <iostream>
+#include <type_traits>
 #include <limits>
 #include <memory>
 #include <utility>
@@ -118,9 +119,9 @@ class RegularGrid {
    * @param z Array holding cell boundaries along the z-dimension
    *
    */
-  RegularGrid(Array<Float> &&x,
-              Array<Float> &&y,
-              Array<Float> &&z)
+  RegularGrid(const Array<Float> &x,
+              const Array<Float> &y,
+              const Array<Float> &z)
  : x_(x), y_(y), z_(z) {}
 
  std::array<Index, 3> get_extent() const {
@@ -220,6 +221,7 @@ class RegularGrid {
     return d;
   }
 
+
  /**
   * Performs a step of a given maximum step length on the grid.
   * The step will move to the next grid boundary unless this
@@ -316,6 +318,109 @@ class RegularGrid {
     }
     return l;
   }
+
+  std::tuple<Index, Float> interpolation_weights_1d(const Array<Float> &grid,
+                                                    Index index,
+                                                    Float position) {
+    Float next_grid = 0.0;
+    Index left_index = index;
+    if (index < 1) {
+        next_grid = grid[0];
+        left_index = 1;
+    } else if (index > x_.size()) {
+        next_grid = grid[x_.size() - 1];
+        left_index = index - 1;
+    } else {
+        next_grid = grid[index - 1];
+    }
+
+    Float weight = 1.0;
+
+    if ((next_grid - position) > 0.0) {
+      if (index > 1) {
+        auto other_grid = grid[index - 2];
+        weight = (next_grid - position) / (next_grid - other_grid);
+        left_index = index - 1;
+      }
+    } else if ((next_grid - position) < 0.0) {
+    if (index < grid.size()) {
+        auto other_grid = grid[index];
+        weight = (next_grid - position) / (other_grid - next_grid);
+        left_index = index;
+      }
+    }
+    return std::make_tuple(left_index - 1, weight);
+  }
+
+ template <typename Vector, typename Tensor>
+ auto interpolate(const GridPosition<Vector> &gp, const Tensor &t)
+ -> typename std::remove_const<std::remove_reference_t<decltype(t(0, 0, 0))>>::type
+ {
+     using ResultType = typename std::remove_const<std::remove_reference_t<decltype(t(0, 0, 0))>>::type;
+   // x-direction.
+   Float weight_x, weight_y, weight_z;
+   Index left_index_x, left_index_y, left_index_z;
+   Index right_index_x, right_index_y, right_index_z;
+
+   std::tie(left_index_x, weight_x) =
+       interpolation_weights_1d(x_, gp.i, gp.x());
+   right_index_x = (weight_x == 1.0) ? left_index_x : left_index_x + 1;
+
+   std::tie(left_index_y, weight_y) =
+       interpolation_weights_1d(y_, gp.j, gp.y());
+   right_index_y = (weight_y == 1.0) ? left_index_y : left_index_y + 1;
+
+   std::tie(left_index_z, weight_z) =
+       interpolation_weights_1d(z_, gp.k, gp.z());
+   right_index_z = (weight_z == 1.0) ? left_index_z : left_index_z + 1;
+
+   std::cout << "indices_x : " << weight_x << " . "<< left_index_x << " / " << right_index_x << std::endl;
+   std::cout << "indices_y : " << weight_y << " . "<< left_index_y << " / " << right_index_y << std::endl;
+   std::cout << "indices_z : " << weight_z << " . "<< left_index_z << " / " << right_index_z << std::endl;
+
+   ResultType tll = ResultType(t(left_index_x, left_index_y, left_index_z));
+   ResultType tlr;
+   ResultType trl;
+   ResultType trr;
+
+   if (weight_x != 1.0) {
+     tll *= weight_x;
+     tll += (1.0 - weight_x) * t(right_index_x, left_index_y, left_index_z);
+     std::cout << " left: " << tll << std::endl;
+     std::cout << " right: " << (1.0 - weight_x) * t(right_index_x, left_index_y, left_index_z) << std::endl;
+     if (weight_z != 1.0) {
+       tlr = std::move(ResultType(t(left_index_x, left_index_y, right_index_z)));
+       tlr *= weight_x;
+       tlr += (1.0 - weight_x) * t(right_index_x, left_index_y, right_index_z);
+     }
+     if (weight_y != 1.0) {
+       trl = std::move(ResultType(t(left_index_x, right_index_y, right_index_z)));
+       trl *= weight_x;
+       trl += (1.0 - weight_x) * t(right_index_x, right_index_y, left_index_z);
+     }
+     if ((weight_z != 1.0) && (weight_y != 1.0)) {
+       trr = std::move(ResultType(t(left_index_x, right_index_y, right_index_z)));
+       trr *= weight_x;
+       trr += (1.0 - weight_x) * t(right_index_x, right_index_y, right_index_z);
+     }
+   }
+
+   if (weight_y != 1.0) {
+     tll *= weight_y;
+     tll += (1.0 - weight_y) * trl;
+     if (weight_z != 1.0) {
+       tlr = std::move(ResultType(tlr));
+       tlr *= weight_y;
+       tlr += (1.0 - weight_y) * trr;
+     }
+   }
+
+   if (weight_z != 1.0) {
+     tll *= weight_z;
+     tll += (1.0 - weight_z) * tlr;
+   }
+   return tll;
+ }
 
   template <typename Vector>
  /**
