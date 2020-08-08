@@ -3,12 +3,14 @@
 
 #include <math.h>
 
-#include <llrte/data.h>
+#include <llrte/eigen.h>
 #include <llrte/geometry.h>
 #include <llrte/constants.h>
 #include <llrte/rotations.h>
 
 namespace llrte {
+
+using eigen::Vector;
 
 /**
  * The simplest scattering class: No scattering at all. This class basically
@@ -101,8 +103,8 @@ class BidirectionalScattering {
 template <typename F, typename ScatteringPlane = geometry::RandomPlane>
 class NumericPhaseFunction {
  public:
-  NumericPhaseFunction(const Array<F> &sa,
-                       const Array<F> &p_int)
+  NumericPhaseFunction(const Vector<F> &sa,
+                       const Vector<F> &p_int)
  : p_int_(p_int), sa_(sa) {}
 
   template <typename Generator, typename Photon>
@@ -131,8 +133,8 @@ class NumericPhaseFunction {
   }
 
   private:
-  const Array<F> &p_int_;
-  const Array<F> &sa_;
+  const Vector<F> &p_int_;
+  const Vector<F> &sa_;
 };
 
 template <typename F, typename ScatteringPlane = geometry::RandomPlane>
@@ -143,8 +145,8 @@ public:
   RayleighScattering(Float scattering_coefficient,
                      size_t n_steps)
 : scattering_coefficient_(scattering_coefficient),
-  sa_(Array<Float>(n_steps + 1)),
-  p_int_(Array<Float>(n_steps + 1)) {
+  sa_(Vector<Float>(n_steps + 1)),
+  p_int_(Vector<Float>(n_steps + 1)) {
     Float da = Constants<Float>::pi / n_steps;
     Float x = 0.0;
     Float s = 0.0;
@@ -181,8 +183,8 @@ public:
 
   private:
   Float scattering_coefficient_ = 0.0;
-  Array<Float> sa_;
-  Array<Float> p_int_;
+  Vector<Float> sa_;
+  Vector<Float> p_int_;
 };
 
 template<typename Float>
@@ -199,8 +201,8 @@ public:
                    Float g,
                    size_t n_steps)
 : scattering_coefficient_(scattering_coefficient),
-  sa_(Array<Float>(n_steps + 1)),
-  p_int_(Array<Float>(n_steps + 1))
+  sa_(Vector<Float>(n_steps + 1)),
+  p_int_(Vector<Float>(n_steps + 1))
 {
     Float da = Constants<Float>::pi / n_steps;
     Float x = 0.0;
@@ -238,8 +240,8 @@ public:
 
   private:
   Float scattering_coefficient_ = 0.0;
-  Array<Float> sa_;
-  Array<Float> p_int_;
+  Vector<Float> sa_;
+  Vector<Float> p_int_;
 };
 }  // namespace llrte
 #endif

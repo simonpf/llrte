@@ -2,6 +2,7 @@
 #define _LLRTE_DATA_H_
 
 #include <iostream>
+#include <memory>
 #include "assert.h"
 #include "common.h"
 
@@ -45,7 +46,7 @@ class Data {
    *
    * @param size Size of the array to create.
    */
-Data(size_t size) : data_(make_shared<T>(size)), offset_(0), size_(size) {
+    Data(size_t size) : data_(make_shared<T>(size)), offset_(0), size_(size) {
     fill(0.0);
   }
 

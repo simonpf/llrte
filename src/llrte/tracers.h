@@ -7,6 +7,11 @@
 
 namespace llrte::tracers {
 
+using llrte::eigen::Index;
+using llrte::eigen::Tensor;
+template<typename Scalar>
+using Array = Tensor<Scalar, 1>;
+
 ////////////////////////////////////////////////////////////////////////////////
 // No Trace
 ////////////////////////////////////////////////////////////////////////////////
@@ -79,7 +84,7 @@ class Histogram : public NoTrace {
     extent[0] = grid.get_extent()[0] + 1;
     extent[1] = grid.get_extent()[1] + 1;
     extent[2] = grid.get_extent()[2] + 1;
-    irradiance_ = std::move(Tensor<Float, 3>(extent));
+    irradiance_ = std::move(extent);
   }
 
   /**
@@ -97,7 +102,7 @@ class Histogram : public NoTrace {
    */
   template <typename Photon>
   __DEV__ void absorption(const Photon &photon, Float /*absorbed_energy*/) {
-    irradiance_.atomic_add(photon.get_energy(), i_, j_, k_);
+    atomic_add(irradiance_, photon.get_energy(), i_, j_, k_);
     i_ = photon.i;
     j_ = photon.j;
     k_ = photon.k;
@@ -109,9 +114,9 @@ class Histogram : public NoTrace {
    */
   void save(std::string filename) {
     llrte::io::NetCDFFile file(filename, true);
-    file.add_dimension("x", irradiance_.shape()[0]);
-    file.add_dimension("y", irradiance_.shape()[1]);
-    file.add_dimension("z", irradiance_.shape()[2]);
+    file.add_dimension("x", irradiance_.dimension(0));
+    file.add_dimension("y", irradiance_.dimension(1));
+    file.add_dimension("z", irradiance_.dimension(2));
     file.store_variable(irradiance_, "irradiance", {"x", "y", "z"});
   }
 
@@ -149,7 +154,7 @@ class AbsorptionTracer : public NoTrace {
     absorbed_energy_ = std::move(Tensor<Float, 3>{extent});
     scattered_energy_ = std::move(Tensor<Float, 3>{extent});
 
-    leaving_photons_ = std::move(Array<Float>(6));
+    leaving_photons_ = std::move(Tensor<Float, 1>(6));
     scattering_frequencies_ = std::move(Array<int>(11));
   }
 
@@ -209,9 +214,9 @@ class AbsorptionTracer : public NoTrace {
 
   void save(std::string filename) {
     llrte::io::NetCDFFile file(filename, true);
-    file.add_dimension("x", absorbed_energy_.shape()[0]);
-    file.add_dimension("y", absorbed_energy_.shape()[1]);
-    file.add_dimension("z", absorbed_energy_.shape()[2]);
+    file.add_dimension("x", absorbed_energy_.dimensions(0));
+    file.add_dimension("y", absorbed_energy_.dimensions(1));
+    file.add_dimension("z", absorbed_energy_.dimensions(2));
     file.add_dimension("boundaries", 6);
     file.add_dimension("events", 11);
     file.store_variable(absorbed_energy_, "absorbed_energy", {"x", "y", "z"});
@@ -264,7 +269,7 @@ class AbsorptionTracer : public NoTrace {
   /** Create PhotonTracer for given number of photons
    *@param n: The number of photons
    */
-    PhotonTracer(size_t n)
+    PhotonTracer(Index n)
         : n_(n),
           i_(0),
           incoming_positions_{{n, 3}},
@@ -274,34 +279,34 @@ class AbsorptionTracer : public NoTrace {
 
     template <typename Photon>
     void created(const Photon &photon) {
-      incoming_positions_(i_, 0) = photon.position.x;
-      incoming_positions_(i_, 1) = photon.position.y;
-      incoming_positions_(i_, 2) = photon.position.z;
-      incoming_directions_(i_, 0) = photon.direction.x;
-      incoming_directions_(i_, 1) = photon.direction.y;
-      incoming_directions_(i_, 2) = photon.direction.z;
+      incoming_positions_.coeffRef(i_, 0) = photon.position.x;
+      incoming_positions_.coeffRef(i_, 1) = photon.position.y;
+      incoming_positions_.coeffRef(i_, 2) = photon.position.z;
+      incoming_directions_.coeffRef(i_, 0) = photon.direction.x;
+      incoming_directions_.coeffRef(i_, 1) = photon.direction.y;
+      incoming_directions_.coeffRef(i_, 2) = photon.direction.z;
     }
 
     template <typename Photon>
     void out_of_energy(const Photon &photon) {
-      outgoing_positions_(i_, 0) = photon.position.x;
-      outgoing_positions_(i_, 1) = photon.position.y;
-      outgoing_positions_(i_, 2) = photon.position.z;
-      outgoing_directions_(i_, 0) = photon.direction.x;
-      outgoing_directions_(i_, 1) = photon.direction.y;
-      outgoing_directions_(i_, 2) = photon.direction.z;
+      outgoing_positions_.coeffRef(i_, 0) = photon.position.x;
+      outgoing_positions_.coeffRef(i_, 1) = photon.position.y;
+      outgoing_positions_.coeffRef(i_, 2) = photon.position.z;
+      outgoing_directions_.coeffRef(i_, 0) = photon.direction.x;
+      outgoing_directions_.coeffRef(i_, 1) = photon.direction.y;
+      outgoing_directions_.coeffRef(i_, 2) = photon.direction.z;
       i_ = (i_ + 1) % n_;
     }
 
     template <typename Photon, typename Atmosphere>
     void left_atmosphere(const Photon &photon,
                          const Atmosphere &) {
-      outgoing_positions_(i_, 0) = photon.position.x;
-      outgoing_positions_(i_, 1) = photon.position.y;
-      outgoing_positions_(i_, 2) = photon.position.z;
-      outgoing_directions_(i_, 0) = photon.direction.x;
-      outgoing_directions_(i_, 1) = photon.direction.y;
-      outgoing_directions_(i_, 2) = photon.direction.z;
+      outgoing_positions_.coeffRef(i_, 0) = photon.position.x;
+      outgoing_positions_.coeffRef(i_, 1) = photon.position.y;
+      outgoing_positions_.coeffRef(i_, 2) = photon.position.z;
+      outgoing_directions_.coeffRef(i_, 0) = photon.direction.x;
+      outgoing_directions_.coeffRef(i_, 1) = photon.direction.y;
+      outgoing_directions_.coeffRef(i_, 2) = photon.direction.z;
       i_ = (i_ + 1) % n_;
     }
 

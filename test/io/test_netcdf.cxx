@@ -1,16 +1,15 @@
 #include "llrte/io/netcdf.h"
-#include "llrte/data.h"
 #include "catch.hpp"
 
 template <typename T>
 bool read_write() {
 
-    auto t = llrte::Tensor<T, 2>({3, 2, 1});
-    t.fill(3.0);
+    auto t = llrte::eigen::Tensor<T, 3>(3, 2, 1);
+    t.setConstant(3.0);
 
     for (size_t i = 0; i < 3; ++i) {
         for (size_t j = 0; j < 2; ++j) {
-            t(i, j, 0) = i + j;
+            t.coeffRef(i, j, 0) = i + j;
         }
     }
 
@@ -24,7 +23,7 @@ bool read_write() {
 
     for (size_t i = 0; i < 3; ++i) {
         for (size_t j = 0; j < 2; ++j) {
-            std::cout << t(i, j, 0) << std::endl;
+            std::cout << t.coeffRef(i, j, 0) << std::endl;
         }
     }
 
@@ -33,8 +32,8 @@ bool read_write() {
 
 int main(int /*argc*/, char **/*argv*/) {
 
-    auto t = llrte::Tensor<double, 2>({3, 3});
-    t.fill(1.0);
+    auto t = llrte::eigen::Tensor<double, 2>(3, 3);
+    t.setConstant(1.0);
 
     read_write<float>();
 }

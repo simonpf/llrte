@@ -21,18 +21,3 @@ TEMPLATE_TEST_CASE("Data, Ownership",
     array /= 4.0;
     REQUIRE(small(array[0] - 1.0));
 }
-
-TEMPLATE_TEST_CASE("Data, Ownership",
-                   "Ownership",
-                   float, double) {
-    using llrte::maths::small;
-    auto array1 = llrte::Data<TestType>(10);
-    auto array2 = new llrte::Data<TestType>(array1.get_data_pointer(), 10);
-    auto array3 = llrte::Data<TestType>(10);
-    array1.fill(1.0);
-    array3.fill(3.0);
-    REQUIRE(array1[0] == (*array2)[0]);
-    (*array2) = array3;
-    delete array2;
-    REQUIRE(array1[0] == array3[0]);
-}

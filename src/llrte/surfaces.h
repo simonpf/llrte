@@ -12,6 +12,62 @@
 
 namespace llrte::surfaces {
 
+/** A black surface
+ *
+ * A totally absorbing plane. Sets photon energy to 0 and leaves propagation
+ * direction as is.
+ *
+ * @tparam Vector The vector type used to represent the position of the plane.
+ */
+template <typename Vector>
+    class BlackPlane : public geometry::Plane<Vector> {
+public:
+    using Float = typename Vector::Float;
+    using geometry::Plane<Vector>::has_crossed;
+    using geometry::Plane<Vector>::normal_;
+    using geometry::Plane<Vector>::base_;
+
+    /**
+     * Determine whether a photon has crossed the surface.
+     */
+    template <typename Photon>
+        bool has_crossed(const Photon &photon) {
+        return has_crossed(photon.position, photon.direction);
+    }
+
+    /**
+    * Create fully-absorbing plane.
+    * @param base Base vector describing the position of any one point in the plane
+    * @param normal The normal vector describing the direction of the plane
+    */
+    BlackPlane(const Vector &base,
+               const Vector &normal)
+        : geometry::Plane<Vector>(base, normal), absorbed_energy_(0.0) {
+            // Nothing to do here.
+        }
+
+    /**
+     * Absorb photon.
+     * @param generator Not used.
+     * @param photon The photon being reflected.
+     */
+    template <typename Generator, typename Photon>
+        void apply(Generator &/*generator*/, Photon &photon) {
+        auto e = photon.get_energy();
+        absorbed_energy_ += e;
+        photon.set_energy(0);
+    }
+
+    /** Get total energy absorbed by surface.
+     * @return The absorbed energy.
+     */
+    Float get_absorbed_energy() const {return absorbed_energy_; }
+
+private:
+    Float absorbed_energy_ = 0.0;
+};
+
+
 /**ReflectingPlane
  *
  * Provides a base class for reflecting planes. A reflecting plane reflects a
@@ -141,10 +197,12 @@ class PeriodicBoundary {
   template <typename Photon>
   bool has_crossed(const Photon &p) {
     auto pos = p.position;
-    if (dot(pos - base_1_, normal_) <= 0.0) {
+    auto dn = dot(pos - base_1_, normal_);
+    if (maths::small(dn) || dn <= 0.0) {
       return true;
     }
-    if (dot(pos - base_2_, normal_) >= 0.0) {
+    dn = dot(pos - base_2_, normal_);
+    if (maths::small(dn) || dn >= 0.0) {
       return true;
     }
     return false;

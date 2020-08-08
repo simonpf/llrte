@@ -8,10 +8,13 @@
 #include <utility>
 
 #include "llrte/common.h"
-#include "llrte/data.h"
+#include "llrte/eigen.h"
 #include "llrte/maths.h"
 
 namespace llrte {
+
+using eigen::Vector;
+using eigen::Tensor;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Grid Position
@@ -114,14 +117,14 @@ class RegularGrid {
    * Create a regular grid given arrays containing the edges in x-, y-, and z-
    * direction.
    *
-   * @param x Array holding cell boundaries along the x-dimension
-   * @param y Array holding cell boundaries along the y-dimension
-   * @param z Array holding cell boundaries along the z-dimension
+   * @param x Vector holding cell boundaries along the x-dimension
+   * @param y Vector holding cell boundaries along the y-dimension
+   * @param z Vector holding cell boundaries along the z-dimension
    *
    */
-  RegularGrid(const Array<Float> &x,
-              const Array<Float> &y,
-              const Array<Float> &z)
+  RegularGrid(const Vector<Float> &x,
+              const Vector<Float> &y,
+              const Vector<Float> &z)
  : x_(x), y_(y), z_(z) {}
 
  std::array<Index, 3> get_extent() const {
@@ -137,22 +140,22 @@ class RegularGrid {
    * If d is zero, movement into left (negative) direction is
    * assumed.
    *
-   * @param grid Array holding boundaries
+   * @param grid Vector holding boundaries
    * @param p The current position on the grid
    * @param d The moving direction
    * @return The 1-based index of the intersected boundary.
    */
-  __DEV__ Index find_next_index(const Array<Float> &grid,
+  __DEV__ Index find_next_index(const Vector<Float> &grid,
                         Float p,
                         Float d) {
-    Index i = 0;
+    Index i = 1;
     // Find index, which is left of p
-    while ((grid[i] < p) && (i < grid.size())) {
+    while ((i <= grid.size()) && (grid[i - 1] < p)) {
       ++i;
     }
     // If moving to right, increase index.
-    if (d > 0.0) {
-      ++i;
+    if (d <= 0.0) {
+      --i;
     }
     return i;
   }
@@ -195,13 +198,13 @@ class RegularGrid {
   /**
    * Get relative distance to next intersecting boundary in a given dimension.
    *
-   * @param grid Array holding cell boundaries for given dimension
+   * @param grid Vector holding cell boundaries for given dimension
    * @param index The index of the next boundary for given dimension
    * @param direction Component of the direction vector in this dimension
    * @return Distance to next intersection given as multiple of direction. -1
    * if particle is leaving the grid.
    */
-  __DEV__ Float next_plane(const Array<Float> &grid,
+  __DEV__ Float next_plane(const Vector<Float> &grid,
                            Index index,
                            Float position,
                            Float direction) {
@@ -297,29 +300,29 @@ class RegularGrid {
     }
 
     if (direction.x < 0.0) {
-      if (maths::small(position.x - x_[gp.i - 1]) && (gp.i > 0)) --gp.i;
+      if ((gp.i > 0) && maths::small(position.x - x_[gp.i - 1])) --gp.i;
     } else if (direction.x > 0.0) {
-      if (maths::small(position.x - x_[gp.i - 1]) && (gp.i <= x_.size()))
+      if ((gp.i <= x_.size() && maths::small(position.x - x_[gp.i - 1])))
         ++gp.i;
     }
 
     if (direction.y < 0.0) {
-      if (maths::small(position.y - y_[gp.j - 1]) && (gp.j > 0)) --gp.j;
+      if ((gp.j > 0) && maths::small(position.y - y_[gp.j - 1])) --gp.j;
     } else if (direction.y > 0.0) {
-      if (maths::small(position.y - y_[gp.j - 1]) && (gp.j <= y_.size()))
+      if ((gp.j <= y_.size()) && maths::small(position.y - y_[gp.j - 1]))
         ++gp.j;
     }
 
     if (direction.z < 0.0) {
-      if (maths::small(position.z - z_[gp.k - 1]) && (gp.k > 0)) --gp.k;
+      if ((gp.k > 0) && maths::small(position.z - z_[gp.k - 1])) --gp.k;
     } else if (direction.z > 0.0) {
-      if (maths::small(position.z - z_[gp.k - 1]) && (gp.k <= z_.size()))
+      if ((gp.k <= z_.size()) && maths::small(position.z - z_[gp.k - 1]))
         ++gp.k;
     }
     return l;
   }
 
-  std::tuple<Index, Float> interpolation_weights_1d(const Array<Float> &grid,
+  std::tuple<Index, Float> interpolation_weights_1d(const Vector<Float> &grid,
                                                     Index index,
                                                     Float position) {
     Float next_grid = 0.0;
@@ -373,10 +376,6 @@ class RegularGrid {
    std::tie(left_index_z, weight_z) =
        interpolation_weights_1d(z_, gp.k, gp.z());
    right_index_z = (weight_z == 1.0) ? left_index_z : left_index_z + 1;
-
-   std::cout << "indices_x : " << weight_x << " . "<< left_index_x << " / " << right_index_x << std::endl;
-   std::cout << "indices_y : " << weight_y << " . "<< left_index_y << " / " << right_index_y << std::endl;
-   std::cout << "indices_z : " << weight_z << " . "<< left_index_z << " / " << right_index_z << std::endl;
 
    ResultType tll = ResultType(t(left_index_x, left_index_y, left_index_z));
    ResultType tlr;
@@ -465,9 +464,9 @@ void host() {
 #endif
 
  private:
-  Array<Float> x_;
-  Array<Float> y_;
-  Array<Float> z_;
+  Vector<Float> x_;
+  Vector<Float> y_;
+  Vector<Float> z_;
 };
 
 }  // namespace llrte

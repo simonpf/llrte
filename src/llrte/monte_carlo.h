@@ -77,6 +77,7 @@ class MonteCarlo {
 
     auto tau = generator_.sample_tau();
 
+
     while (true) {
       auto absorption_xc = atmosphere_.get_absorption_coefficient(photon.position);
       auto scattering_xc = atmosphere_.get_scattering_coefficient(photon.position);
@@ -84,7 +85,6 @@ class MonteCarlo {
       auto l = tau / scattering_xc;
       auto d = atmosphere_.step(photon, l);
       tau -= d * scattering_xc;
-
 
       // Check if left atmosphere.
       if (d <= -1.0) {

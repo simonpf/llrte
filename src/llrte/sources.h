@@ -185,9 +185,8 @@ public:
         auto n = geometry::RandomPlane::get_normal(generator, d);
         auto theta = generator.sample_uniform(0, theta_max_);
         auto dn = rotations::rotate(d, n, theta);
-        p.set_direction(dn);
-
-        return p;
+        p.direction = dn;
+        return Photon(atmosphere.place_on_grid(p.position, p.direction));
     }
 
 private:

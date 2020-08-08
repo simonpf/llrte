@@ -3,7 +3,6 @@
 #include <llrte/grids.h>
 #include <llrte/photons.h>
 #include <llrte/scattering.h>
-#include <llrte/solvers/forward.h>
 #include <llrte/sources.h>
 #include <llrte/data.h>
 #include <llrte/surfaces.h>

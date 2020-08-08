@@ -7,7 +7,7 @@ extern "C" {
 
 
 #include <llrte/utils/array.h>
-#include <llrte/data.h>
+#include <llrte/eigen.h>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -26,6 +26,11 @@ extern "C" {
   })
 
 namespace llrte::io {
+
+
+using llrte::eigen::Tensor;
+using llrte::eigen::Index;
+using llrte::eigen::array_cast;
 
 /* Alias for unlimited dimension in NetCDFFile. */
 size_t unlimited = NC_UNLIMITED;
@@ -198,14 +203,14 @@ class NetCDFFile {
    * @param size The dimensions of the file to associate
    *    with the axes of the tensor.
    */
-  template <typename T, size_t rank>
+  template <typename T, int rank>
   void store_variable(const Tensor<T, rank> &t,
                       const std::string &name,
                       const std::array<std::string, rank> &dimensions) {
 
     // Resolve dimensions.
     std::array<int, rank> dim_ids;
-    std::array<size_t, rank> sizes;
+    std::array<Index, rank> sizes;
     for (size_t i = 0; i < rank; ++i) {
       const std::string &dim_name = dimensions[i];
       auto it = dimensions_.find(dim_name);
@@ -218,9 +223,9 @@ class NetCDFFile {
       }
     }
 
-    if (sizes != t.shape()) {
+    if (sizes != t.dimensions()) {
       std::stringstream ss{};
-      ss << "Dimensions " << t.shape()
+      ss << "Dimensions " << t.dimensions()
          << "of tensor do not match "
             "diemsions "
          << sizes << "in NetCDF file.";
@@ -245,10 +250,10 @@ class NetCDFFile {
                  nc_enddef(ncid_));
 
     // Write variable to file.
-    std::array<size_t, rank> size = t.shape();
+    std::array<size_t, rank> size = array_cast<size_t, rank>(t.dimensions());
     std::array<size_t, rank> start{0};
     __NC_ERROR__("Error writing variable to NetCDF File:",
-                 nc_put_vara(ncid_, varid, start.data(), size.data(), t.get_data_pointer()));
+                 nc_put_vara(ncid_, varid, start.data(), size.data(), t.data()));
   }
 
   template <typename T, size_t rank>
@@ -273,10 +278,10 @@ class NetCDFFile {
       std::array<size_t, rank> shape;
       for (size_t i = 0; i < static_cast<size_t>(ndims); ++i) {
           __NC_ERROR__("Error retrieving dimensions of variable.",
-                       nc_inq_dim(ncid_, dimids[i], nullptr, shape.data() + i)) ;
+                       nc_inq_dim(ncid_, dimids[i], nullptr, &shape[i])) ;
       }
 
-      Tensor<T, rank> data_out{shape};
+      Tensor<T, rank> data_out(array_cast<Index, rank>(shape));
 
       /* Read the data. */
       std::array<size_t, rank> start;
@@ -287,7 +292,7 @@ class NetCDFFile {
                                         varid,
                                         start.data(),
                                         shape.data(),
-                                        data_out.get_data_pointer()));
+                                        data_out.data()));
       return data_out;
   }
 

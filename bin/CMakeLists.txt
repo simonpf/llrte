@@ -1,5 +1,7 @@
-include_directories("${PROJECT_SOURCE_DIR}/src/")
 link_libraries(stdc++fs)
+get_target_property(Eigen3_INCLUDE_DIRS Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
+set(Eigen3_INCLUDE_DIRS ${Eigen3_INCLUDE_DIRS} ${Eigen3_INCLUDE_DIRS}/unsupported)
+include_directories("${PROJECT_SOURCE_DIR}/src/" ${Eigen3_INCLUDE_DIRS})
 
 find_package(NetCDF)
 if (NetCDF_FOUND)
@@ -32,6 +34,7 @@ add_executable(exercise_3_a exercise_3_a.cxx)
 add_executable(exercise_3_b_1 exercise_3_b_1.cxx)
 add_executable(exercise_3_b_2 exercise_3_b_2.cxx)
 add_executable(exercise_3_b_3 exercise_3_b_3.cxx)
+
 add_executable(exercise_4_a exercise_4_a.cxx)
 add_executable(exercise_4_ref exercise_4_ref.cxx)
 add_executable(exercise_4_b exercise_4_b.cxx)
