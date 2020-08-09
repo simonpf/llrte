@@ -261,21 +261,46 @@ class AbsorptionTracer : public NoTrace {
    * Stores positions and direction of all photons that enter or leave the
    * domain.
    */
-  template<typename Float>
+  template <typename Float>
   class PhotonTracer : public NoTrace {
-
    public:
-
-  /** Create PhotonTracer for given number of photons
-   *@param n: The number of photons
-   */
+    /** Create PhotonTracer for given number of photons
+     *@param n: The number of photons
+     */
     PhotonTracer(Index n)
         : n_(n),
           i_(0),
           incoming_positions_{{n, 3}},
           incoming_directions_{{n, 3}},
           outgoing_positions_{{n, 3}},
-              outgoing_directions_{{n, 3}} {}
+          outgoing_directions_{{n, 3}},
+          scattering_frequencies_{n} {}
+
+    const Tensor<Float, 2> &get_incoming_positions() const {
+      return incoming_positions_;
+    }
+    const Tensor<Float, 2> &get_incoming_directions() const {
+      return incoming_directions_;
+    }
+    const Tensor<Float, 2> &get_outgoing_positions() const {
+      return outgoing_positions_;
+    }
+    const Tensor<Float, 2> &get_outgoing_directions() const {
+      return outgoing_directions_;
+    }
+    const Tensor<int, 1> &get_scattering_frequencies() const {
+        return scattering_frequencies_;
+    }
+
+    void reset(size_t n) {
+        n_ = n;
+        i_ = 0;
+        incoming_positions_.resize(n, 3);
+        incoming_directions_.resize(n, 3);
+        outgoing_positions_.resize(n, 3);
+        outgoing_directions_.resize(n, 3);
+        scattering_frequencies_.resize(n);
+    }
 
     template <typename Photon>
     void created(const Photon &photon) {
@@ -295,18 +320,19 @@ class AbsorptionTracer : public NoTrace {
       outgoing_directions_.coeffRef(i_, 0) = photon.direction.x;
       outgoing_directions_.coeffRef(i_, 1) = photon.direction.y;
       outgoing_directions_.coeffRef(i_, 2) = photon.direction.z;
+      scattering_frequencies_.coeffRef(i_) = photon.get_scattering_events();
       i_ = (i_ + 1) % n_;
     }
 
     template <typename Photon, typename Atmosphere>
-    void left_atmosphere(const Photon &photon,
-                         const Atmosphere &) {
+    void left_atmosphere(const Photon &photon, const Atmosphere &) {
       outgoing_positions_.coeffRef(i_, 0) = photon.position.x;
       outgoing_positions_.coeffRef(i_, 1) = photon.position.y;
       outgoing_positions_.coeffRef(i_, 2) = photon.position.z;
       outgoing_directions_.coeffRef(i_, 0) = photon.direction.x;
       outgoing_directions_.coeffRef(i_, 1) = photon.direction.y;
       outgoing_directions_.coeffRef(i_, 2) = photon.direction.z;
+      scattering_frequencies_.coeffRef(i_) = photon.get_scattering_events();
       i_ = (i_ + 1) % n_;
     }
 
@@ -330,6 +356,7 @@ class AbsorptionTracer : public NoTrace {
     Tensor<Float, 2> incoming_directions_;
     Tensor<Float, 2> outgoing_positions_;
     Tensor<Float, 2> outgoing_directions_;
+    Tensor<int, 1> scattering_frequencies_;
   };
 
   }  // namespace llrte::tracers

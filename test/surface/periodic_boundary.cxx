@@ -28,9 +28,7 @@ void periodic_boundary() {
     using Tracer = llrte::tracers::PhotonTracer<Float>;
     using Surface = llrte::surfaces::PeriodicBoundary<V3>;
     auto surface = std::make_tuple(Surface(p1_base1, p1_base2, p1_normal),
-                                   Surface(p1_base2, p1_base1, p1_normal2 * -1.0),
-                                   Surface(p2_base1, p2_base2, p2_normal),
-                                   Surface(p2_base2, p2_base1, p2_normal2 * -1.0));
+                                   Surface(p2_base1, p2_base2, p2_normal));
 
     Tracer tracer{n};
     auto test_setup = make_test_atmosphere_random_source(surface, tracer);

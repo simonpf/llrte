@@ -11,6 +11,10 @@
 namespace llrte {
 
 using eigen::Vector;
+using eigen::Index;
+using eigen::ConstVectorMap;
+using eigen::Tensor;
+using eigen::array_cast;
 
 /**
  * The simplest scattering class: No scattering at all. This class basically
@@ -100,12 +104,15 @@ class BidirectionalScattering {
   F fb_ratio_;
 };
 
-template <typename F, typename ScatteringPlane = geometry::RandomPlane>
+template <typename T>
+using ConstVectorRef = const Vector<T> &;
+
+template <typename F, typename ScatteringPlane = geometry::RandomPlane,
+        template <typename> typename VectorType = ConstVectorRef>
 class NumericPhaseFunction {
  public:
-  NumericPhaseFunction(const Vector<F> &sa,
-                       const Vector<F> &p_int)
- : p_int_(p_int), sa_(sa) {}
+  NumericPhaseFunction(VectorType<F> sa, VectorType<F> p_int)
+      : p_int_(p_int), sa_(sa) {}
 
   template <typename Generator, typename Photon>
   void scatter(Generator &g, Photon &p) const {
@@ -132,9 +139,9 @@ class NumericPhaseFunction {
     p.change_direction(nd);
   }
 
-  private:
-  const Vector<F> &p_int_;
-  const Vector<F> &sa_;
+ private:
+  VectorType<F> p_int_;
+  VectorType<F> sa_;
 };
 
 template <typename F, typename ScatteringPlane = geometry::RandomPlane>
@@ -243,5 +250,92 @@ public:
   Vector<Float> sa_;
   Vector<Float> p_int_;
 };
+
+template <typename Grid>
+class GriddedOpticalProperties {
+ using Float = typename std::remove_reference<typename Grid::Float>::type;
+ public:
+
+    using PhaseFun =
+        NumericPhaseFunction<Float, geometry::RandomPlane, eigen::ConstVectorMap>;
+
+  class AbsorptionModel {
+   public:
+    AbsorptionModel(GriddedOpticalProperties *opt_props)
+        : opt_props_(opt_props) {}
+
+    template <typename GridPosition>
+    Float get_absorption_coefficient(Grid &/*grid*/, GridPosition gp) {
+      return opt_props_->get_absorption_coefficient(gp);
+    }
+
+   private:
+    GriddedOpticalProperties *opt_props_;
+  };
+
+  AbsorptionModel get_absorption_model() {
+      return AbsorptionModel(this);
+  }
+
+  class ScatteringModel {
+   public:
+      using PhaseFunction = PhaseFun;
+    ScatteringModel(GriddedOpticalProperties *opt_props)
+        : opt_props_(opt_props) {}
+
+    template <typename GridPosition>
+    Float get_scattering_coefficient(Grid & /*grid*/, GridPosition gp) {
+      return opt_props_->get_scattering_coefficient(gp);
+    }
+
+    template <typename GridPosition>
+    PhaseFunction get_phase_function(Grid & /*grid*/, GridPosition gp) {
+      return opt_props_->get_phase_function(gp);
+    }
+
+   private:
+    GriddedOpticalProperties *opt_props_;
+  };
+
+  ScatteringModel get_scattering_model() {
+      return ScatteringModel(this);
+  }
+
+  GriddedOpticalProperties(Grid &grid, Vector<Float> scattering_angles,
+                           Tensor<Float, 3> absorption_coefficient,
+                           Tensor<Float, 3> scattering_coefficient,
+                           Tensor<Float, 4> phase_function)
+      : grid_(grid),
+        scattering_angles_(scattering_angles),
+        scattering_angle_map_(scattering_angles_.data(),
+                              scattering_angles_.size()),
+        absorption_coefficient_(absorption_coefficient),
+      scattering_coefficient_(scattering_coefficient),
+        phase_function_(phase_function) {}
+
+  template <typename GridPosition>
+  Float get_scattering_coefficient(GridPosition gp) {
+      return scattering_coefficient_(gp.template get_index_array<Index>());
+  }
+
+  template <typename GridPosition>
+  Float get_absorption_coefficient(GridPosition gp) {
+      return absorption_coefficient_(gp.template get_index_array<Index>());
+  }
+
+  template <typename GridPosition>
+  PhaseFun get_phase_function(GridPosition gp) {
+      return PhaseFun(scattering_angle_map_, phase_function_(gp.template get_index_array<Index>()));
+  }
+
+ private:
+  Grid &grid_;
+  Vector<Float> scattering_angles_;
+  ConstVectorMap<Float> scattering_angle_map_;
+  Tensor<Float, 3> absorption_coefficient_;
+  Tensor<Float, 3> scattering_coefficient_;
+  Tensor<Float, 4> phase_function_;
+};
+
 }  // namespace llrte
 #endif

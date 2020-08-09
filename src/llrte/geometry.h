@@ -140,7 +140,7 @@ Matrix orthonormal_basis(const Vector &v) {
 template <typename Vector>
 class Plane {
  public:
-  using Float = Vector::Float;
+  using Float = typename Vector::Float;
   /** Create a plane.
    * @base The base vector of the plane
    * @base The normal vector of the plane.

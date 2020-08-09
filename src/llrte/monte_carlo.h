@@ -79,18 +79,19 @@ class MonteCarlo {
 
 
     while (true) {
-      auto absorption_xc = atmosphere_.get_absorption_coefficient(photon.position);
-      auto scattering_xc = atmosphere_.get_scattering_coefficient(photon.position);
+
+    // Check if left atmosphere.
+    if (atmosphere_.is_leaving(photon)) {
+        tracer_.left_atmosphere(photon, atmosphere_);
+        break;
+    }
+
+      auto absorption_xc = atmosphere_.get_absorption_coefficient(photon);
+      auto scattering_xc = atmosphere_.get_scattering_coefficient(photon);
 
       auto l = tau / scattering_xc;
       auto d = atmosphere_.step(photon, l);
       tau -= d * scattering_xc;
-
-      // Check if left atmosphere.
-      if (d <= -1.0) {
-        tracer_.left_atmosphere(photon, atmosphere_);
-        break;
-      }
 
       // Handle absorption.
       auto f_abs = exp(-absorption_xc * d);
@@ -103,7 +104,7 @@ class MonteCarlo {
 
       // Check if scattering event.
       if (l <= d) {
-        auto phase_function = atmosphere_.get_phase_function(photon.position);
+        auto phase_function = atmosphere_.get_phase_function(photon);
         photon.scatter(generator_, phase_function);
         tau = generator_.sample_tau();
         tracer_.scattering(photon);

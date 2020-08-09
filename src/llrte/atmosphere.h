@@ -39,15 +39,15 @@ template <typename Grid, typename AbsorptionModel, typename ScatteringModel,
 class Atmosphere {
  public:
   /** The floating point type used to represent scalars. */
-  using Float = typename Grid::Float;
+ using Float = typename std::remove_reference<typename std::remove_reference<Grid>::type::Float>::type;
   /** The class representing the phase function. */
   using PhaseFunction = typename ScatteringModel::PhaseFunction;
 
-  Atmosphere(Grid &&grid,
+  Atmosphere(Grid grid,
              AbsorptionModel absorption_model,
              ScatteringModel scattering_model,
              Boundaries boundaries = Boundaries{})
- : grid_(std::forward<Grid>(grid)),
+ : grid_(grid),
         absorption_model_(absorption_model),
         scattering_model_(scattering_model),
         boundaries_(boundaries) {
@@ -126,6 +126,10 @@ class Atmosphere {
     return grid_.is_inside(position);
   }
 
+    template <typename Photon>
+    __DEV__ bool is_leaving(Photon &photon) {
+        return grid_.is_leaving(photon);
+   }
   /** Compute next intersection with grid.
    *
    * Computes the position where the photon will hit the next grid

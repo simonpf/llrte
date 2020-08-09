@@ -38,6 +38,7 @@ include(macros)
 #
 # Libraries.
 #
+find_package(pxx)
 find_package(Eigen3)
 find_package(PythonInterp)
 

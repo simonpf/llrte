@@ -3,11 +3,14 @@
 
 #include <string>
 #include <algorithm>
-#include "llrte/data.h"
+#include "llrte/eigen.h"
 #include "llrte/io/netcdf.h"
 #include "llrte/rotations.h"
 
+
 namespace llrte {
+
+using eigen::Vector;
 
 template <
     typename Photon
