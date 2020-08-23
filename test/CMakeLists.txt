@@ -5,6 +5,7 @@ add_subdirectory(maths)
 add_subdirectory(random)
 add_subdirectory(grid)
 add_subdirectory(scattering)
+add_subdirectory(sensor)
 
 file(GLOB_RECURSE PYTHON_FILES
   RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}

@@ -77,21 +77,32 @@ class MonteCarlo {
 
     auto tau = generator_.sample_tau();
 
+    int i = 0;
 
+    Photon old = photon;
+
+    Photon older = old;
+
+    std::cout << "PROPAGATING: " << photon << std::endl;
     while (true) {
-
-    // Check if left atmosphere.
-    if (atmosphere_.is_leaving(photon)) {
-        tracer_.left_atmosphere(photon, atmosphere_);
-        break;
-    }
+        ++i;
 
       auto absorption_xc = atmosphere_.get_absorption_coefficient(photon);
       auto scattering_xc = atmosphere_.get_scattering_coefficient(photon);
 
+      older = old;
+      old = photon;
+
       auto l = tau / scattering_xc;
       auto d = atmosphere_.step(photon, l);
       tau -= d * scattering_xc;
+
+      if (d < 0.0) {
+          std::cout << "DNEGATIVE -> ABORTING" << std::endl;
+          std::cout << older << std::endl;
+          std::cout << photon << std::endl;
+          break;
+      }
 
       // Handle absorption.
       auto f_abs = exp(-absorption_xc * d);
@@ -102,18 +113,28 @@ class MonteCarlo {
         break;
       }
 
+      // Check if left atmosphere.
+      if (atmosphere_.is_leaving(photon)) {
+          tracer_.left_atmosphere(photon, atmosphere_);
+          break;
+      }
+
       // Check if scattering event.
       if (l <= d) {
         auto phase_function = atmosphere_.get_phase_function(photon);
         photon.scatter(generator_, phase_function);
         tau = generator_.sample_tau();
         tracer_.scattering(photon);
-      } else {
-        bool hit = atmosphere_.apply_boundaries(generator_, photon);
-        if (hit) {
-            photon = atmosphere_.place_on_grid(photon.position,
-                                               photon.direction);
-        }
+      }
+
+      bool hit = atmosphere_.apply_boundaries(generator_, photon);
+      if (hit) {
+          photon = atmosphere_.place_on_grid(photon.position,
+                                             photon.direction);
+      }
+      if ((old.i == photon.i) && (old.j == photon.j) && (old.k == photon.k) &&
+          (old.direction == photon.direction) && (old.position == photon.position)) {
+          std::cout << "STALLING: " << l << " / " << d  << old << std::endl << photon << std::endl;
       }
     }
      return photon;

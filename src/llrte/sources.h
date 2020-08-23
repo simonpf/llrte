@@ -199,7 +199,7 @@ private:
 /** Planar Source
  *
  * This is a planar source, which implements the backwards interface, i.e.
- * it provides a get_itensity method, which can be used to determin source
+ * it provides a get_itensity method, which can be used to determine source
  * irradiance given an outgoing backwards photon.
  */
 template <typename P>
@@ -229,7 +229,7 @@ class PlanarSource {
    * @param p The outgoing photon.
    */
   Float get_intensity(const Photon &p) {
-      if (geometry::angle(p.direction, normal_) < dtheta_) {
+      if (geometry::angle(p.direction * -1.0, normal_) < dtheta_) {
       return 1.0 / domega_;
     } else {
       return 0.0;

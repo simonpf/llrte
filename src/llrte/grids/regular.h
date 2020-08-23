@@ -51,27 +51,27 @@ struct GridPosition {
 
   void change_direction(Vector d) {
       if ((d.x * direction.x) <= 0) {
-          if (d.x < 0.0) {
+          if ((d.x < 0.0) && (direction.x > 0.0)) {
               --i;
           } else if (d.x > 0.0) {
               ++i;
           }
       }
       if ((d.y * direction.y) <= 0) {
-          if (d.y < 0.0) {
+          if ((d.y < 0.0) && (direction.y > 0.0)) {
               --j;
           } else if (d.y > 0.0) {
               ++j;
           }
       }
       if ((d.z * direction.z) <= 0) {
-          if (d.z < 0.0) {
+          if ((d.z < 0.0) && (direction.z > 0)) {
               --k;
           } else if (d.z > 0.0) {
               ++k;
           }
       }
-      direction = d;
+      direction = d.normed();
   }
 
   template <typename IndexType>
@@ -195,7 +195,7 @@ struct GridPosition {
           while ((i <= grid.size()) && (grid[i - 1] < p)) {
             ++i;
           }
-          // If moving to right, increase index.
+          // If moving to left, decrease index.
           if (d <= 0.0) {
             --i;
           }
@@ -219,7 +219,7 @@ struct GridPosition {
           Index j = find_next_index(y_, position.y, direction.y);
           Index k = find_next_index(z_, position.z, direction.z);
 
-          return GridPosition<Vector, Index>{position, direction, i, j, k};
+          return GridPosition<Vector, Index>{position, direction.normed(), i, j, k};
         }
 
         /**
@@ -288,6 +288,7 @@ struct GridPosition {
           Float dy = next_plane(y_, gp.j, position.y, direction.y);
           Float dz = next_plane(z_, gp.k, position.z, direction.z);
 
+
           if (dx < 0.0 || dy < 0.0 || dz < 0.0) {
             return -1.0;
           }
@@ -320,16 +321,19 @@ struct GridPosition {
             position.y += d * direction.y;
             position.z += d * direction.z;
             if (di == 0) {
+              position.x = x_[gp.i - 1];
               if (direction.x < 0.0)
                 --gp.i;
               else
                 ++gp.i;
             } else if (di == 1) {
+              position.y = y_[gp.j - 1];
               if (direction.y < 0.0)
                 --gp.j;
               else
                 ++gp.j;
             } else if (di == 2) {
+              position.z = z_[gp.k - 1];
               if (direction.z < 0.0)
                 --gp.k;
               else

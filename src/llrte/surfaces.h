@@ -197,12 +197,14 @@ class PeriodicBoundary {
   template <typename Photon>
   bool has_crossed(const Photon &p) {
     auto pos = p.position;
+    auto dir = p.direction;
     auto dn = dot(pos - base_1_, normal_);
-    if (maths::small(dn) || dn <= 0.0) {
+    auto dd = dot(dir, normal_);
+    if (dd < 0.0 && (maths::small(dn) || dn <= 0.0)) {
       return true;
     }
     dn = dot(pos - base_2_, normal_);
-    if (maths::small(dn) || dn >= 0.0) {
+    if (dd > 0.0 && (maths::small(dn) || dn >= 0.0)) {
       return true;
     }
     return false;

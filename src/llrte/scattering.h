@@ -119,6 +119,7 @@ class NumericPhaseFunction {
     auto r = g.sample_uniform();
 
     size_t i = 0;
+
     while (r > p_int_[i]) {
       i++;
     }

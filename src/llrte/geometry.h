@@ -157,7 +157,11 @@ class Plane {
    */
   Float get_side(const Vector &position) {
     Vector d = position - base_;
-    if (dot(d, normal_) > 0.0) {
+    auto ld = dot(d, normal_);
+    if (maths::small(ld)) {
+        return 0.0;
+    }
+    if (ld > 0.0) {
       return 1.0;
     }
     return -1.0;
@@ -169,13 +173,13 @@ class Plane {
    * the plane and moving in the opposite direction of the normal vector.
    *
    * @position position Current-position vector of the object.
-   * @position direction Direction of the objectk
+   * @position direction Direction of the object
    */
   bool has_crossed(const Vector &position, const Vector &direction) {
     if (dot(direction, normal_) >= 0.0) {
       return false;
     }
-    return get_side(position) < 0.0;
+    return get_side(position) <= 0.0;
   }
 
  protected:

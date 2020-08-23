@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <iostream>
+#include <array>
 
 #include "llrte/common.h"
 
@@ -38,6 +39,7 @@ struct Vector3 {
  */
   Vector3(Float x_, Float y_, Float z_) : x(x_), y(y_), z(z_) {}
 
+  Vector3(std::array<Float, 3> coords) : x(coords[0]), y(coords[1]), z(coords[2]) {}
     /**
      * Add two vectors
      * @param other The vector to add to this
@@ -79,7 +81,7 @@ struct Vector3 {
      * @param other The vector to compare with
      * @return true if all components are equal
      */
-    __DEV__ Vector3 operator==(const Vector3 &other)  const {
+    __DEV__ bool operator==(const Vector3 &other)  const {
         return (x == other.x) && (y == other.y) && (z == other.z);
     }
 

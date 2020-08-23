@@ -70,7 +70,8 @@ __DEV__ Photon(GridPosition grid_position)
 template <typename Vector, template <typename> typename GridPosition>
 std::ostream& operator<<(std::ostream& os,
                          const Photon<Vector, GridPosition>& p) {
-    os << "Photon(e = " << p.get_energy() << ") @ " << p.position << " -> " << p.direction << std::endl;
+    os << "Photon(e = " << p.get_energy() << ") @ " << p.position << " -> " << p.direction << " (" << p.direction.length() << ")" << std::endl;
+    os << (GridPosition<Vector>) p << std::endl;
     return os;
 }
 
