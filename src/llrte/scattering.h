@@ -252,13 +252,18 @@ public:
   Vector<Float> p_int_;
 };
 
+/** Optical properties on 3D regular grid.
+ *
+ * This class holds scattering properties (absorption coeff.,
+ * scattering coeff. and phase matrix) on a 3D grid. 
+ */
 template <typename Grid>
 class GriddedOpticalProperties {
  using Float = typename std::remove_reference<typename Grid::Float>::type;
  public:
 
     using PhaseFun =
-        NumericPhaseFunction<Float, geometry::RandomPlane, eigen::ConstVectorMap>;
+        NumericPhaseFunction<Float, geometry::RandomPlane, eigen::ConstVectorRef>;
 
   class AbsorptionModel {
    public:
@@ -305,7 +310,7 @@ class GriddedOpticalProperties {
   GriddedOpticalProperties(Grid &grid, Vector<Float> scattering_angles,
                            Tensor<Float, 3> absorption_coefficient,
                            Tensor<Float, 3> scattering_coefficient,
-                           Tensor<Float, 4> phase_function)
+                           Vector<Float> phase_function)
       : grid_(grid),
         scattering_angles_(scattering_angles),
         scattering_angle_map_(scattering_angles_.data(),
@@ -314,28 +319,43 @@ class GriddedOpticalProperties {
       scattering_coefficient_(scattering_coefficient),
         phase_function_(phase_function) {}
 
+  /** Returns scattering coefficient at given grid position.
+   * @gp The current grid position.
+   * @return The scattering coefficient at the given grid position.
+   */
   template <typename GridPosition>
   Float get_scattering_coefficient(GridPosition gp) {
-      return scattering_coefficient_(gp.template get_index_array<Index>());
+      auto indices = gp.template get_index_array<Index>(grid_);
+      return scattering_coefficient_(gp.template get_index_array<Index>(grid_));
   }
 
+  /** Returns absorption coefficient at given grid position.
+   * @gp The current grid position.
+   * @return The absorption coefficient at the given grid position.
+   */
   template <typename GridPosition>
   Float get_absorption_coefficient(GridPosition gp) {
-      return absorption_coefficient_(gp.template get_index_array<Index>());
+      return absorption_coefficient_(gp.template get_index_array<Index>(grid_));
   }
 
+  /** Returns phase function at given grid position.
+   * @gp The current grid position.
+   * @return NumericalPhaseFunction object representing the scattering
+   * phase function.
+   */
   template <typename GridPosition>
-  PhaseFun get_phase_function(GridPosition gp) {
-      return PhaseFun(scattering_angle_map_, phase_function_(gp.template get_index_array<Index>()));
+  PhaseFun get_phase_function(GridPosition /*gp*/) {
+      return PhaseFun(scattering_angle_map_, phase_function_(phase_function_));
   }
 
  private:
+
   Grid &grid_;
   Vector<Float> scattering_angles_;
   ConstVectorMap<Float> scattering_angle_map_;
   Tensor<Float, 3> absorption_coefficient_;
   Tensor<Float, 3> scattering_coefficient_;
-  Tensor<Float, 4> phase_function_;
+  Vector<Float> phase_function_;
 };
 
 }  // namespace llrte

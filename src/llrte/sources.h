@@ -66,7 +66,7 @@ class BeamSource {
    * @param position The position at which to place the source.
    * @param direction The direction in which to emits photons.
    */
-BeamSource(Vector position, Vector direction) : position_(position), direction_(direction) {}
+  BeamSource(Vector position, Vector direction) : position_(position), direction_(direction) {}
 
   /**
    * Emit photon in given direction and place on atmosphere grid.
@@ -229,11 +229,7 @@ class PlanarSource {
    * @param p The outgoing photon.
    */
   Float get_intensity(const Photon &p) {
-      if (geometry::angle(p.direction * -1.0, normal_) < dtheta_) {
-      return 1.0 / domega_;
-    } else {
-      return 0.0;
-    }
+      return std::max<float>(dot(p.direction, normal_), 0.0);
   }
 
  private:

@@ -64,8 +64,7 @@ def get_phase_function_field(n_particles, scattering_data):
     n_dims = len(n_particles.shape)
 
     pf = scattering_data.get_phase_function_integral()
-    pf = pf.reshape([1,] * (n_dims) + [-1])
-    return np.ones(n_particles.shape)[..., np.newaxis] * pf
+    return pf
 
 scattering_data = ScatteringData("data/scattering_data_azimuthally_random.nc")
 n = 201

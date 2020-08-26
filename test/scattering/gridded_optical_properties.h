@@ -13,34 +13,36 @@
 #include <llrte/monte_carlo.h>
 #include <llrte/types/vector.h>
 
+using V3 = llrte::Vector3<float>;
+using Float = float;
+using Grid = llrte::RegularGrid<Float>;
+using OpticalProperties = llrte::GriddedOpticalProperties<Grid>;
+using AbsorptionModel = OpticalProperties::AbsorptionModel;
+using ScatteringModel = OpticalProperties::ScatteringModel;
+using Atmosphere =
+    llrte::Atmosphere<Grid&, AbsorptionModel, ScatteringModel, std::tuple<>>;
+using Photon = llrte::Photon<V3, llrte::GridPosition>;
+using Source = llrte::BeamSource<Photon>;
+using Generator = llrte::Generator<Float>;
+using Tracer = llrte::tracers::PhotonTracer<Float>;
+using Solver = llrte::MonteCarlo<Atmosphere, Generator, Tracer&>;
+
+using Vector = llrte::eigen::Vector<Float>;
+template<size_t rank>
+    using Tensor = llrte::eigen::Tensor<Float, rank>;
+using PhaseFunctionTensor = llrte::eigen::Tensor<Float, 4>;
+using CoefficientTensor = llrte::eigen::Tensor<Float, 3>;
+using Results = std::tuple<Tensor<2>, Tensor<2>, Tensor<2>, Tensor<2>, llrte::eigen::Tensor<int, 1>>;
+
 // pxx :: export
 class PointScattering {
- public:
-  using V3 = llrte::Vector3<float>;
-  using Float = float;
-  using Grid = llrte::RegularGrid<Float>;
-  using OpticalProperties = llrte::GriddedOpticalProperties<Grid>;
-  using AbsorptionModel = OpticalProperties::AbsorptionModel;
-  using ScatteringModel = OpticalProperties::ScatteringModel;
-  using Atmosphere =
-      llrte::Atmosphere<Grid&, AbsorptionModel, ScatteringModel, std::tuple<>>;
-  using Photon = llrte::Photon<V3, llrte::GridPosition>;
-  using Source = llrte::BeamSource<Photon>;
-  using Generator = llrte::Generator<Float>;
-  using Tracer = llrte::tracers::PhotonTracer<Float>;
-  using Solver = llrte::MonteCarlo<Atmosphere, Generator, Tracer&>;
 
-  using Vector = llrte::eigen::Vector<Float>;
-  template<size_t rank>
-      using Tensor = llrte::eigen::Tensor<Float, rank>;
-  using PhaseFunctionTensor = llrte::eigen::Tensor<Float, 4>;
-  using CoefficientTensor = llrte::eigen::Tensor<Float, 3>;
-  using Results = std::tuple<Tensor<2>, Tensor<2>, Tensor<2>, Tensor<2>, llrte::eigen::Tensor<int, 1>>;
+public:
 
   PointScattering(Vector x, Vector y, Vector z, Vector scattering_angles,
                   CoefficientTensor absorption_coefficient,
                   CoefficientTensor scattering_coefficient,
-                  PhaseFunctionTensor phase_function)
+                  Vector phase_function)
       :
 
         grid_(x, y, z),

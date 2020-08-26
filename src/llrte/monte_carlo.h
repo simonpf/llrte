@@ -83,9 +83,7 @@ class MonteCarlo {
 
     Photon older = old;
 
-    std::cout << "PROPAGATING: " << photon << std::endl;
     while (true) {
-        ++i;
 
       auto absorption_xc = atmosphere_.get_absorption_coefficient(photon);
       auto scattering_xc = atmosphere_.get_scattering_coefficient(photon);
@@ -113,6 +111,13 @@ class MonteCarlo {
         break;
       }
 
+      // Handle surfaces
+      bool hit = atmosphere_.apply_boundaries(generator_, photon);
+      if (hit) {
+          photon = atmosphere_.place_on_grid(photon.position,
+                                             photon.direction);
+      }
+
       // Check if left atmosphere.
       if (atmosphere_.is_leaving(photon)) {
           tracer_.left_atmosphere(photon, atmosphere_);
@@ -125,12 +130,6 @@ class MonteCarlo {
         photon.scatter(generator_, phase_function);
         tau = generator_.sample_tau();
         tracer_.scattering(photon);
-      }
-
-      bool hit = atmosphere_.apply_boundaries(generator_, photon);
-      if (hit) {
-          photon = atmosphere_.place_on_grid(photon.position,
-                                             photon.direction);
       }
       if ((old.i == photon.i) && (old.j == photon.j) && (old.k == photon.k) &&
           (old.direction == photon.direction) && (old.position == photon.position)) {
